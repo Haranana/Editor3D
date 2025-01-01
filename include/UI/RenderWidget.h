@@ -1,0 +1,4 @@
+#ifndef RENDERWIDGET_H
+#define RENDERWIDGET_H
+
+#endif // RENDERWIDGET_H
