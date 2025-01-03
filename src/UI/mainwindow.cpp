@@ -80,30 +80,36 @@ void MainWindow::setupUI()
     sceneObjectSliderScaleX = new QSlider(Qt::Horizontal, rightPanel);
     sceneObjectSliderScaleY = new QSlider(Qt::Horizontal, rightPanel);
     sceneObjectSliderScaleZ = new QSlider(Qt::Horizontal, rightPanel);
-    sceneObjectSliderScaleX->setRange(-200, 200);
-    sceneObjectSliderScaleY->setRange(-200, 200);
-    sceneObjectSliderScaleZ->setRange(-200, 200);
+    sceneObjectSliderScaleX->setRange(0, 300);
+    sceneObjectSliderScaleY->setRange(0, 300);
+    sceneObjectSliderScaleZ->setRange(0, 300);
+    sceneObjectSliderScaleX->setValue(100);
+    sceneObjectSliderScaleY->setValue(100);
+    sceneObjectSliderScaleZ->setValue(100);
 
-    sceneObjectSpinScaleX =  new QSpinBox(rightPanel);
-    sceneObjectSpinScaleY =  new QSpinBox(rightPanel);
-    sceneObjectSpinScaleZ =  new QSpinBox(rightPanel);
-    sceneObjectSpinScaleX->setRange(-200, 200);
-    sceneObjectSpinScaleY->setRange(-200, 200);
-    sceneObjectSpinScaleZ->setRange(-200, 200);
+    sceneObjectSpinScaleX =  new QDoubleSpinBox(rightPanel);
+    sceneObjectSpinScaleY =  new QDoubleSpinBox(rightPanel);
+    sceneObjectSpinScaleZ =  new QDoubleSpinBox(rightPanel);
+    sceneObjectSpinScaleX->setRange(0.0, 3.0);
+    sceneObjectSpinScaleY->setRange(0.0, 3.0);
+    sceneObjectSpinScaleZ->setRange(0.0, 3.0);
+    sceneObjectSpinScaleX->setValue(1.0);
+    sceneObjectSpinScaleY->setValue(1.0);
+    sceneObjectSpinScaleZ->setValue(1.0);
 
     sceneObjectSliderRotX = new QSlider(Qt::Horizontal, rightPanel);
     sceneObjectSliderRotY = new QSlider(Qt::Horizontal, rightPanel);
     sceneObjectSliderRotZ = new QSlider(Qt::Horizontal, rightPanel);
-    sceneObjectSliderRotX->setRange(-200, 200);
-    sceneObjectSliderRotY->setRange(-200, 200);
-    sceneObjectSliderRotZ->setRange(-200, 200);
+    sceneObjectSliderRotX->setRange(0, 360);
+    sceneObjectSliderRotY->setRange(0, 360);
+    sceneObjectSliderRotZ->setRange(0, 360);
 
     sceneObjectSpinRotX =  new QSpinBox(rightPanel);
     sceneObjectSpinRotY =  new QSpinBox(rightPanel);
     sceneObjectSpinRotZ =  new QSpinBox(rightPanel);
-    sceneObjectSpinRotX->setRange(-200, 200);
-    sceneObjectSpinRotY->setRange(-200, 200);
-    sceneObjectSpinRotZ->setRange(-200, 200);
+    sceneObjectSpinRotX->setRange(0, 360);
+    sceneObjectSpinRotY->setRange(0, 360);
+    sceneObjectSpinRotZ->setRange(0, 360);
 
     rightLayout->addRow("Pos X:", sceneObjectSliderPosX);
     rightLayout->addRow("", sceneObjectSpinPosX);
@@ -145,9 +151,9 @@ void MainWindow::setupUI()
     connect(sceneObjectSliderScaleY, &QSlider::valueChanged, this, &MainWindow::onSceneObjectScaleChangedSlider);
     connect(sceneObjectSliderScaleZ, &QSlider::valueChanged, this, &MainWindow::onSceneObjectScaleChangedSlider);
 
-    connect(sceneObjectSpinScaleX,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
-    connect(sceneObjectSpinScaleY,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
-    connect(sceneObjectSpinScaleZ,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
+    connect(sceneObjectSpinScaleX,  QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
+    connect(sceneObjectSpinScaleY,  QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
+    connect(sceneObjectSpinScaleZ,  QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
 
     connect(sceneObjectSliderRotX, &QSlider::valueChanged, this, &MainWindow::onSCeneObjectRotChangedSlider);
     connect(sceneObjectSliderRotY, &QSlider::valueChanged, this, &MainWindow::onSCeneObjectRotChangedSlider);
@@ -310,16 +316,16 @@ void MainWindow::onSceneObjectScaleChangedSpin()
     double spinValueZ = sceneObjectSpinScaleZ->value();
 
     if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSliderScaleX->setValue(sceneObjectSpinScaleX->value());
-        sliderValueX = sceneObjectSpinScaleX->value();
+        sceneObjectSliderScaleX->setValue(sceneObjectSpinScaleX->value()*100);
+        sliderValueX = sceneObjectSpinScaleX->value()*100;
     }
     if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSliderScaleY->setValue(sceneObjectSpinScaleY->value());
-        sliderValueY = sceneObjectSpinScaleY->value();
+        sceneObjectSliderScaleY->setValue(sceneObjectSpinScaleY->value()*100);
+        sliderValueY = sceneObjectSpinScaleY->value()*100;
     }
     if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSliderScaleZ->setValue(sceneObjectSpinScaleZ->value());
-        sliderValueZ = sceneObjectSpinScaleZ->value();
+        sceneObjectSliderScaleZ->setValue(sceneObjectSpinScaleZ->value()*100);
+        sliderValueZ = sceneObjectSpinScaleZ->value()*100;
     }
 
     Vector3 newScale(spinValueX, spinValueY, spinValueZ);
@@ -342,18 +348,18 @@ void MainWindow::onSceneObjectScaleChangedSlider()
     double spinValueZ = sceneObjectSpinScaleZ->value();
 
     if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSpinScaleX->setValue(sliderValueX);
-        spinValueX = sliderValueX;
+        sceneObjectSpinScaleX->setValue(sliderValueX/100);
+        spinValueX = sliderValueX/100;
     }
 
     if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSpinScaleY->setValue(sliderValueY);
-        spinValueY = sliderValueY;
+        sceneObjectSpinScaleY->setValue(sliderValueY/100);
+        spinValueY = sliderValueY/100;
     }
 
     if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSpinScaleZ->setValue(sliderValueZ);
-        spinValueZ = sliderValueZ;
+        sceneObjectSpinScaleZ->setValue(sliderValueZ/100);
+        spinValueZ = sliderValueZ/100;
     }
 
     currentObject->transform.setScales(Vector3(spinValueX, spinValueY, spinValueZ));
@@ -418,7 +424,7 @@ void MainWindow::onSCeneObjectRotChangedSlider()
         spinValueZ = sliderValueZ;
     }
 
-    currentObject->transform.setAngles(Vector3(spinValueX, spinValueY, spinValueZ));
+    currentObject->transform.setAngles(Vector3(spinValueX, spinValueY, spinValueZ), false);
 
     refreshScene();
 }

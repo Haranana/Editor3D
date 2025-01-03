@@ -10,7 +10,6 @@ release/Color.o
 release/Colors.o
 release/LinePainter.o
 release/PixelPainter.o
-release/Rasterizer.o
 release/Renderer.o
 release/RenderingSurface.o
 release/Camera.o

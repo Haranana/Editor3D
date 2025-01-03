@@ -5,7 +5,6 @@
 #include "RenderingSurface.h"
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
-#include "Rendering/PaintObjectMethods.h"
 #include "Math/Vectors.h"
 #include "LinePainter.h"
 

@@ -54,9 +54,9 @@ private:
     QSlider* sceneObjectSliderScaleX = nullptr;
     QSlider* sceneObjectSliderScaleY = nullptr;
     QSlider* sceneObjectSliderScaleZ = nullptr;
-    QSpinBox* sceneObjectSpinScaleX = nullptr;
-    QSpinBox* sceneObjectSpinScaleY = nullptr;
-    QSpinBox* sceneObjectSpinScaleZ = nullptr;
+    QDoubleSpinBox* sceneObjectSpinScaleX = nullptr;
+    QDoubleSpinBox* sceneObjectSpinScaleY = nullptr;
+    QDoubleSpinBox* sceneObjectSpinScaleZ = nullptr;
 
     QSlider* sceneObjectSliderRotX = nullptr;
     QSlider* sceneObjectSliderRotY = nullptr;

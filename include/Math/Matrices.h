@@ -21,8 +21,8 @@ namespace Matrices4 {
  Matrix4 scaling(double x, double y, double z);
  Matrix4 rotation(double angleX, double angleY, double angleZ);
  Matrix4 rotationX(double angle);
- Matrix4 rotationX(double angle);
- Matrix4 rotationX(double angle);
+ Matrix4 rotationY(double angle);
+ Matrix4 rotationZ(double angle);
 }
 
 #endif // MATRICES_H

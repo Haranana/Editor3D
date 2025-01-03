@@ -10,7 +10,6 @@ debug/Color.o
 debug/Colors.o
 debug/LinePainter.o
 debug/PixelPainter.o
-debug/Rasterizer.o
 debug/Renderer.o
 debug/RenderingSurface.o
 debug/Camera.o

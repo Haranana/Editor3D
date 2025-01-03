@@ -73,7 +73,9 @@ Matrix4 scaling(double x, double y, double z) {
     }});
 }
 
-
+Matrix4 rotation(double angleX , double angleY, double angleZ) {
+    return Matrices4::rotationZ(angleZ) * Matrices4::rotationY(angleY) * Matrices4::rotationX(angleX);
+}
 
 Matrix4 rotationX(double angle) {
     return Matrix4({{
@@ -102,7 +104,5 @@ Matrix4 rotationZ(double angle) {
     }});
 }
 
-Matrix4 rotation(double angleX , double angleY, double angleZ) {
-    return Matrices4::rotationZ(angleZ) * Matrices4::rotationY(angleY) * Matrices4::rotationX(angleX);
-}
+
 }
