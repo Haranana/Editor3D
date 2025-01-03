@@ -34,5 +34,6 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
 
     edges.push_back({ vertices[6], vertices[7] });
 
-    transform.setPosition(startingPosition);
+    //transform.setPosition(startingPosition);
+    //transform.setPosition(Vector3(0,0,0));
 }

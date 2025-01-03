@@ -5,7 +5,6 @@
 
 class Camera{
 public:
-    Camera();
 
     Transform3D transform;
 

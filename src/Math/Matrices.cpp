@@ -73,13 +73,36 @@ Matrix4 scaling(double x, double y, double z) {
     }});
 }
 
+
+
+Matrix4 rotationX(double angle) {
+    return Matrix4({{
+        {1,       0,        0,       0},
+        {0,  cos(angle),  -sin(angle),       0},
+        {0,  sin(angle),   cos(angle),       0},
+        {0,       0,        0,       1}
+    }});
+}
+
+Matrix4 rotationY(double angle) {
+    return Matrix4({{
+        { cos(angle),  0, sin(angle), 0},
+        {      0,  1,      0, 0},
+        {-sin(angle), 0, cos(angle), 0},
+        {      0,  0,      0, 1}
+    }});
+}
+
+Matrix4 rotationZ(double angle) {
+    return Matrix4({{
+        {cos(angle), -sin(angle), 0, 0},
+        {sin(angle),  cos(angle), 0, 0},
+        {     0,       0, 1, 0},
+        {     0,       0, 0, 1}
+    }});
+}
+
 Matrix4 rotation(double angleX , double angleY, double angleZ) {
-    return Matrix4(
-        {{
-        {cos(angleY)*cos(angleZ), sin(angleX)*sin(angleY)*cos(angleZ)-cos(angleX)*sin(angleZ), cos(angleX)*sin(angleY)*cos(angleZ)+sin(angleX)*sin(angleZ), 0},
-        {cos(angleY)*cos(angleZ), sin(angleX)*sin(angleY)*sin(angleZ)-cos(angleX)*cos(angleZ), cos(angleX)*sin(angleY)*sin(angleZ)+sin(angleX)*cos(angleZ), 0},
-        {-sin(angleY), sin(angleX)*cos(angleY), cos(angleX)*cos(angleY), 0},
-        {0, 0, 0, 1}
-        }});
+    return Matrices4::rotationZ(angleZ) * Matrices4::rotationY(angleY) * Matrices4::rotationX(angleX);
 }
 }

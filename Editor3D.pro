@@ -31,7 +31,6 @@ SOURCES += \
     src/Rendering/Colors.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PixelPainter.cpp \
-    src/Rendering/Rasterizer.cpp \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingSurface.cpp \
     src/Scene/Camera.cpp \
@@ -56,12 +55,9 @@ HEADERS += \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
     include/Rendering/LinePainter.h \
-    include/Rendering/PaintObjectMethods.h \
     include/Rendering/PixelPainter.h \
-    include/Rendering/Rasterizer.h \
     include/Rendering/Renderer.h \
     include/Rendering/RenderingSurface.h \
-    include/Scene/BaseObjects3D.h \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
     include/Scene/Object3D.h \

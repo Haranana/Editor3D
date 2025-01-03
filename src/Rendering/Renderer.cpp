@@ -52,6 +52,10 @@ void Renderer::renderSceneObjects(){
             /*
              * Currently creating objects at middle of the rendering Surface, in future should use object3D starting Position parameter
              */
+
+            /* Debug cout
+             *  std::cout<<"Drawing line for Points : "<< firstPointPerspective << "  -  "<<secondPointPerspective<<" fov and z: "<<camera->getFov() <<","<< firstVertex.z<<" , "<<camera->getFov()<<","<< secondVertex.z<<std::endl;
+             */
             linePainter.drawLine(Vector2(firstPointPerspective.x , firstPointPerspective.y) + renderingSurface->getMiddle() ,
                                   Vector2(secondPointPerspective.x , secondPointPerspective.y) + renderingSurface->getMiddle());
 
