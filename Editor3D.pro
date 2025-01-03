@@ -19,17 +19,23 @@ CONFIG += c++17
 # W praktyce dołączysz wszystkie .cpp, które składają się na projekt.
 
 SOURCES += \
-    src/Math/Matrix.cpp \
+    src/Math/Matrices.cpp \
     src/Math/Matrix3.cpp \
     src/Math/Matrix4.cpp \
-    src/Math/Point.cpp \
-    src/Math/Vector.cpp \
+    src/Math/Transform3D.cpp \
+    src/Math/Vector2.cpp \
     src/Math/Vector3.cpp \
     src/Math/Vector4.cpp \
+    src/Math/Vectors.cpp \
+    src/Rendering/Color.cpp \
+    src/Rendering/Colors.cpp \
+    src/Rendering/LinePainter.cpp \
+    src/Rendering/PixelPainter.cpp \
     src/Rendering/Rasterizer.cpp \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingSurface.cpp \
     src/Scene/Camera.cpp \
+    src/Scene/Cube.cpp \
     src/Scene/Object3D.cpp \
     src/Scene/Scene.cpp \
     src/UI/RenderWidget.cpp \
@@ -39,17 +45,25 @@ SOURCES += \
 
 # Analogicznie do HEADERS dodajemy wszystkie pliki .h
 HEADERS += \
-    include/Math/Matrix.h \
+    include/Math/Matrices.h \
     include/Math/Matrix3.h \
     include/Math/Matrix4.h \
-    include/Math/Point.h \
-    include/Math/Vector.h \
+    include/Math/Transform3D.h \
+    include/Math/Vector2.h \
     include/Math/Vector3.h \
     include/Math/Vector4.h \
+    include/Math/Vectors.h \
+    include/Rendering/Color.h \
+    include/Rendering/Colors.h \
+    include/Rendering/LinePainter.h \
+    include/Rendering/PaintObjectMethods.h \
+    include/Rendering/PixelPainter.h \
     include/Rendering/Rasterizer.h \
     include/Rendering/Renderer.h \
     include/Rendering/RenderingSurface.h \
+    include/Scene/BaseObjects3D.h \
     include/Scene/Camera.h \
+    include/Scene/Cube.h \
     include/Scene/Object3D.h \
     include/Scene/Scene.h \
     include/UI/RenderWidget.h \
