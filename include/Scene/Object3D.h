@@ -2,16 +2,19 @@
 #define OBJECT3D_H
 
 #include <vector>
-#include <unordered_set>
 #include <Math/Vector3.h>
 #include "Math/Transform3D.h"
+#include "Rendering/RenderMethod.h"
+#include <memory>
+class RenderStrategy;
+class BasicRenderStrategy;
 
 class Object3D{
 public:
 
+    virtual ~Object3D() = default;
+
     Transform3D transform;
-    std::vector<Vector3>vertices;
-    std::vector< std::pair< Vector3 , Vector3> >edges;
 
 protected:
 

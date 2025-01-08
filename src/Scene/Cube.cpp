@@ -1,38 +1,42 @@
 #include "Scene/Cube.h"
+#include "Rendering/BasicRenderStrategy.h"
 
 Cube::Cube(int sideLength) : sideLength(sideLength){
+
     int radious = sideLength/2;
 
-    vertices.push_back(Vector3(radious , radious , radious));
+    vertices = {Vector3(-radious , radious , radious),
+                Vector3(radious , radious , radious),
+                Vector3(radious , -radious , radious),
+                Vector3(-radious , -radious , radious),
+                Vector3(-radious , radious , -radious),
+                Vector3(radious , radious , -radious),
+                Vector3(radious , -radious , -radious),
+                Vector3(-radious , -radious , -radious)};
 
-    vertices.push_back(Vector3(-radious , radious , radious));
-    vertices.push_back(Vector3(radious , -radious , radious));
-    vertices.push_back(Vector3(radious , radious , -radious));
+    transformedVertices = vertices;
 
-    vertices.push_back(Vector3(-radious , -radious , radious));
-    vertices.push_back(Vector3(radious , -radious , -radious));
-    vertices.push_back(Vector3(-radious , radious , -radious));
+    edges ={{0,1},
+            {0,3},
+            {0,4},
+            {1,5},
+            {1,2},
+            {2,3},
+            {2,6},
+            {3,7},
+            {4,5},
+            {4,7},
+            {5,6},
+            {6,7}};
 
-    vertices.push_back(Vector3(-radious , -radious , -radious));
+    faces = {{0,1,2,3},
+             {3,2,6,7},
+             {0,1,5,4},
+             {4,5,6,7},
+             {1,5,6,2},
+             {0,4,7,3}};
 
-    edges.push_back({ vertices[0], vertices[1] });
-    edges.push_back({ vertices[0], vertices[2] });
-    edges.push_back({ vertices[0], vertices[3] });
-
-    edges.push_back({ vertices[1], vertices[4] });
-    edges.push_back({ vertices[1], vertices[6] });
-
-    edges.push_back({ vertices[2], vertices[4] });
-    edges.push_back({ vertices[2], vertices[5] });
-
-    edges.push_back({ vertices[3], vertices[5] });
-    edges.push_back({ vertices[3], vertices[6] });
-
-    edges.push_back({ vertices[4], vertices[7] });
-
-    edges.push_back({ vertices[5], vertices[7] });
-
-    edges.push_back({ vertices[6], vertices[7] });
+    renderStrategy = std::make_unique<BasicRenderStrategy>();
 
     //transform.setPosition(startingPosition);
     //transform.setPosition(Vector3(0,0,0));

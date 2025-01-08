@@ -171,7 +171,9 @@ void MainWindow::setupScene()
     camera = std::make_shared<Camera>();
 
     auto img = std::make_shared<QImage>(800, 600, QImage::Format_RGBA8888);
-    img->fill(Qt::black);
+    //img->fill(Qt::black);
+    PixelPainter pixelPainter = PixelPainter(img);
+    pixelPainter.fillImage(Colors::Black);
 
     renderingSurface = std::make_shared<RenderingSurface>(img);
     renderer = std::make_shared<Renderer>(renderingSurface, scene, camera);
@@ -182,7 +184,7 @@ void MainWindow::setupScene()
     auto cube = std::make_shared<Cube>(50);
     scene->addObject(cube);
 
-    QListWidgetItem* item = new QListWidgetItem("Cube (side=50)");
+    QListWidgetItem* item = new QListWidgetItem("Cube");
     objectsList->addItem(item);
 
     refreshScene();

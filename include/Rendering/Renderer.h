@@ -5,8 +5,11 @@
 #include "RenderingSurface.h"
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
+#include "Scene/Object3D.h"
 #include "Math/Vectors.h"
 #include "LinePainter.h"
+#include "RenderStrategy.h"
+#include "Scene/RenderableObject3D.h"
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
  * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here
@@ -26,6 +29,10 @@ public:
     void setRenderingSurface(std::shared_ptr<RenderingSurface> newRenderingSurface);
     void setScene(std::shared_ptr<Scene> newScene);
     void setCamera(std::shared_ptr<Camera> newCamera);
+
+    std::shared_ptr<Camera> getCamera();
+    std::shared_ptr<Scene> getScene();
+    std::shared_ptr<RenderingSurface> getRenderingSurface();
 
 private:
 
