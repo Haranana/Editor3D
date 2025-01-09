@@ -9,6 +9,7 @@ release/Vectors.o
 release/BasicRenderStrategy.o
 release/Color.o
 release/Colors.o
+release/FrontOnlyRenderStrategy.o
 release/LinePainter.o
 release/PixelPainter.o
 release/Renderer.o

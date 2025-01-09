@@ -41,9 +41,11 @@ void Renderer::renderSceneObjects(){
     LinePainter linePainter = LinePainter(renderingSurface->getImg());
 
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
+
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
-        if(auto curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->renderStrategy) curObject->renderStrategy->render(*curObject , *this);
+
         }
     }
 }

@@ -28,7 +28,10 @@ Vector3 Vector3::operator-(const Vector3& otherVector) const{
 }
 
 Vector3 Vector3::operator*(const Vector3& otherVector) const{
-    return Vector3(this->x * otherVector.x, this->y * otherVector.y, this->z * otherVector.z);
+   // return Vector3(this->x * otherVector.x, this->y * otherVector.y, this->z * otherVector.z);
+    return Vector3(this->y * otherVector.z - this->z * otherVector.y,
+                  this->z * otherVector.x - this->x * otherVector.z,
+                  this->x * otherVector.y - this->y * otherVector.x);
 }
 
 Vector3 Vector3::operator/(const Vector3& otherVector) const{

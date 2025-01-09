@@ -30,6 +30,7 @@ SOURCES += \
     src/Rendering/BasicRenderStrategy.cpp \
     src/Rendering/Color.cpp \
     src/Rendering/Colors.cpp \
+    src/Rendering/FrontOnlyRenderStrategy.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PixelPainter.cpp \
     src/Rendering/Renderer.cpp \
@@ -58,6 +59,7 @@ HEADERS += \
     include/Rendering/BasicRenderStrategy.h \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
+    include/Rendering/FrontOnlyRenderStrategy.h \
     include/Rendering/LinePainter.h \
     include/Rendering/PixelPainter.h \
     include/Rendering/RenderMethod.h \

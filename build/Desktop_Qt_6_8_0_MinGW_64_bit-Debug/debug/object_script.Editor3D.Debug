@@ -9,6 +9,7 @@ debug/Vectors.o
 debug/BasicRenderStrategy.o
 debug/Color.o
 debug/Colors.o
+debug/FrontOnlyRenderStrategy.o
 debug/LinePainter.o
 debug/PixelPainter.o
 debug/Renderer.o
