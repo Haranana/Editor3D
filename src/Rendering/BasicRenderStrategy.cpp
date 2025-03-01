@@ -1,19 +1,18 @@
 #include "Rendering/BasicRenderStrategy.h"
 #include "Scene/Object3D.h"
 #include "Rendering/Renderer.h"
-#include "Scene/Camera.h"             // if needed
-#include "Rendering/RenderingSurface.h"// if needed
-#include "Rendering/LinePainter.h"     // if needed
-#include "Math/Vectors.h"             // if needed
-
+#include "Scene/Camera.h"
+#include "Rendering/RenderingSurface.h"
+#include "Rendering/LinePainter.h"
+#include "Math/Vectors.h"
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
 
 void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 {
-    auto camera = renderer.getCamera();
-    auto renderingSurface = renderer.getRenderingSurface();
+    std::shared_ptr<Camera> camera = renderer.getCamera();
+    std::shared_ptr<RenderingSurface> renderingSurface = renderer.getRenderingSurface();
 
     LinePainter linePainter(renderingSurface->getImg());
 

@@ -3,7 +3,6 @@
 
 #include "RenderStrategy.h"
 #include <vector>
-#include "Scene/Camera.h"
 #include <cmath>
 
 class RenderableObject3D;

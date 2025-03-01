@@ -1,10 +1,9 @@
 #include "Rendering/FrontOnlyRenderStrategy.h"
-#include "Scene/Object3D.h"
 #include "Rendering/Renderer.h"
-#include "Scene/Camera.h"             // if needed
-#include "Rendering/RenderingSurface.h"// if needed
-#include "Rendering/LinePainter.h"     // if needed
-#include "Math/Vectors.h"             // if needed
+#include "Scene/Camera.h"
+#include "Rendering/RenderingSurface.h"
+#include "Rendering/LinePainter.h"
+#include "Math/Vectors.h"
 
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/Renderer.h"
@@ -21,28 +20,22 @@ void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& rende
         object.transformedVertices[vertexIt] = Vectors::vector4to3(object.transform.getTransMatrix()
                                                                    * Vectors::vector3to4(object.vertices[vertexIt]));
     }
-    std::cout<<"Transform Matrix:\n"<<object.transform.getTransMatrix()<<std::endl;
-    std::cout<<"Camera: "<<camera->transform.getTransMatrix()<<std::endl;
+
     std::vector<std::pair<int , int>> edgesToRender;
 
-    int debugFaceId = 0;
     for(const auto& curFace : object.faces){
+
         Vector3 normalVector = getNormalVector(object , curFace);
-        std::cout<<"Normal vector: "<<normalVector<<"    :   ";
-        double angleCos = cosBeetwenCameraAndNormal(Vector3(camera->transform.getPosition() - object.transformedVertices[curFace[curFace.size()-1]]),
+
+        double angleCos = cosBeetwenCameraAndNormal(Vector3(camera->transform.getPosition() - object.transformedVertices[curFace[0]]),
                                                            normalVector);
         if(angleCos>0){
-            std::cout<<"Face: "<<debugFaceId<<"  is visible"<<std::endl;
             edgesToRender.push_back( std::make_pair(curFace[curFace.size()-1]   ,curFace[0] ));
-            for(int vertexIt = 1 ; vertexIt < curFace.size() ; vertexIt++ ){
+            for(int vertexIt = 1 ; vertexIt <static_cast<int>(curFace.size()) ; vertexIt++ ){
                 edgesToRender.push_back(std::make_pair(curFace[vertexIt-1]   ,curFace[vertexIt] ));
             }
         }
-        else{
-            std::cout<<"Face: "<<debugFaceId<<"  is NOT visible"<<std::endl;
-        }
 
-        debugFaceId++;
     }
 
     for(const auto& curEdge : edgesToRender){
@@ -56,9 +49,6 @@ void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& rende
                                                  (secondVertex.y*camera->getFov()) / (camera->getFov() + secondVertex.z));
 
         // Currently creating objects at middle of the rendering Surface, in future should use object3D starting Position parameter
-
-        // Debug cout
-        //  std::cout<<"Drawing line for Points : "<< firstPointPerspective << "  -  "<<secondPointPerspective<<" fov and z: "<<camera->getFov() <<","<< firstVertex.z<<" , "<<camera->getFov()<<","<< secondVertex.z<<std::endl;
         linePainter.drawLine(Vector2(firstPointPerspective.x , firstPointPerspective.y) + renderingSurface->getMiddle() ,
                              Vector2(secondPointPerspective.x , secondPointPerspective.y) + renderingSurface->getMiddle());
     }
