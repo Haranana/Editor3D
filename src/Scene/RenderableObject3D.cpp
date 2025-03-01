@@ -7,8 +7,10 @@ RenderableObject3D::RenderableObject3D() {
 
 RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
     vertices(otherObject.vertices),
-    edges(otherObject.edges),
-    faces(otherObject.faces)
+    transformedVertices(otherObject.transformedVertices),
+    faceVertexIndices(otherObject.faceVertexIndices),
+    normals(otherObject.normals),
+    textureCoords(otherObject.textureCoords)
 {
     this->transform = otherObject.transform;
     renderStrategy = std::make_unique<BasicRenderStrategy>();

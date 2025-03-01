@@ -14,10 +14,23 @@ public:
     RenderableObject3D();
     RenderableObject3D(const RenderableObject3D& otherObject);
 
-    std::vector<Vector3> vertices;
-    std::vector<Vector3> transformedVertices;
+    /*
     std::vector<std::pair<int , int>> edges;
     std::vector<std::vector<int>> faces;
+    */
+
+    std::vector<Vector3> vertices;
+
+    std::vector<Vector3> transformedVertices;
+
+    //kolejne indeksy wierzcholkow wszystkich scian obiektu, zakladamy, ze kazdy polygon ma dokladnie 3 wierzcholki
+    std::vector<int> faceVertexIndices;
+
+    //tablica wektorow normalnych
+    std::vector<Vector3> normals;
+
+    //wspolrzedne uv tekstur
+    std::vector<Vector2> textureCoords;
 
     void setRenderMethod(RenderingMethods newRenderMethod);
     RenderingMethods getRenderMethod();
@@ -28,3 +41,5 @@ protected:
 };
 
 #endif // RENDERABLEOBJECT3D_H
+
+//TODO poprawic publicznosc metod i zmiennych

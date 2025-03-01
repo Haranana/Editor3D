@@ -11,57 +11,66 @@
 
 void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 {
-    std::shared_ptr<Camera> camera = renderer.getCamera();
-    std::shared_ptr<RenderingSurface> renderingSurface = renderer.getRenderingSurface();
-
+    auto camera = renderer.getCamera();
+    auto renderingSurface = renderer.getRenderingSurface();
     LinePainter linePainter(renderingSurface->getImg());
 
+    // obliczanie transformedVertices obiektu
     for(int vertexIt = 0; vertexIt < static_cast<int>(object.vertices.size()); vertexIt++){
-        object.transformedVertices[vertexIt] = Vectors::vector4to3(object.transform.getTransMatrix()
-                                                                   * Vectors::vector3to4(object.vertices[vertexIt]));
+        auto vert4 = Vectors::vector3to4(object.vertices[vertexIt]);
+        auto transformed4 = object.transform.getTransMatrix() * vert4;
+        object.transformedVertices[vertexIt] = Vectors::vector4to3(transformed4);
     }
 
-    std::vector<std::pair<int , int>> edgesToRender;
+    // rysowanie krawedzi dla kazdej trojki wierzcholkow
+    for(int i = 0; i < static_cast<int>(object.faceVertexIndices.size()); i += 3){
+        int i1 = object.faceVertexIndices[i];
+        int i2 = object.faceVertexIndices[i+1];
+        int i3 = object.faceVertexIndices[i+2];
 
-    for(const auto& curFace : object.faces){
+        Vector3 v1 = object.transformedVertices[i1];
+        Vector3 v2 = object.transformedVertices[i2];
+        Vector3 v3 = object.transformedVertices[i3];
 
-        Vector3 normalVector = getNormalVector(object , curFace);
+        // Obliczanie normalnej jako cross dwoch krawedzi
+        Vector3 e1 = v2 - v1;
+        Vector3 e2 = v3 - v1;
+        Vector3 normal = e1 * e2;
 
-        double angleCos = cosBeetwenCameraAndNormal(Vector3(camera->transform.getPosition() - object.transformedVertices[curFace[0]]),
-                                                           normalVector);
-        if(angleCos>0){
-            edgesToRender.push_back( std::make_pair(curFace[curFace.size()-1]   ,curFace[0] ));
-            for(int vertexIt = 1 ; vertexIt <static_cast<int>(curFace.size()) ; vertexIt++ ){
-                edgesToRender.push_back(std::make_pair(curFace[vertexIt-1]   ,curFace[vertexIt] ));
-            }
+        //  Wektor od obiektu do kamery (getPosition() jest globalnym polozeniem kamery)
+        Vector3 cameraVector = camera->transform.getPosition() - v1;
+
+        double angleCos = cosBeetwenVectors(normal, cameraVector);
+
+        // cos>0 => trojkat jest widoczny dla kamery
+        if(angleCos > 0.0)
+        {
+            // projekcja i rysowanie
+            Vector2 p1(
+                (v1.x * camera->getFov()) / (camera->getFov() + v1.z),
+                (v1.y * camera->getFov()) / (camera->getFov() + v1.z)
+                );
+            Vector2 p2(
+                (v2.x * camera->getFov()) / (camera->getFov() + v2.z),
+                (v2.y * camera->getFov()) / (camera->getFov() + v2.z)
+                );
+            Vector2 p3(
+                (v3.x * camera->getFov()) / (camera->getFov() + v3.z),
+                (v3.y * camera->getFov()) / (camera->getFov() + v3.z)
+                );
+
+            p1 = p1 + renderingSurface->getMiddle();
+            p2 = p2 + renderingSurface->getMiddle();
+            p3 = p3 + renderingSurface->getMiddle();
+
+            linePainter.drawLine(p1, p2);
+            linePainter.drawLine(p2, p3);
+            linePainter.drawLine(p3, p1);
         }
-
-    }
-
-    for(const auto& curEdge : edgesToRender){
-        Vector3 firstVertex = object.transformedVertices[curEdge.first];
-        Vector3 secondVertex = object.transformedVertices[curEdge.second];
-
-        Vector2 firstPointPerspective = Vector2( (firstVertex.x*camera->getFov()) / (camera->getFov() + firstVertex.z) ,
-                                                (firstVertex.y*camera->getFov()) / (camera->getFov() + firstVertex.z));
-
-        Vector2 secondPointPerspective = Vector2( (secondVertex.x*camera->getFov()) / (camera->getFov() + secondVertex.z) ,
-                                                 (secondVertex.y*camera->getFov()) / (camera->getFov() + secondVertex.z));
-
-        // Currently creating objects at middle of the rendering Surface, in future should use object3D starting Position parameter
-        linePainter.drawLine(Vector2(firstPointPerspective.x , firstPointPerspective.y) + renderingSurface->getMiddle() ,
-                             Vector2(secondPointPerspective.x , secondPointPerspective.y) + renderingSurface->getMiddle());
     }
 }
 
-Vector3 FrontOnlyRenderStrategy::getNormalVector(const RenderableObject3D& object , const std::vector<int>& objectFace){
-    Vector3 v1 = object.transformedVertices[objectFace[1]] - object.transformedVertices[objectFace[0]];
-    Vector3 v2 = object.transformedVertices[objectFace[objectFace.size()-1]] - object.transformedVertices[objectFace[0]];
-
-    return v1*v2;
-}
-
-double FrontOnlyRenderStrategy::cosBeetwenCameraAndNormal(const Vector3& normalVector , const Vector3& cameraVector){
+double FrontOnlyRenderStrategy::cosBeetwenVectors(const Vector3& normalVector , const Vector3& cameraVector){
 
     return (
         (normalVector.x * cameraVector.x + normalVector.y * cameraVector.y + normalVector.z * cameraVector.z) /

@@ -31,6 +31,7 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
     transformedVertices = vertices;
 
     //krawedzie sa zdefiniowane z zalozeniem, ze kolejnosc ich wierzcholkow nie ma znaczenia
+    /*
     edges ={{0,1},
             {0,3},
             {0,4},
@@ -43,7 +44,7 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
             {4,7},
             {5,6},
             {6,7}};
-
+    */
     /*
     faces = {{0,1,2,3}, // sciana pionowa, z przodu
              {3,2,6,7}, // gorna podstawa
@@ -57,13 +58,32 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
     //wierzcholki w scianach z dopiskiem (rev) sa przedstawione w kolejnosci jakie by mialy wedlug powyzszej zasady
     //ale gdyby dana sciana ulegla takiej rotacji aby byc pionowa sciana z przodu
     //(wlasciwie to wszystkie sciany sa tak zapisane ale tylko w niektorych to zmienia kolejnosc)
+    /*
     faces = {{0,1,2,3}, // sciana pionowa, z przodu
              {3,2,6,7}, // gorna podstawa
              {4,5,1,0}, // dolna podstawa (rev)
              {7,6,5,4}, // sciana pionowa, z tylu (rev)
              {1,5,6,2}, // sciana pionowa, z prawej
              {4,0,3,7}}; // sciana pionowa, z lewej (rev)
+    */
 
+    faceVertexIndices = {0,1,2,
+                        2,3,0,
+                        3,2,6,
+                        6,7,3,
+                        4,5,1,
+                        1,0,4,
+                        7,6,5,
+                        5,4,7,
+                        1,5,6,
+                        6,2,1,
+                        4,0,3,
+                        3,7,4
+    };
+
+    //normalne i tekstury zostana dodane w przyszlosci
+
+    //renderStrategy = std::make_unique<BasicRenderStrategy>();
     renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
 
     //W przyszlosci pewnie dobrze by bylo rozszerzyc program o uzywanie startingPosition

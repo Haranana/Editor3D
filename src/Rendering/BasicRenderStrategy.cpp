@@ -16,27 +16,51 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 
     LinePainter linePainter(renderingSurface->getImg());
 
+    // obliczanie transformedVertices obiektu
     for(int vertexIt = 0; vertexIt < static_cast<int>(object.vertices.size()); vertexIt++){
-        object.transformedVertices[vertexIt] = Vectors::vector4to3(object.transform.getTransMatrix()
-                                                                       * Vectors::vector3to4(object.vertices[vertexIt]));
+        // Mnożenie przez macierz transformacji (pozycja, rotacja, skalowanie)
+        auto vert4 = Vectors::vector3to4(object.vertices[vertexIt]);
+        auto transformed4 = object.transform.getTransMatrix() * vert4;
+        object.transformedVertices[vertexIt] = Vectors::vector4to3(transformed4);
     }
 
-    for(const auto& curEdge : object.edges){
-        Vector3 firstVertex = object.transformedVertices[curEdge.first];
-        Vector3 secondVertex = object.transformedVertices[curEdge.second];
+    // rysowanie krawedzi dla kazdej trojki wierzcholkow
+    for(int i = 0; i < static_cast<int>(object.faceVertexIndices.size()); i += 3){
 
-        Vector2 firstPointPerspective = Vector2( (firstVertex.x*camera->getFov()) / (camera->getFov() + firstVertex.z) ,
-                                                (firstVertex.y*camera->getFov()) / (camera->getFov() + firstVertex.z));
+        int i1 = object.faceVertexIndices[i];
+        int i2 = object.faceVertexIndices[i+1];
+        int i3 = object.faceVertexIndices[i+2];
 
-        Vector2 secondPointPerspective = Vector2( (secondVertex.x*camera->getFov()) / (camera->getFov() + secondVertex.z) ,
-                                                 (secondVertex.y*camera->getFov()) / (camera->getFov() + secondVertex.z));
+        Vector3 v1 = object.transformedVertices[i1];
+        Vector3 v2 = object.transformedVertices[i2];
+        Vector3 v3 = object.transformedVertices[i3];
 
-        // Currently creating objects at middle of the rendering Surface, in future should use object3D starting Position parameter
+        // projekcja perspektywiczna
+        Vector2 p1(
+            (v1.x * camera->getFov()) / (camera->getFov() + v1.z),
+            (v1.y * camera->getFov()) / (camera->getFov() + v1.z)
+            );
+        Vector2 p2(
+            (v2.x * camera->getFov()) / (camera->getFov() + v2.z),
+            (v2.y * camera->getFov()) / (camera->getFov() + v2.z)
+            );
+        Vector2 p3(
+            (v3.x * camera->getFov()) / (camera->getFov() + v3.z),
+            (v3.y * camera->getFov()) / (camera->getFov() + v3.z)
+            );
 
-        // Debug cout
-        //  std::cout<<"Drawing line for Points : "<< firstPointPerspective << "  -  "<<secondPointPerspective<<" fov and z: "<<camera->getFov() <<","<< firstVertex.z<<" , "<<camera->getFov()<<","<< secondVertex.z<<std::endl;
-        linePainter.drawLine(Vector2(firstPointPerspective.x , firstPointPerspective.y) + renderingSurface->getMiddle() ,
-                             Vector2(secondPointPerspective.x , secondPointPerspective.y) + renderingSurface->getMiddle());
+        // przesuniecie do środka ekranu
+        p1 = p1 + renderingSurface->getMiddle();
+        p2 = p2 + renderingSurface->getMiddle();
+        p3 = p3 + renderingSurface->getMiddle();
+
+        // rysowanie trojkata
+        linePainter.drawLine(p1, p2);
+        linePainter.drawLine(p2, p3);
+        linePainter.drawLine(p3, p1);
     }
 }
+
+
+
 
