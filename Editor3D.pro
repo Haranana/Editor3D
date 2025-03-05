@@ -33,6 +33,7 @@ SOURCES += \
     src/Rendering/FrontOnlyRenderStrategy.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PixelPainter.cpp \
+    src/Rendering/RasterRenderStrategy.cpp \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingMethods.cpp \
     src/Rendering/RenderingSurface.cpp \
@@ -62,6 +63,7 @@ HEADERS += \
     include/Rendering/FrontOnlyRenderStrategy.h \
     include/Rendering/LinePainter.h \
     include/Rendering/PixelPainter.h \
+    include/Rendering/RasterRenderStrategy.h \
     include/Rendering/RenderMethod.h \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \

@@ -64,3 +64,4 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 
 
 
+

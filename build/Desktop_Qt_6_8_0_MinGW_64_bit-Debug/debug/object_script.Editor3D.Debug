@@ -12,6 +12,7 @@ debug/Colors.o
 debug/FrontOnlyRenderStrategy.o
 debug/LinePainter.o
 debug/PixelPainter.o
+debug/RasterRenderStrategy.o
 debug/Renderer.o
 debug/RenderingMethods.o
 debug/RenderingSurface.o

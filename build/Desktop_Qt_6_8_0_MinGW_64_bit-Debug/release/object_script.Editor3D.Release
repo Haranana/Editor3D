@@ -12,6 +12,7 @@ release/Colors.o
 release/FrontOnlyRenderStrategy.o
 release/LinePainter.o
 release/PixelPainter.o
+release/RasterRenderStrategy.o
 release/Renderer.o
 release/RenderingMethods.o
 release/RenderingSurface.o

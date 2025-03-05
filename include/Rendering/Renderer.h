@@ -33,8 +33,12 @@ public:
     std::shared_ptr<Camera> getCamera();
     std::shared_ptr<Scene> getScene();
     std::shared_ptr<RenderingSurface> getRenderingSurface();
+    std::shared_ptr<std::vector<std::vector<float>>>getZBuffer();
 
 private:
+
+    //reset every value inside zBuffer to infinity
+    void resetZBuffer();
 
     void renderSceneObjects();
 
@@ -44,6 +48,7 @@ private:
     std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
+    std::shared_ptr<std::vector<std::vector<float>>>zBuffer;
 
 };
 

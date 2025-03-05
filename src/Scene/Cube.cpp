@@ -1,6 +1,7 @@
 #include "Scene/Cube.h"
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/FrontOnlyRenderStrategy.h"
+#include "Rendering/RasterRenderStrategy.h"
 
 Cube::Cube(int sideLength) : sideLength(sideLength){
 
@@ -84,7 +85,8 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
     //normalne i tekstury zostana dodane w przyszlosci
 
     //renderStrategy = std::make_unique<BasicRenderStrategy>();
-    renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
+   // renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
+    renderStrategy = std::make_unique<RasterRenderStrategy>();
 
     //W przyszlosci pewnie dobrze by bylo rozszerzyc program o uzywanie startingPosition
     //transform.setPosition(startingPosition);

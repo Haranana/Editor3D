@@ -6,9 +6,19 @@ Renderer::Renderer(
     std::shared_ptr<Camera> camera) :
     renderingSurface(renderingSurface) ,
     scene(scene),
-    camera(camera) {}
+    camera(camera)
+{
+    zBuffer = std::make_shared<std::vector<std::vector<float>>>();
+    for(int itY = 0; itY < static_cast<int>(renderingSurface->getImg()->height()) ; itY++){
+        zBuffer->push_back({});
+        for(int itX = 0; itX < static_cast<int>(renderingSurface->getImg()->width()) ; itX++){
+            (*zBuffer)[itY].push_back(std::numeric_limits<float>::infinity());
+        }
+    }
+}
 
 void Renderer::renderScene(){
+    resetZBuffer();
     renderSceneObjects();
 }
 
@@ -36,6 +46,10 @@ std::shared_ptr<RenderingSurface> Renderer::getRenderingSurface(){
     return renderingSurface;
 }
 
+std::shared_ptr<std::vector<std::vector<float>>> Renderer::getZBuffer(){
+    return zBuffer;
+}
+
 
 void Renderer::renderSceneObjects(){
     LinePainter linePainter = LinePainter(renderingSurface->getImg());
@@ -46,6 +60,14 @@ void Renderer::renderSceneObjects(){
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->renderStrategy) curObject->renderStrategy->render(*curObject , *this);
 
+        }
+    }
+}
+
+void Renderer::resetZBuffer(){
+    for(int itY = 0; itY < static_cast<int>(zBuffer->size()) ; itY++){
+        for(int itX = 0; itX < static_cast<int>((*zBuffer)[itY].size()) ; itX++){
+            (*zBuffer)[itY][itX] = std::numeric_limits<float>::infinity();
         }
     }
 }
