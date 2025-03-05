@@ -57,9 +57,9 @@ void Renderer::renderSceneObjects(){
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
 
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
+        std::cout<<object->transform.getPosition()<<std::endl;;
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->renderStrategy) curObject->renderStrategy->render(*curObject , *this);
-
         }
     }
 }

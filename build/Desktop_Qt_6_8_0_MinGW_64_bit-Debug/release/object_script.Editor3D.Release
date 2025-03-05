@@ -14,7 +14,6 @@ release/LinePainter.o
 release/PixelPainter.o
 release/RasterRenderStrategy.o
 release/Renderer.o
-release/RenderingMethods.o
 release/RenderingSurface.o
 release/Camera.o
 release/Cube.o

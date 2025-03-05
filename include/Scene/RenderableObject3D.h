@@ -1,7 +1,6 @@
 #ifndef RENDERABLEOBJECT3D_H
 #define RENDERABLEOBJECT3D_H
 
-#include "Rendering/RenderingMethods.h"
 #include "Rendering/RenderStrategy.h"
 #include "Object3D.h"
 
@@ -32,12 +31,8 @@ public:
     //wspolrzedne uv tekstur
     std::vector<Vector2> textureCoords;
 
-    void setRenderMethod(RenderingMethods newRenderMethod);
-    RenderingMethods getRenderMethod();
     std::unique_ptr<RenderStrategy> renderStrategy;
 
-protected:
-    enum RenderingMethods renderMethod = BASIC;
 };
 
 #endif // RENDERABLEOBJECT3D_H

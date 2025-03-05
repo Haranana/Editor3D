@@ -14,9 +14,16 @@ public:
     RenderingSurface(std::shared_ptr<QImage> img);
 
     void clearImg();
+    Vector2 ScreenCoordsToImgCoords(Vector2 coords);
+    Vector2 imgCoordsToScreenCoords(Vector2 coords);
+    bool areScreenCoordsInImg(Vector2 coords);
+
 
     std::shared_ptr<QImage> getImg();
+    Vector2 getImgBegScreenCoords();
+    Vector2 getImgEndScreenCoords();
     Vector2 getMiddle();
+
 
 private:
     std::shared_ptr<QImage> img;

@@ -35,7 +35,6 @@ SOURCES += \
     src/Rendering/PixelPainter.cpp \
     src/Rendering/RasterRenderStrategy.cpp \
     src/Rendering/Renderer.cpp \
-    src/Rendering/RenderingMethods.cpp \
     src/Rendering/RenderingSurface.cpp \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
@@ -67,7 +66,6 @@ HEADERS += \
     include/Rendering/RenderMethod.h \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \
-    include/Rendering/RenderingMethods.h \
     include/Rendering/RenderingSurface.h \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
