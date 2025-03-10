@@ -15,3 +15,8 @@ RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
     this->transform = otherObject.transform;
     renderStrategy = std::make_unique<BasicRenderStrategy>();
 }
+
+void RenderableObject3D::setRenderStrategy(std::unique_ptr<RenderStrategy> newStrategy) {
+    // std::move przenosi własność przekazanego wskaźnika do członka klasy
+    renderStrategy = std::move(newStrategy);
+}

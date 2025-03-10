@@ -13,6 +13,8 @@ public:
     RenderableObject3D();
     RenderableObject3D(const RenderableObject3D& otherObject);
 
+    void setRenderStrategy(std::unique_ptr<RenderStrategy> newStrategy);
+
     /*
     std::vector<std::pair<int , int>> edges;
     std::vector<std::vector<int>> faces;

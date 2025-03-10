@@ -38,11 +38,6 @@ void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer
                                             screenPoint.y + renderingSurface->getMiddle().y,
                                             vertex.z));
 
-        /*
-        screenCoordinates.push_back(Vector3(screenPoint.x + renderingSurface->getMiddle().x,
-                                            screenPoint.y + renderingSurface->getMiddle().y,
-                                            vertex.z));
-        */
     }
 
     for (int it = 0; it < static_cast<int>(object.faceVertexIndices.size()); it += 3) {
@@ -56,29 +51,10 @@ void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer
         double minY = std::min({v1.y, v2.y, v3.y});
         double maxY = std::max({v1.y, v2.y, v3.y});
 
-        /*
-        Vector2 imgBeg = renderer.getRenderingSurface()->getImgBegScreenCoords();
-        Vector2 imgEnd = renderer.getRenderingSurface()->getImgEndScreenCoords();
-
-
-        minX = (int)std::max((int)imgBeg.x, (int)std::floor(minY));
-        maxX = (int)std::min((int)imgEnd.x, (int)std::floor(maxY));
-        minY = (int)std::max((int)imgBeg.y, (int)std::floor(minX));
-        maxY = (int)std::min((int)imgEnd.y, (int)std::floor(maxX));
-        */
         minX = (int)std::max(0, (int)std::floor(minX));
         maxX = (int)std::min(renderer.getRenderingSurface()->getImg()->width()-1, (int)std::floor(maxX));
         minY = (int)std::max(0, (int)std::floor(minY));
         maxY = (int)std::min(renderer.getRenderingSurface()->getImg()->height()-1, (int)std::floor(maxY));
-
-        std::cout<<"Triangles:  "<<v1<<" : "<<v2<<" : "<<v3<<std::endl;
-       // std::cout<<"Limits:  "<<imgBeg<<" : "<<imgEnd<<std::endl;
-
-        std::cout<<renderer.getRenderingSurface()->getImg()->width()-1<<" "<<renderer.getRenderingSurface()->getImg()->height()-1<<std::endl;
-
-        std::cout<<minX<<":"<<maxX<<"  |  "<<minY<<":"<<maxY<<std::endl;
-
-
 
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
@@ -112,7 +88,8 @@ void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer
                         // Nowy fragment jest bliżej
                         (*renderer.getZBuffer())[y][x] = zInterpol;
 
-                        pixelPainter.drawPixel(Vector2(x , y) , Color(128,128,128,255));
+                        //pixelPainter.drawPixel(Vector2(x , y) , Color(0,0,200,255));
+                        pixelPainter.drawPixel(Vector2(x , y) , object.viewportDisplay.color);
                     }
                 }
             }

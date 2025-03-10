@@ -8,6 +8,12 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <memory>
+#include <QTreeWidget>
+#include <QVBoxLayout>
+#include <QComboBox>
+#include <QVariant>
+#include <QHeaderView>
+#include <QColorDialog>
 
 #include "Scene/Scene.h"
 #include "Scene/Object3D.h"
@@ -18,6 +24,11 @@
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
 #include "Rendering/PixelPainter.h"
+#include "Rendering/FrontOnlyRenderStrategy.h"
+#include "Rendering/BasicRenderStrategy.h"
+#include "Rendering/RasterRenderStrategy.h"
+#include "UI/ColorPicker.h"
+
 
 class MainWindow : public QMainWindow
 {
@@ -31,6 +42,13 @@ public:
 private:
 
     void setupUI();
+        void setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout);
+            void setupUIPropertyTreeTransform();
+                void setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCategory);
+                void setupUIPropertyTreeTransformRot(QTreeWidgetItem* transformCategory);
+                void setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCategory);
+            void setupUIPropertyTreeViewportDisplay();
+
     void setupScene();
     void refreshScene();
 
@@ -41,9 +59,17 @@ private:
 
     std::shared_ptr<Object3D> currentObject = nullptr;
 
+
     QWidget* centralWidgetContainer = nullptr;
     QListWidget* objectsList = nullptr;
     QLabel* sceneDisplay = nullptr;
+
+    ColorPicker* colorPicker = nullptr;
+
+    QTreeWidget* objectParametersPropertyTree = nullptr;
+
+    QComboBox* objectDisplayModeComboBox = nullptr;
+    QColorDialog* objectDisplayColor = nullptr;
 
     QSlider* sceneObjectSliderPosX = nullptr;
     QSlider* sceneObjectSliderPosY = nullptr;
@@ -80,6 +106,9 @@ private slots:
 
     void onSCeneObjectRotChangedSpin();
     void onSCeneObjectRotChangedSlider();
+
+    void onDisplayModeCurIndexChanged();
+    void onDisplayColorPickerValueChanged(const Color& color);
 };
 
 

@@ -34,3 +34,11 @@ bool Color::operator==(const Color& otherColor) const{
 bool Color::operator!=(const Color& otherColor) const{
     return this->B!=otherColor.B || this->G!=otherColor.G || this->R!=otherColor.R;;
 }
+
+std::ostream& operator<<(std::ostream& os, const Color& color){
+
+    os<<"[R: "<<color.R<<" , G: "<<color.G<<" , B: "<<color.B<<" , A: "<<color.A<<"]";
+
+    return os;
+}
+

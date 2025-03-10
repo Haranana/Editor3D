@@ -1,6 +1,8 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#include <iostream>
+
 /* elements of Color, both in bits of QImage in used format, and in this class
  * are always in order: Blue, Green, Red, Alpha
 */
@@ -15,6 +17,8 @@ public:
     bool operator==(const Color& otherColor) const;
     bool operator!=(const Color& otherColor) const;
     Color& operator=(const Color& otherColor);
+
+    friend std::ostream& operator<<(std::ostream& os, const Color& color);
 
     int B = 0;
     int G = 0;

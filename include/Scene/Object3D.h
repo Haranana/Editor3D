@@ -6,6 +6,7 @@
 #include "Math/Transform3D.h"
 #include "Rendering/RenderMethod.h"
 #include <memory>
+#include <Rendering/ViewportDisplay.h>
 class RenderStrategy;
 class BasicRenderStrategy;
 
@@ -15,6 +16,8 @@ public:
     virtual ~Object3D() = default;
 
     Transform3D transform;
+
+    ViewportDisplay viewportDisplay;
 
 protected:
 

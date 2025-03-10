@@ -41,6 +41,8 @@ SOURCES += \
     src/Scene/Object3D.cpp \
     src/Scene/RenderableObject3D.cpp \
     src/Scene/Scene.cpp \
+    src/UI/ColorPicker.cpp \
+    src/UI/ColorPreview.cpp \
     src/UI/RenderWidget.cpp \
     src/UI/mainwindow.cpp \
     src/main.cpp
@@ -67,11 +69,14 @@ HEADERS += \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \
     include/Rendering/RenderingSurface.h \
+    include/Rendering/ViewportDisplay.h \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
     include/Scene/Object3D.h \
     include/Scene/RenderableObject3D.h \
     include/Scene/Scene.h \
+    include/UI/ColorPicker.h \
+    include/UI/ColorPreview.h \
     include/UI/RenderWidget.h \
     include/UI/mainwindow.h
 

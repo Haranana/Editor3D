@@ -20,7 +20,11 @@ release/Cube.o
 release/Object3D.o
 release/RenderableObject3D.o
 release/Scene.o
+release/ColorPicker.o
+release/ColorPreview.o
 release/RenderWidget.o
 release/mainwindow.o
 release/main.o
+release/moc_ColorPicker.o
+release/moc_ColorPreview.o
 release/moc_mainwindow.o
