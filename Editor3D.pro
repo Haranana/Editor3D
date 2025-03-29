@@ -39,6 +39,8 @@ SOURCES += \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
     src/Scene/Object3D.cpp \
+    src/Scene/ObjectLoader.cpp \
+    src/Scene/ObjectSaver.cpp \
     src/Scene/RenderableObject3D.cpp \
     src/Scene/Scene.cpp \
     src/UI/ColorPicker.cpp \
@@ -73,6 +75,8 @@ HEADERS += \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
     include/Scene/Object3D.h \
+    include/Scene/ObjectLoader.h \
+    include/Scene/ObjectSaver.h \
     include/Scene/RenderableObject3D.h \
     include/Scene/Scene.h \
     include/UI/ColorPicker.h \

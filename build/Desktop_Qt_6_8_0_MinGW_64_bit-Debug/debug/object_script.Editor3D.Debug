@@ -18,6 +18,8 @@ debug/RenderingSurface.o
 debug/Camera.o
 debug/Cube.o
 debug/Object3D.o
+debug/ObjectLoader.o
+debug/ObjectSaver.o
 debug/RenderableObject3D.o
 debug/Scene.o
 debug/ColorPicker.o

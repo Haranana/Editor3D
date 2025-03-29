@@ -18,6 +18,8 @@ release/RenderingSurface.o
 release/Camera.o
 release/Cube.o
 release/Object3D.o
+release/ObjectLoader.o
+release/ObjectSaver.o
 release/RenderableObject3D.o
 release/Scene.o
 release/ColorPicker.o
