@@ -14,6 +14,9 @@
 #include <QVariant>
 #include <QHeaderView>
 #include <QColorDialog>
+#include <QMenuBar>
+#include <QMenu>
+#include <QFileDialog>
 
 #include "Scene/Scene.h"
 #include "Scene/Object3D.h"
@@ -28,6 +31,8 @@
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/RasterRenderStrategy.h"
 #include "UI/ColorPicker.h"
+#include "Scene/ObjectLoader.h"
+#include "Scene/ObjectSaver.h"
 
 
 class MainWindow : public QMainWindow
@@ -42,6 +47,7 @@ public:
 private:
 
     void setupUI();
+    void setupMenuBar();
         void setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout);
             void setupUIPropertyTreeTransform();
                 void setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCategory);
@@ -56,9 +62,10 @@ private:
     std::shared_ptr<Camera> camera;
     std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Renderer> renderer;
+    std::shared_ptr<ObjectLoader> objectLoader;
+    std::shared_ptr<ObjectSaver> objectSaver;
 
     std::shared_ptr<Object3D> currentObject = nullptr;
-
 
     QWidget* centralWidgetContainer = nullptr;
     QListWidget* objectsList = nullptr;
@@ -92,7 +99,11 @@ private:
     QSpinBox* sceneObjectSpinRotY = nullptr;
     QSpinBox* sceneObjectSpinRotZ = nullptr;
 
+    QMenuBar* menuBar = nullptr;
+
     QPushButton* addCubeButton = nullptr;
+
+
 
 private slots:
     void onAddCubeClicked();
@@ -109,6 +120,9 @@ private slots:
 
     void onDisplayModeCurIndexChanged();
     void onDisplayColorPickerValueChanged(const Color& color);
+
+    void onFileMenuSaveObject();
+    void onFileMenuImportObject();
 };
 
 

@@ -38,6 +38,7 @@ void ObjectLoader::parseFile(std::string filePath){
         }
     }
     file.close();
+
 }
 
 void ObjectLoader::createObjects(){
@@ -45,15 +46,18 @@ void ObjectLoader::createObjects(){
     std::shared_ptr<RenderableObject3D> object = std::make_shared<RenderableObject3D>();
 
 
-    for(const auto& v : vertices){
-        object->vertices.push_back(v);
-    }
+    object->vertices = vertices;
+    object->transformedVertices = object->vertices;
 
     for(const auto& face : faces){
         object->faceVertexIndices.push_back(face.firstVertex-1);
         object->faceVertexIndices.push_back(face.secondVertex-1);
         object->faceVertexIndices.push_back(face.thirdVertex-1);
+
     }
+
+
+
 
     newObjects.push_back(object);
 }

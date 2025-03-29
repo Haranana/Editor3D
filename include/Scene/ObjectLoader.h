@@ -1,6 +1,7 @@
 #ifndef OBJECTLOADER_H
 #define OBJECTLOADER_H
 
+#include <iostream>
 #include <qstring.h>
 #include "include/Scene/RenderableObject3D.h"
 #include <vector>

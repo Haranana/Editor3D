@@ -7,6 +7,7 @@
 class ObjectSaver{
 public:
     void saveObject(std::shared_ptr<RenderableObject3D>object);
+    void saveObject(std::shared_ptr<RenderableObject3D>object , std::string savePath);
     void saveScene(); //TODO
 private:
 

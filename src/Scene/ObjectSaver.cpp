@@ -17,6 +17,18 @@ void ObjectSaver::saveObject(std::shared_ptr<RenderableObject3D>object){
     file.close();
 }
 
+void ObjectSaver::saveObject(std::shared_ptr<RenderableObject3D>object , std::string savePath){
+    std::ofstream file(savePath);
+    for(const auto& v: object->vertices){
+        file<<std::fixed<<std::setprecision(6)<<"v"<<" "<<v.x<<" "<<v.y<<" "<<v.z<<std::endl;
+    }
+
+    for(int it=0; it<object->faceVertexIndices.size(); it+=3){
+        file<<std::fixed<<std::setprecision(6)<<"f"<<" "<<object->faceVertexIndices[it]+1<<" "<<object->faceVertexIndices[it+1]+1<<" "<<object->faceVertexIndices[it+2]+1<<std::endl;
+    }
+
+    file.close();
+}
 
 std::string ObjectSaver::generateFileName(){
     auto now = std::chrono::system_clock::now();

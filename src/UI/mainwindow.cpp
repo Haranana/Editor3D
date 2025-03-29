@@ -30,6 +30,16 @@ void MainWindow::setupUI()
     setCentralWidget(centralWidgetContainer);
     QHBoxLayout* mainLayout = new QHBoxLayout(centralWidgetContainer);
 
+    // Najbardziej zewnetrzny layout dzielacy aplikacje na czesc glowna i pasek menu
+    menuBar = new QMenuBar(this);
+    QHBoxLayout* menuBarLayout = new QHBoxLayout(menuBar);
+    QVBoxLayout* menuAndMainLayout = new QVBoxLayout();
+
+    menuAndMainLayout->addLayout(menuBarLayout);
+    menuAndMainLayout->addLayout(mainLayout);
+
+    setupMenuBar();
+
     // --- Lewy panel: lista obiektów i przycisk "Add Cube" ---
     QWidget* leftPanel = new QWidget(this);
     QVBoxLayout* leftLayout = new QVBoxLayout(leftPanel);
@@ -67,6 +77,27 @@ void MainWindow::setupUI()
     // --- Łączenie sygnałów/slotów ---
     connect(addCubeButton, &QPushButton::clicked, this, &MainWindow::onAddCubeClicked);
     connect(objectsList, &QListWidget::itemSelectionChanged, this, &MainWindow::onObjectSelected);
+}
+
+void MainWindow::setupMenuBar(){
+
+    setMenuBar(menuBar);
+    QMenu *fileMenu = menuBar->addMenu("File");
+
+    QAction *importObjectAction = new QAction("&Import object");
+    QAction *saveObjectAction = new QAction("&Save object");
+
+    fileMenu->addAction(importObjectAction);
+    fileMenu->addSeparator();
+    fileMenu->addAction(saveObjectAction);
+
+    QObject::connect(importObjectAction, &QAction::triggered, [&](){
+        onFileMenuImportObject();
+    });
+
+    QObject::connect(saveObjectAction, &QAction::triggered, [&](){
+        onFileMenuSaveObject();
+    });
 }
 
 void MainWindow::setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout){
@@ -313,7 +344,8 @@ void MainWindow::setupUIPropertyTreeViewportDisplay(){
 void MainWindow::setupScene()
 {
     scene = std::make_shared<Scene>();
-
+    objectLoader = std::make_shared<ObjectLoader>();
+    objectSaver = std::make_shared<ObjectSaver>();
     camera = std::make_shared<Camera>();
 
     auto img = std::make_shared<QImage>(800, 600, QImage::Format_ARGB32);
@@ -603,6 +635,36 @@ void MainWindow::onDisplayModeCurIndexChanged(){
 void MainWindow::onDisplayColorPickerValueChanged(const Color& color){
     std::cout<<"changed color Value to: "<<color<<std::endl;
     currentObject->viewportDisplay.color = color;
+}
+
+void MainWindow::onFileMenuSaveObject(){
+    if(!currentObject){
+        qDebug() << "Object to save was not selected!";
+        return;
+    }
+
+    QString savePath = QFileDialog::getSaveFileName(this , tr("Save file") , "" , tr("OBJ Files (*.obj);;Text Files (*.txt);;All Files (*)"));
+    if (!savePath.isEmpty()) {
+        qDebug() << "saving:" << savePath;
+        if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
+            objectSaver->saveObject(std::make_shared<RenderableObject3D>(*currentRenderableObject) , savePath.toStdString());
+        }
+    }
+}
+
+void MainWindow::onFileMenuImportObject(){
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Import .obj file"),"",tr("OBJ Files (*.obj);;Text Files (*.txt);;All Files (*)"));
+    if (!fileName.isEmpty()) {
+        qDebug() << "chosen file:" << fileName;
+
+
+        std::shared_ptr<RenderableObject3D> loadedObject = objectLoader->loadObject(fileName.toStdString())[0];
+        scene->addObject(loadedObject);
+        QString itemText = QString("imported cube");
+        objectsList->addItem(itemText);
+
+        refreshScene();
+    }
 }
 /*
  * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu
