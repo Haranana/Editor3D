@@ -2,8 +2,9 @@
 #define CAMERA_H
 
 #include "Math/Transform3D.h"
+#include "Scene/Object3D.h"
 
-class Camera{
+class Camera : public  Object3D{
 public:
 
     Transform3D transform;

@@ -356,14 +356,17 @@ void MainWindow::setupScene()
     renderingSurface = std::make_shared<RenderingSurface>(img);
     renderer = std::make_shared<Renderer>(renderingSurface, scene, camera);
 
+    std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
+    defaultCamera->transform.setPosition({ 0.0, 0.0, -200.0 });
+    defaultCamera->setFov(200.0);
+    defaultCamera->visibleInScene = false;
+    scene->specialSceneObjects.defaultCamera = defaultCamera;
+
     camera->transform.setPosition({ 0.0, 0.0, -200.0 });
     camera->setFov(200.0);
-
-    auto cube = std::make_shared<Cube>(50);
-    scene->addObject(cube);
-
-    QListWidgetItem* item = new QListWidgetItem("Cube");
-    objectsList->addItem(item);
+    scene->addObject(camera);
+    QListWidgetItem* item1 = new QListWidgetItem("Main Camera");
+    objectsList->addItem(item1);
 
     refreshScene();
 }
@@ -397,7 +400,9 @@ void MainWindow::onAddCubeClicked()
 void MainWindow::onObjectSelected()
 {
 
+
     int objectId = objectsList->currentRow();
+    std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
         currentObject = nullptr;
         return;
@@ -407,6 +412,8 @@ void MainWindow::onObjectSelected()
     if (!currentObject) return;
 
     Vector3 pos = currentObject->transform.getPosition();
+    std::cout<<pos<<std::endl;
+    std::cout<<scene->objectsAmount()<<std::endl;
 
     sceneObjectSliderPosX->setValue(pos.x);
     sceneObjectSliderPosY->setValue(pos.y);
@@ -416,11 +423,12 @@ void MainWindow::onObjectSelected()
     sceneObjectSpinPosY->setValue(pos.y);
     sceneObjectSpinPosZ->setValue(pos.z);
 
-    std::cout<<"Before changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
+    //std::cout<<"Before changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
+    if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
+        colorPicker->setColor(currentRenderableObject->viewportDisplay.color);
+    }
 
-    colorPicker->setColor(currentObject->viewportDisplay.color);
-
-    std::cout<<"After changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
+    //std::cout<<"After changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
     //to fill
 
 }

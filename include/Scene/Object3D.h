@@ -19,6 +19,10 @@ public:
 
     ViewportDisplay viewportDisplay;
 
+    //determines whether an object should be visible in scene list of object
+    //normally it should remain true except for special cases such as default camera and grid
+    bool visibleInScene = true;
+
 protected:
 
     /*refers to original position of some anchor Point of the object
