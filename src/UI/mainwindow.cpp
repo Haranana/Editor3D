@@ -193,10 +193,10 @@ void MainWindow::setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCat
     QHBoxLayout* scaleXLayout = new QHBoxLayout(scaleXWidget);
     scaleXLayout->setContentsMargins(0, 0, 0, 0);
     sceneObjectSliderScaleX = new QSlider(Qt::Horizontal, scaleXWidget);
-    sceneObjectSliderScaleX->setRange(0, 300);
+    sceneObjectSliderScaleX->setRange(0, 3000);
     sceneObjectSliderScaleX->setValue(100);
     sceneObjectSpinScaleX = new QDoubleSpinBox(scaleXWidget);
-    sceneObjectSpinScaleX->setRange(0.0, 3.0);
+    sceneObjectSpinScaleX->setRange(0.0, 30.0);
     sceneObjectSpinScaleX->setValue(1.0);
     scaleXLayout->addWidget(sceneObjectSliderScaleX);
     scaleXLayout->addWidget(sceneObjectSpinScaleX);
@@ -210,10 +210,10 @@ void MainWindow::setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCat
     QHBoxLayout* scaleYLayout = new QHBoxLayout(scaleYWidget);
     scaleYLayout->setContentsMargins(0, 0, 0, 0);
     sceneObjectSliderScaleY = new QSlider(Qt::Horizontal, scaleYWidget);
-    sceneObjectSliderScaleY->setRange(0, 300);
+    sceneObjectSliderScaleY->setRange(0, 3000);
     sceneObjectSliderScaleY->setValue(100);
     sceneObjectSpinScaleY = new QDoubleSpinBox(scaleYWidget);
-    sceneObjectSpinScaleY->setRange(0.0, 3.0);
+    sceneObjectSpinScaleY->setRange(0.0, 30.0);
     sceneObjectSpinScaleY->setValue(1.0);
     scaleYLayout->addWidget(sceneObjectSliderScaleY);
     scaleYLayout->addWidget(sceneObjectSpinScaleY);
@@ -227,10 +227,10 @@ void MainWindow::setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCat
     QHBoxLayout* scaleZLayout = new QHBoxLayout(scaleZWidget);
     scaleZLayout->setContentsMargins(0, 0, 0, 0);
     sceneObjectSliderScaleZ = new QSlider(Qt::Horizontal, scaleZWidget);
-    sceneObjectSliderScaleZ->setRange(0, 300);
+    sceneObjectSliderScaleZ->setRange(0, 3000);
     sceneObjectSliderScaleZ->setValue(100);
     sceneObjectSpinScaleZ = new QDoubleSpinBox(scaleZWidget);
-    sceneObjectSpinScaleZ->setRange(0.0, 3.0);
+    sceneObjectSpinScaleZ->setRange(0.0, 30.0);
     sceneObjectSpinScaleZ->setValue(1.0);
     scaleZLayout->addWidget(sceneObjectSliderScaleZ);
     scaleZLayout->addWidget(sceneObjectSpinScaleZ);
