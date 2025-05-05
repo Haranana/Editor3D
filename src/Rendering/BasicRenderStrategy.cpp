@@ -16,11 +16,15 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 
     LinePainter linePainter(renderingSurface->getImg());
 
+    Matrix4 modelMatrix = object.transform.getTransMatrix();
+    Matrix4 viewMatrix  = camera->getViewMatrix();
+    Matrix4 modelView   = viewMatrix * modelMatrix;
+
     // obliczanie transformedVertices obiektu
     for(int vertexIt = 0; vertexIt < static_cast<int>(object.vertices.size()); vertexIt++){
         // Mnożenie przez macierz transformacji (pozycja, rotacja, skalowanie)
         auto vert4 = Vectors::vector3to4(object.vertices[vertexIt]);
-        auto transformed4 = object.transform.getTransMatrix() * vert4;
+        Vector4 transformed4 = modelView * vert4;
         object.transformedVertices[vertexIt] = Vectors::vector4to3(transformed4);
     }
 

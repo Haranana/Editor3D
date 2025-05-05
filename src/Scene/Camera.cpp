@@ -7,3 +7,8 @@ double Camera::getFov(){
 void Camera::setFov(double newFov){
     fov = newFov;
 }
+
+Matrix4 Camera::getViewMatrix()
+{
+    return transform.getTransMatrix().getInversion();
+}
