@@ -402,7 +402,7 @@ void MainWindow::onObjectSelected()
 
 
     int objectId = objectsList->currentRow();
-    std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
+    //std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
         currentObject = nullptr;
         return;
@@ -412,8 +412,10 @@ void MainWindow::onObjectSelected()
     if (!currentObject) return;
 
     Vector3 pos = currentObject->transform.getPosition();
-    std::cout<<pos<<std::endl;
-    std::cout<<scene->objectsAmount()<<std::endl;
+    Vector3 rot = currentObject->transform.getAngles();
+    Vector3 scale = currentObject->transform.getScales();
+    //std::cout<<pos<<std::endl;
+    //std::cout<<scene->objectsAmount()<<std::endl;
 
     sceneObjectSliderPosX->setValue(pos.x);
     sceneObjectSliderPosY->setValue(pos.y);
@@ -422,6 +424,22 @@ void MainWindow::onObjectSelected()
     sceneObjectSpinPosX->setValue(pos.x);
     sceneObjectSpinPosY->setValue(pos.y);
     sceneObjectSpinPosZ->setValue(pos.z);
+
+    sceneObjectSliderRotX->setValue(rot.x);
+    sceneObjectSliderRotY->setValue(rot.y);
+    sceneObjectSliderRotZ->setValue(rot.z);
+
+    sceneObjectSpinRotX->setValue(rot.x);
+    sceneObjectSpinRotY->setValue(rot.y);
+    sceneObjectSpinRotZ->setValue(rot.z);
+
+    sceneObjectSliderScaleX->setValue(scale.x);
+    sceneObjectSliderScaleY->setValue(scale.y);
+    sceneObjectSliderScaleZ->setValue(scale.z);
+
+    sceneObjectSpinScaleX->setValue(scale.x);
+    sceneObjectSpinScaleY->setValue(scale.y);
+    sceneObjectSpinScaleZ->setValue(scale.z);
 
     //std::cout<<"Before changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
     if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
