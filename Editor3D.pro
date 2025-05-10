@@ -31,6 +31,7 @@ SOURCES += \
     src/Rendering/Color.cpp \
     src/Rendering/Colors.cpp \
     src/Rendering/FrontOnlyRenderStrategy.cpp \
+    src/Rendering/GridRenderStrategy.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PixelPainter.cpp \
     src/Rendering/RasterRenderStrategy.cpp \
@@ -38,6 +39,8 @@ SOURCES += \
     src/Rendering/RenderingSurface.cpp \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
+    src/Scene/Cylinder.cpp \
+    src/Scene/Grid.cpp \
     src/Scene/Object3D.cpp \
     src/Scene/ObjectLoader.cpp \
     src/Scene/ObjectSaver.cpp \
@@ -64,6 +67,7 @@ HEADERS += \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
     include/Rendering/FrontOnlyRenderStrategy.h \
+    include/Rendering/GridRenderStrategy.h \
     include/Rendering/LinePainter.h \
     include/Rendering/PixelPainter.h \
     include/Rendering/RasterRenderStrategy.h \
@@ -74,6 +78,8 @@ HEADERS += \
     include/Rendering/ViewportDisplay.h \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
+    include/Scene/Cylinder.h \
+    include/Scene/Grid.h \
     include/Scene/Object3D.h \
     include/Scene/ObjectLoader.h \
     include/Scene/ObjectSaver.h \

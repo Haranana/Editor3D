@@ -6,11 +6,14 @@
 #include "Object3D.h"
 #include "Camera.h"
 #include <memory>
+#include "Scene/Grid.h"
 
 class Scene{
 private:
     struct SpecialSceneObjects{
         std::shared_ptr<Camera> defaultCamera = nullptr;
+        std::shared_ptr<Grid> HorizontalGrid = nullptr;
+        std::shared_ptr<Grid> VerticalGrid = nullptr;
     };
 
 public:
