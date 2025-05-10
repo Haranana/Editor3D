@@ -2,6 +2,7 @@
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/FrontOnlyRenderStrategy.h"
 #include "Rendering/RasterRenderStrategy.h"
+#include "Rendering/GridRenderStrategy.h"
 
 
 Grid::Grid(Grid::Orientation orientation, int linesInterval, int size) :orientation(orientation), linesInterval(linesInterval) , size(size){
@@ -67,7 +68,7 @@ Grid::Grid(Grid::Orientation orientation, int linesInterval, int size) :orientat
             break;
     }
 
-    renderStrategy = std::make_unique<BasicRenderStrategy>();
+    renderStrategy = std::make_unique<GridRenderStrategy>();
     transformedVertices = vertices;
 
 
