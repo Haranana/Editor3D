@@ -34,7 +34,7 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 
         int i1 = object.faceVertexIndices[i];
         int i2 = object.faceVertexIndices[i+1];
-        int i3 = object.faceVertexIndices[i+2];
+        int i3 = object.faceVertexIndices[i+2];//asdasd
 
         Vector3 v1 = object.transformedVertices[i1];
         Vector3 v2 = object.transformedVertices[i2];

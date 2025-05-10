@@ -26,7 +26,7 @@ private:
     //in how many pixels of space beetwen lines
     static const Grid::Orientation defaultOrientation = Grid::Orientation::VERTICAL;
     static const int defaultLinesInterval = 50;
-    static const int defaultSize = 200;
+    static const int defaultSize = 500;
 };
 
 #endif // GRID_H

@@ -8,7 +8,7 @@
 class Cylinder : public RenderableObject3D{
 public:
 
-    Cylinder(int radious = defaultRadious, int height = defaultHeight);
+    Cylinder(int radious = defaultRadious, int height = defaultHeight , int verticesInCircle = defaultVerticesInCircle);
 
 private:
     int height; //measured in pixels

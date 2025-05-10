@@ -369,12 +369,12 @@ void MainWindow::setupScene()
     QListWidgetItem* vGridItem = new QListWidgetItem("Vertical Grid");
     objectsList->addItem(vGridItem);
 
-
+    /*
     std::shared_ptr<Grid> horizontalGrid = std::make_shared<Grid>(Grid::Orientation::HORIZONTAL);
-    //scene->specialSceneObjects.VerticalGrid =
     scene->addObject(horizontalGrid);
     QListWidgetItem* hGridItem = new QListWidgetItem("Horizontal Grid");
     objectsList->addItem(hGridItem);
+    */
 
     camera->transform.setPosition({ 0.0, 0.0, -200.0 });
     camera->setFov(200.0);
@@ -400,6 +400,11 @@ void MainWindow::refreshScene()
 void MainWindow::onAddCubeClicked()
 {
 
+    auto newObj = std::make_shared<Cylinder>();
+    scene->addObject(newObj);
+    QString itemText = QString("Cylinder");
+    objectsList->addItem(itemText);
+    /*
     static int cubeCount = 2;
     auto newCube = std::make_shared<Cube>(30);
 
@@ -409,6 +414,9 @@ void MainWindow::onAddCubeClicked()
     objectsList->addItem(itemText);
 
     refreshScene();
+    */
+
+
 }
 
 void MainWindow::onObjectSelected()

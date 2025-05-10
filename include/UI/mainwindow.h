@@ -21,6 +21,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Object3D.h"
 #include "Scene/Cube.h"
+#include "Scene/Cylinder.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderingSurface.h"
 #include "Scene/Camera.h"
