@@ -82,14 +82,23 @@ void MainWindow::setupUI()
 void MainWindow::setupMenuBar(){
 
     setMenuBar(menuBar);
+
     QMenu *fileMenu = menuBar->addMenu("File");
+    QMenu *objectsMenu = menuBar->addMenu("Objects");
+    QMenu *createObjectsMenu = objectsMenu->addMenu("Create");
 
     QAction *importObjectAction = new QAction("&Import object");
     QAction *saveObjectAction = new QAction("&Save object");
+    QAction *createObjectCube = new QAction("&Cube");
+    QAction *createObjectCylinder = new QAction("&Cylinder");
 
     fileMenu->addAction(importObjectAction);
     fileMenu->addSeparator();
     fileMenu->addAction(saveObjectAction);
+
+    objectsMenu->addMenu(createObjectsMenu);
+    createObjectsMenu->addAction(createObjectCube);
+    createObjectsMenu->addAction(createObjectCylinder);
 
     QObject::connect(importObjectAction, &QAction::triggered, [&](){
         onFileMenuImportObject();
@@ -97,6 +106,14 @@ void MainWindow::setupMenuBar(){
 
     QObject::connect(saveObjectAction, &QAction::triggered, [&](){
         onFileMenuSaveObject();
+    });
+
+    QObject::connect(createObjectCube, &QAction::triggered, [&](){
+        onObjectMenuCreateCube();
+    });
+
+    QObject::connect(createObjectCylinder, &QAction::triggered, [&](){
+        onObjectMenuCreateCylinder();
     });
 }
 
@@ -714,6 +731,27 @@ void MainWindow::onFileMenuImportObject(){
         refreshScene();
     }
 }
+
+void MainWindow::onObjectMenuCreateCube(){
+    std::shared_ptr<Cube> newObject = std::make_shared<Cube>();
+
+    scene->addObject(newObject);
+    QString itemText = QString("Cube");
+    objectsList->addItem(itemText);
+
+    refreshScene();
+}
+
+void MainWindow::onObjectMenuCreateCylinder(){
+    std::shared_ptr<Cylinder> newObject = std::make_shared<Cylinder>();
+
+    scene->addObject(newObject);
+    QString itemText = QString("Cube");
+    objectsList->addItem(itemText);
+
+    refreshScene();
+}
+
 /*
  * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu
  * nullptr - nic , renderableObject - viewportDisplay i transform itp...

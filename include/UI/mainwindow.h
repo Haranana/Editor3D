@@ -124,6 +124,9 @@ private slots:
 
     void onFileMenuSaveObject();
     void onFileMenuImportObject();
+
+    void onObjectMenuCreateCube();
+    void onObjectMenuCreateCylinder();
 };
 
 
