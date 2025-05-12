@@ -127,6 +127,8 @@ private slots:
 
     void onObjectMenuCreateCube();
     void onObjectMenuCreateCylinder();
+
+    void onSceneMenuDeleteSelectedObject();
 };
 
 

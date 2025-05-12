@@ -85,20 +85,24 @@ void MainWindow::setupMenuBar(){
 
     QMenu *fileMenu = menuBar->addMenu("File");
     QMenu *objectsMenu = menuBar->addMenu("Objects");
+    QMenu *sceneMenu = menuBar->addMenu("Scene");
+    QMenu *selectedObjectMenu = sceneMenu->addMenu("Sel. Object");
     QMenu *createObjectsMenu = objectsMenu->addMenu("Create");
 
     QAction *importObjectAction = new QAction("&Import object");
     QAction *saveObjectAction = new QAction("&Save object");
     QAction *createObjectCube = new QAction("&Cube");
     QAction *createObjectCylinder = new QAction("&Cylinder");
+    QAction *deleteSelectedObject = new QAction("&Delete");
 
     fileMenu->addAction(importObjectAction);
     fileMenu->addSeparator();
     fileMenu->addAction(saveObjectAction);
-
     objectsMenu->addMenu(createObjectsMenu);
+
     createObjectsMenu->addAction(createObjectCube);
     createObjectsMenu->addAction(createObjectCylinder);
+    selectedObjectMenu->addAction(deleteSelectedObject);
 
     QObject::connect(importObjectAction, &QAction::triggered, [&](){
         onFileMenuImportObject();
@@ -114,6 +118,10 @@ void MainWindow::setupMenuBar(){
 
     QObject::connect(createObjectCylinder, &QAction::triggered, [&](){
         onObjectMenuCreateCylinder();
+    });
+
+    QObject::connect(deleteSelectedObject, &QAction::triggered, [&](){
+        onSceneMenuDeleteSelectedObject();
     });
 }
 
@@ -748,6 +756,18 @@ void MainWindow::onObjectMenuCreateCylinder(){
     scene->addObject(newObject);
     QString itemText = QString("Cube");
     objectsList->addItem(itemText);
+
+    refreshScene();
+}
+
+void MainWindow::onSceneMenuDeleteSelectedObject(){
+    std::shared_ptr<Object3D> objToDelete = currentObject;
+    currentObject = nullptr;
+    scene->removeObject(objToDelete);
+    QListWidgetItem* itemToDelete = objectsList->currentItem();
+    if (itemToDelete) {
+        delete objectsList->takeItem(objectsList->row(itemToDelete));
+    }
 
     refreshScene();
 }
