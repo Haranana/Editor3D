@@ -75,15 +75,19 @@ void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& rende
             Vector3 p1_3(p1.x, p1.y, v1.z);
             Vector3 p2_3(p2.x, p2.y, v2.z);
             Vector3 p3_3(p3.x, p3.y, v3.z);
-
+            /*
             renderer.drawLine3D(p1_3,p2_3);
             renderer.drawLine3D(p2_3,p3_3);
             renderer.drawLine3D(p3_3,p1_3);
+            */
+            renderer.drawLine3D(v1, v2, object.viewportDisplay.color);
+            renderer.drawLine3D(v2, v3, object.viewportDisplay.color);
+            renderer.drawLine3D(v3, v1, object.viewportDisplay.color);
         }
     }
 }
 
-double FrontOnlyRenderStrategy::cosBeetwenVectors(const Vector3& normalVector , const Vector3& cameraVector){
+double FrontOnlyRenderStrategy::cosBeetwenVectors( Vector3& normalVector ,  Vector3& cameraVector){
 
     return (
         (normalVector.x * cameraVector.x + normalVector.y * cameraVector.y + normalVector.z * cameraVector.z) /

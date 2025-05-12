@@ -59,6 +59,9 @@ private:
     void setupScene();
     void refreshScene();
 
+    static constexpr double transUpLimit = 500;
+    static constexpr double transDownLimit = -500;
+
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
     //std::shared_ptr<RenderingSurface> renderingSurface;

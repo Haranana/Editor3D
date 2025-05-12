@@ -63,9 +63,13 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
         Vector3 p2_3(p2.x, p2.y, v2.z);
         Vector3 p3_3(p3.x, p3.y, v3.z);
 
-        renderer.drawLine3D(p1_3,p2_3);
-        renderer.drawLine3D(p2_3,p3_3);
-        renderer.drawLine3D(p3_3,p1_3);
+        //renderer.drawLine3D(p1_3,p2_3);
+        //renderer.drawLine3D(p2_3,p3_3);
+        //renderer.drawLine3D(p3_3,p1_3);
+
+        renderer.drawLine3D(v1, v2, object.viewportDisplay.color);
+        renderer.drawLine3D(v2, v3, object.viewportDisplay.color);
+        renderer.drawLine3D(v3, v1, object.viewportDisplay.color);
 
         //linePainter.drawLine(p1, p2);
        // linePainter.drawLine(p2, p3);

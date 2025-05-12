@@ -34,11 +34,15 @@ public:
     void clearRenderingSurface();
     void setScene(std::shared_ptr<Scene> newScene);
     void setCamera(std::shared_ptr<Camera> newCamera);
+
+    Vector2 projectToScreen(const Vector3& cameraVector);
+    Vector3 clipLineBehindNearPlane(const Vector3& v1, const Vector3& v2);
+    bool insideNearPlane(const Vector3& v);
     //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
     bool drawPixel(int x, int y, double z, const Color& c);
 
     //do poprawienia na perspective correct (1/z)
-    void drawLine3D(const Vector3& vec1, const Vector3& vec2, const Color& color = Color(255,255,255,255));
+    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, const Color& color = Color(255,255,255,255));
 
     std::shared_ptr<Camera> getCamera();
     std::shared_ptr<Scene> getScene();

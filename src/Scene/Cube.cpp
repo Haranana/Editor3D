@@ -86,7 +86,7 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
 
     //renderStrategy = std::make_unique<BasicRenderStrategy>();
    // renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
-    renderStrategy = std::make_unique<RasterRenderStrategy>();
+    renderStrategy = std::make_unique<BasicRenderStrategy>();
 
     //W przyszlosci pewnie dobrze by bylo rozszerzyc program o uzywanie startingPosition
     //transform.setPosition(startingPosition);

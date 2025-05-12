@@ -25,6 +25,7 @@ Vector3 Transform3D::getScales() {
 }
 
 void Transform3D::setPosition(Vector3 newPosition) {
+    std::cout<<"Cur Z params: "<<newPosition.z<<std::endl;
     translationParameters = newPosition;
     updateTranslationMatrix();
     updateTransMatrix();
@@ -70,6 +71,7 @@ void Transform3D::moveZ(double zDelta) {
     translationParameters.z += zDelta;
     updateTranslationMatrix();
     updateTransMatrix();
+
 }
 
 void Transform3D::setAngles(Vector3 newAngles, bool inRadians) {
@@ -138,6 +140,7 @@ void Transform3D::setScaleZ(double newScale) {
 
 void Transform3D::updateTransMatrix() {
     transMatrix = translationMatrix * rotationMatrix * scalingMatrix;
+
 }
 
 void Transform3D::updateTranslationMatrix(){

@@ -67,6 +67,7 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
         if(even)linePainter.drawLine(p3, p1);
         */
 
+        /*
         Vector3 p1_3(p1.x, p1.y, v1.z);
         Vector3 p2_3(p2.x, p2.y, v2.z);
         Vector3 p3_3(p3.x, p3.y, v3.z);
@@ -74,7 +75,10 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
         renderer.drawLine3D(p1_3,p2_3);
         if(!even) renderer.drawLine3D(p2_3,p3_3);
         if(even) renderer.drawLine3D(p3_3,p1_3);
-
+        */
+        renderer.drawLine3D(v1, v2, object.viewportDisplay.color);
+        if(!even) renderer.drawLine3D(v2, v3, object.viewportDisplay.color);
+        if(even) renderer.drawLine3D(v3, v1, object.viewportDisplay.color);
         even = even? false : true;
     }
 }

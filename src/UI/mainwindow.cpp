@@ -159,9 +159,9 @@ void MainWindow::setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCateg
     QHBoxLayout* posXLayout = new QHBoxLayout(posXWidget);
     posXLayout->setContentsMargins(0, 0, 0, 0);
     sceneObjectSliderPosX = new QSlider(Qt::Horizontal, posXWidget);
-    sceneObjectSliderPosX->setRange(-200, 200);
+    sceneObjectSliderPosX->setRange(transDownLimit, transUpLimit);
     sceneObjectSpinPosX = new QSpinBox(posXWidget);
-    sceneObjectSpinPosX->setRange(-200, 200);
+    sceneObjectSpinPosX->setRange(transDownLimit, transUpLimit);
     posXLayout->addWidget(sceneObjectSliderPosX);
     posXLayout->addWidget(sceneObjectSpinPosX);
     posXWidget->setLayout(posXLayout);
@@ -174,9 +174,9 @@ void MainWindow::setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCateg
     QHBoxLayout* posYLayout = new QHBoxLayout(posYWidget);
     posYLayout->setContentsMargins(0, 0, 0, 0);
     sceneObjectSliderPosY = new QSlider(Qt::Horizontal, posYWidget);
-    sceneObjectSliderPosY->setRange(-200, 200);
+    sceneObjectSliderPosY->setRange(transDownLimit, transUpLimit);
     sceneObjectSpinPosY = new QSpinBox(posYWidget);
-    sceneObjectSpinPosY->setRange(-200, 200);
+    sceneObjectSpinPosY->setRange(transDownLimit, transUpLimit);
     posYLayout->addWidget(sceneObjectSliderPosY);
     posYLayout->addWidget(sceneObjectSpinPosY);
     posYWidget->setLayout(posYLayout);
@@ -189,9 +189,9 @@ void MainWindow::setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCateg
     QHBoxLayout* posZLayout = new QHBoxLayout(posZWidget);
     posZLayout->setContentsMargins(0, 0, 0, 0);
     sceneObjectSliderPosZ = new QSlider(Qt::Horizontal, posZWidget);
-    sceneObjectSliderPosZ->setRange(-200, 200);
+    sceneObjectSliderPosZ->setRange(transDownLimit, transUpLimit);
     sceneObjectSpinPosZ = new QSpinBox(posZWidget);
-    sceneObjectSpinPosZ->setRange(-200, 200);
+    sceneObjectSpinPosZ->setRange(transDownLimit, transUpLimit);
     posZLayout->addWidget(sceneObjectSliderPosZ);
     posZLayout->addWidget(sceneObjectSpinPosZ);
     posZWidget->setLayout(posZLayout);
@@ -382,7 +382,7 @@ void MainWindow::setupScene()
     renderer = std::make_shared<Renderer>(img, scene, camera);
 
     std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
-    defaultCamera->transform.setPosition({ 0.0, 0.0, -200.0 });
+    defaultCamera->transform.setPosition({ 0.0, 0.0, 0.0 });
     defaultCamera->setFov(200.0);
     defaultCamera->visibleInScene = false;
     scene->specialSceneObjects.defaultCamera = defaultCamera;
@@ -401,7 +401,7 @@ void MainWindow::setupScene()
     objectsList->addItem(hGridItem);
     */
 
-    camera->transform.setPosition({ 0.0, 0.0, -200.0 });
+    camera->transform.setPosition({ 0.0, 0.0, 300 });
     camera->setFov(200.0);
     scene->addObject(camera);
     QListWidgetItem* item1 = new QListWidgetItem("Main Camera");

@@ -49,6 +49,7 @@ void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer
         Vector3 v1 = screenCoordinates[object.faceVertexIndices[it]];
         Vector3 v2 = screenCoordinates[object.faceVertexIndices[it+1]];
         Vector3 v3 = screenCoordinates[object.faceVertexIndices[it+2]];
+        if (-v1.z < renderer.getCamera()->nearPlane || -v2.z < renderer.getCamera()->nearPlane || -v3.z < renderer.getCamera()->nearPlane) continue;
 
         double minX = std::min({v1.x, v2.x, v3.x});
         double maxX = std::max({v1.x, v2.x, v3.x});
@@ -86,8 +87,9 @@ void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer
                     //    (na razie "liniowo" – docelowo: perspective-correct = 1/z)
                     double zInterpol =
                         (v1.z * w0 + v2.z * w1 + v3.z * w2) / area;
+                    double depth = -zInterpol;
 
-                    if (zInterpol < (*renderer.getZBuffer())[y][x])
+                    if (depth  < (*renderer.getZBuffer())[y][x])
                     {
                         // Nowy fragment jest bliżej
                         (*renderer.getZBuffer())[y][x] = zInterpol;
