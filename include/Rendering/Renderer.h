@@ -10,6 +10,9 @@
 #include "LinePainter.h"
 #include "RenderStrategy.h"
 #include "Scene/RenderableObject3D.h"
+#include "Rendering/PixelPainter.h"
+#include "Rendering/LinePainter.h"
+#include <QImage>
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
  * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here
@@ -20,20 +23,31 @@ class Renderer{
 public:
 
     Renderer(
-        std::shared_ptr<RenderingSurface> renderingSurface,
+        //std::shared_ptr<RenderingSurface> renderingSurface,
+        std::shared_ptr<QImage> img,
         std::shared_ptr<Scene> scene,
         std::shared_ptr<Camera> camera);
 
     void renderScene();
 
     void setRenderingSurface(std::shared_ptr<RenderingSurface> newRenderingSurface);
+    void clearRenderingSurface();
     void setScene(std::shared_ptr<Scene> newScene);
     void setCamera(std::shared_ptr<Camera> newCamera);
+    //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
+    bool drawPixel(int x, int y, double z, const Color& c);
+
+    //do poprawienia na perspective correct (1/z)
+    void drawLine3D(const Vector3& vec1, const Vector3& vec2, const Color& color = Color(255,255,255,255));
 
     std::shared_ptr<Camera> getCamera();
     std::shared_ptr<Scene> getScene();
     std::shared_ptr<RenderingSurface> getRenderingSurface();
     std::shared_ptr<std::vector<std::vector<float>>>getZBuffer();
+
+    std::shared_ptr<PixelPainter> pixelPainter;
+    std::shared_ptr<LinePainter> linePainter;
+
 
 private:
 

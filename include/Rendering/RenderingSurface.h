@@ -13,7 +13,7 @@ class RenderingSurface{
 public:
     RenderingSurface(std::shared_ptr<QImage> img);
 
-    void clearImg();
+    //void clearImg();
     Vector2 ScreenCoordsToImgCoords(Vector2 coords);
     Vector2 imgCoordsToScreenCoords(Vector2 coords);
     bool areScreenCoordsInImg(Vector2 coords);

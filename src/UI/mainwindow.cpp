@@ -378,8 +378,8 @@ void MainWindow::setupScene()
     PixelPainter pixelPainter = PixelPainter(img);
     pixelPainter.fillImage(Colors::Black);
 
-    renderingSurface = std::make_shared<RenderingSurface>(img);
-    renderer = std::make_shared<Renderer>(renderingSurface, scene, camera);
+    //renderingSurface = std::make_shared<RenderingSurface>(img);
+    renderer = std::make_shared<Renderer>(img, scene, camera);
 
     std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
     defaultCamera->transform.setPosition({ 0.0, 0.0, -200.0 });
@@ -412,10 +412,10 @@ void MainWindow::setupScene()
 
 void MainWindow::refreshScene()
 {
-    renderingSurface->clearImg();
+    renderer->clearRenderingSurface();
     renderer->renderScene();
 
-    auto imgPtr = renderingSurface->getImg();
+    auto imgPtr = renderer->getRenderingSurface()->getImg();
     if (!imgPtr) return;
 
     QPixmap pix = QPixmap::fromImage(*imgPtr);

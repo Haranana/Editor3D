@@ -60,10 +60,20 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
         p2 = p2 + renderingSurface->getMiddle();
         p3 = p3 + renderingSurface->getMiddle();
 
+        /*
         // rysowanie trojkata
         linePainter.drawLine(p1, p2);
         if(!even)linePainter.drawLine(p2, p3);
         if(even)linePainter.drawLine(p3, p1);
+        */
+
+        Vector3 p1_3(p1.x, p1.y, v1.z);
+        Vector3 p2_3(p2.x, p2.y, v2.z);
+        Vector3 p3_3(p3.x, p3.y, v3.z);
+
+        renderer.drawLine3D(p1_3,p2_3);
+        if(!even) renderer.drawLine3D(p2_3,p3_3);
+        if(even) renderer.drawLine3D(p3_3,p1_3);
 
         even = even? false : true;
     }

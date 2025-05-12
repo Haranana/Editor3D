@@ -61,7 +61,7 @@ private:
 
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
-    std::shared_ptr<RenderingSurface> renderingSurface;
+    //std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Renderer> renderer;
     std::shared_ptr<ObjectLoader> objectLoader;
     std::shared_ptr<ObjectSaver> objectSaver;
