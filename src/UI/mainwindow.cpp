@@ -373,7 +373,7 @@ void MainWindow::setupScene()
     objectSaver = std::make_shared<ObjectSaver>();
     camera = std::make_shared<Camera>();
 
-    auto img = std::make_shared<QImage>(800, 600, QImage::Format_ARGB32);
+    auto img = std::make_shared<QImage>(800, 800, QImage::Format_ARGB32);
     //img->fill(Qt::black);
     PixelPainter pixelPainter = PixelPainter(img);
     pixelPainter.fillImage(Colors::Black);
@@ -383,7 +383,7 @@ void MainWindow::setupScene()
 
     std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
     defaultCamera->transform.setPosition({ 0.0, 0.0, 0.0 });
-    defaultCamera->setFov(200.0);
+    //defaultCamera->setFov(200.0);
     defaultCamera->visibleInScene = false;
     scene->specialSceneObjects.defaultCamera = defaultCamera;
 
@@ -402,7 +402,7 @@ void MainWindow::setupScene()
     */
 
     camera->transform.setPosition({ 0.0, 0.0, 300 });
-    camera->setFov(200.0);
+    //camera->setFov(200.0);
     scene->addObject(camera);
     QListWidgetItem* item1 = new QListWidgetItem("Main Camera");
     objectsList->addItem(item1);

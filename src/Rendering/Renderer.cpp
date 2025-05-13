@@ -23,7 +23,17 @@ Renderer::Renderer(
 
 void Renderer::renderScene(){
     resetZBuffer();
+
+    Matrix4 view = camera->getViewMatrix();
+    Matrix4 proj = camera->getProjectionMatrix();
+    VP = proj * view;
+
     renderSceneObjects();
+}
+
+Vector4 Renderer::toClip(const Vector3& v, const Matrix4& modelMatrix){
+    Vector4 clip = VP * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
+    return clip;
 }
 
 void Renderer::setRenderingSurface(std::shared_ptr<RenderingSurface> newRenderingSurface){
@@ -42,26 +52,6 @@ void Renderer::setCamera(std::shared_ptr<Camera> newCamera){
     camera = newCamera;
 }
 
-Vector2 Renderer::projectToScreen(const Vector3& cameraVector){
-    double invW = 1.0 / (camera->getFov() + cameraVector.z);   // zawsze >0 po klipie
-    return {
-        cameraVector.x * camera->getFov() * invW + renderingSurface->getMiddle().x,
-        cameraVector.y * camera->getFov() * invW + renderingSurface->getMiddle().y
-    };
-}
-
-bool Renderer::insideNearPlane(const Vector3& v){
-    return (-v.z) >= camera->nearPlane;
-}
-
-Vector3 Renderer::clipLineBehindNearPlane(const Vector3& v1, const Vector3& v2){
-    double intersectionPoint = (camera->nearPlane - (-v1.z) ) / ((-v2.z) - (-v1.z));
-    Vector3 iPoint = v1 + (v2 - v1) * intersectionPoint;
-    return iPoint;
-}
-
-
-
 bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
 {
     std::shared_ptr<std::vector<std::vector<float>>> zBuffer = getZBuffer();
@@ -78,29 +68,15 @@ bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
     return false;
 }
 
-void Renderer::drawLine3D(const Vector3& cameraVectorA, const Vector3& cameraVectorB,
+void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
                           const Color& color)
 {
-    /* --- clipping --- */
-    bool inA = insideNearPlane(cameraVectorA);
-    bool inB = insideNearPlane(cameraVectorB);
-    if (!inA && !inB) return;
+    // aScr, bScr: x,y w pikselach, z = depth 0..1 (mniejsza = bliżej)
+    int x0 = int(std::round(aScr.x));
+    int y0 = int(std::round(aScr.y));
+    int x1 = int(std::round(bScr.x));
+    int y1 = int(std::round(bScr.y));
 
-    Vector3 v1 =cameraVectorA;
-    Vector3 v2 =cameraVectorB;
-    if (!inA) v1 = clipLineBehindNearPlane(cameraVectorA, cameraVectorB);
-    if (!inB) v2 = clipLineBehindNearPlane(cameraVectorB, cameraVectorA);
-
-    /* --- projekcja do pikseli --- */
-    Vector2 a2D = projectToScreen(v1);
-    Vector2 b2D = projectToScreen(v2);
-
-    int x0 = int(std::round(a2D.x));
-    int y0 = int(std::round(a2D.y));
-    int x1 = int(std::round(b2D.x));
-    int y1 = int(std::round(b2D.y));
-
-    /* --- klasyczny Bresenham + interpolacja depth --- */
     int dx = std::abs(x1 - x0);
     int dy = std::abs(y1 - y0);
     int sx = x0 < x1 ? 1 : -1;
@@ -111,10 +87,10 @@ void Renderer::drawLine3D(const Vector3& cameraVectorA, const Vector3& cameraVec
     for (int i = 0, x = x0, y = y0; i <= steps; ++i)
     {
         double t = steps ? double(i) / steps : 0.0;
-        double depth = -(v1.z + t * (v2.z - v1.z));   // <-- zamiast cameraVectorA/B
+        double depth = aScr.z + t * (bScr.z - aScr.z);   // liniowo w 0..1
         drawPixel(x, y, depth, color);
 
-        int e2 = err * 2;
+        int e2 = err << 1;
         if (e2 > -dy) { err -= dy; x += sx; }
         if (e2 <  dx) { err += dx; y += sy; }
     }

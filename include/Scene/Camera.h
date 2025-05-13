@@ -6,20 +6,18 @@
 class Camera : public  Object3D{
 public:
     double getFov();
-    void setFov(double newFov);
+    void setFov(double fov);
     Matrix4 getViewMatrix();
+    Matrix4 getProjectionMatrix();
+    void setPerspective(double fovY, double aspect, double nearPlane, double farPlane);
 
-    static constexpr double nearPlane = 0.1;
-    static constexpr double farPlane  = 1000.0;
+    double fovY = defaultFovY;
+    double aspect = 1.0;
+    double nearPlane = 0.1;
+    double farPlane  = 1000.0;
 private:
-
-    //wlasciwie to focal length, wylaca nazwa
-    //dziala "im wieksze fov tym slabsza perspektywa"
-    //raczej odwrotnie niz zazwyczaj ale dziala
-    const int defaultFov = 200.0;
-    double fov = defaultFov;
-
-
+    static constexpr double defaultFovY = 60.0;
+    double fov = 200.0; //wlasciwie to nie fov tylko odleglosc kamery od obrazu, todo zmienic nazwe
 
 };
 

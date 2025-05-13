@@ -11,6 +11,7 @@
 
 void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 {
+    /*
     std::shared_ptr<Camera> camera = renderer.getCamera();
     std::shared_ptr<RenderingSurface> renderingSurface = renderer.getRenderingSurface();
 
@@ -74,6 +75,58 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
         //linePainter.drawLine(p1, p2);
        // linePainter.drawLine(p2, p3);
         //linePainter.drawLine(p3, p1);
+    }
+    */
+
+    std::vector<Vector4> clipVerts;
+    clipVerts.reserve(object.vertices.size());
+    for (auto& v : object.vertices)
+        clipVerts.push_back(renderer.toClip(v, object.transform.getTransMatrix()));
+
+    for (size_t i = 0; i < object.faceVertexIndices.size(); i += 3)
+    {
+        Vector4 c1 = clipVerts[object.faceVertexIndices[i]];
+        Vector4 c2 = clipVerts[object.faceVertexIndices[i+1]];
+        Vector4 c3 = clipVerts[object.faceVertexIndices[i+2]];
+
+        // trivial‑reject poza frustum  (-w > x etc.)
+        // lewa płaszczyzna
+        if (c1.x < -c1.w && c2.x < -c2.w && c3.x < -c3.w) continue;
+        // prawa
+        if (c1.x >  c1.w && c2.x >  c2.w && c3.x >  c3.w) continue;
+        // dół
+        if (c1.y < -c1.w && c2.y < -c2.w && c3.y < -c3.w) continue;
+        // góra
+        if (c1.y >  c1.w && c2.y >  c2.w && c3.y >  c3.w) continue;
+        // near (z> w)  & far (z< -w)
+        if (c1.z >  c1.w && c2.z >  c2.w && c3.z >  c3.w) continue;
+        if (c1.z < -c1.w && c2.z < -c2.w && c3.z < -c3.w) continue;
+
+        // 3) divide by w  →  NDC
+        auto ndc = [](const Vector4& c){ return Vector3(c.x/c.w, c.y/c.w, c.z/c.w); };
+        Vector3 n1 = ndc(c1);
+        Vector3 n2 = ndc(c2);
+        Vector3 n3 = ndc(c3);
+
+        // 4) viewport‑map - konwersja znormalizowanych dane na prawdziwe
+        auto vp = [&](const Vector3& n){
+            return Vector2(
+                (n.x + 1) * 0.5 * renderer.getRenderingSurface()->getImg()->width(),
+                (1 - (n.y + 1)*0.5) * renderer.getRenderingSurface()->getImg()->height() // y flip
+                );
+        };
+        Vector2 s1 = vp(n1);
+        Vector2 s2 = vp(n2);
+        Vector2 s3 = vp(n3);
+
+        // 5) rysuj linie (lub raster) – tutaj linie
+        Vector3 l1(s1.x, s1.y, -c1.z / c1.w);   // depth = linear −z/w
+        Vector3 l2(s2.x, s2.y, -c2.z / c2.w);
+        Vector3 l3(s3.x, s3.y, -c3.z / c3.w);
+
+        renderer.drawLine3D(l1, l2, object.viewportDisplay.color);
+        renderer.drawLine3D(l2, l3, object.viewportDisplay.color);
+        renderer.drawLine3D(l3, l1, object.viewportDisplay.color);
     }
 }
 
