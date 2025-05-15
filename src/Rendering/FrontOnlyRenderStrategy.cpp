@@ -11,79 +11,56 @@
 
 void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 {
-    auto camera = renderer.getCamera();
-    auto renderingSurface = renderer.getRenderingSurface();
-    LinePainter linePainter(renderingSurface->getImg());
-
-    Matrix4 modelMatrix = object.transform.getTransMatrix();
-    Matrix4 viewMatrix  = camera->getViewMatrix();
-    Matrix4 modelView   = viewMatrix * modelMatrix;
-
-    // obliczanie transformedVertices obiektu
-    for(int vertexIt = 0; vertexIt < static_cast<int>(object.vertices.size()); vertexIt++){
-        auto vert4 = Vectors::vector3to4(object.vertices[vertexIt]);
-        Vector4 transformed4 = modelView * vert4;
-        object.transformedVertices[vertexIt] = Vectors::vector4to3(transformed4);
+    std::vector<Vector4> clipSpaceVertices;
+    clipSpaceVertices.reserve(object.vertices.size());
+    std::vector<Vector3> cameraSpaceVertices;
+    for (auto& v : object.vertices){
+        clipSpaceVertices.push_back(renderer.modelToClip(v, object.transform.getTransMatrix()));
+        cameraSpaceVertices.push_back(renderer.worldToCamera(renderer.modelToWorld(v , object.transform.getTransMatrix())));
     }
+    for (size_t i = 0; i < object.faceVertexIndices.size(); i += 3)
+    {
 
-    // rysowanie krawedzi dla kazdej trojki wierzcholkow
-    for(int i = 0; i < static_cast<int>(object.faceVertexIndices.size()); i += 3){
-        int i1 = object.faceVertexIndices[i];
-        int i2 = object.faceVertexIndices[i+1];
-        int i3 = object.faceVertexIndices[i+2];
+        Vector3 cameraSpaceVertex1 = cameraSpaceVertices[object.faceVertexIndices[i]];
+        Vector3 cameraSpaceVertex2 = cameraSpaceVertices[object.faceVertexIndices[i+1]];
+        Vector3 cameraSpaceVertex3 = cameraSpaceVertices[object.faceVertexIndices[i+2]];
 
-        Vector3 v1 = object.transformedVertices[i1];
-        Vector3 v2 = object.transformedVertices[i2];
-        Vector3 v3 = object.transformedVertices[i3];
-
-        // Obliczanie normalnej jako cross dwoch krawedzi
-        Vector3 e1 = v2 - v1;
-        Vector3 e2 = v3 - v1;
+        Vector3 e1 = cameraSpaceVertex2 - cameraSpaceVertex1;
+        Vector3 e2 = cameraSpaceVertex3 - cameraSpaceVertex1;
         Vector3 normal = e1 * e2;
 
-        //  Wektor od obiektu do kamery (getPosition() jest globalnym polozeniem kamery)
-        Vector3 cameraVector = camera->transform.getPosition() - v1;
+        Vector3 cameraVector = Vector3(-cameraSpaceVertex1.x, -cameraSpaceVertex1.y, -cameraSpaceVertex1.z);
 
         double angleCos = cosBeetwenVectors(normal, cameraVector);
 
-        // cos>0 => trojkat jest widoczny dla kamery
-        if(angleCos > 0.0)
-        {
-            // projekcja i rysowanie
-            Vector2 p1(
-                (v1.x * camera->getFov()) / (camera->getFov() + v1.z),
-                (v1.y * camera->getFov()) / (camera->getFov() + v1.z)
-                );
-            Vector2 p2(
-                (v2.x * camera->getFov()) / (camera->getFov() + v2.z),
-                (v2.y * camera->getFov()) / (camera->getFov() + v2.z)
-                );
-            Vector2 p3(
-                (v3.x * camera->getFov()) / (camera->getFov() + v3.z),
-                (v3.y * camera->getFov()) / (camera->getFov() + v3.z)
-                );
+        if(angleCos <= 0.0) continue;
 
-            p1 = p1 + renderingSurface->getMiddle();
-            p2 = p2 + renderingSurface->getMiddle();
-            p3 = p3 + renderingSurface->getMiddle();
+        Vector4 clipSpaceVertex1 = clipSpaceVertices[object.faceVertexIndices[i]];
+        Vector4 clipSpaceVertex2 = clipSpaceVertices[object.faceVertexIndices[i+1]];
+        Vector4 clipSpaceVertex3 = clipSpaceVertices[object.faceVertexIndices[i+2]];
 
-            /*
-            linePainter.drawLine(p1, p2);
-            linePainter.drawLine(p2, p3);
-            linePainter.drawLine(p3, p1);
-            */
-            Vector3 p1_3(p1.x, p1.y, v1.z);
-            Vector3 p2_3(p2.x, p2.y, v2.z);
-            Vector3 p3_3(p3.x, p3.y, v3.z);
-            /*
-            renderer.drawLine3D(p1_3,p2_3);
-            renderer.drawLine3D(p2_3,p3_3);
-            renderer.drawLine3D(p3_3,p1_3);
-            */
-            renderer.drawLine3D(v1, v2, object.viewportDisplay.color);
-            renderer.drawLine3D(v2, v3, object.viewportDisplay.color);
-            renderer.drawLine3D(v3, v1, object.viewportDisplay.color);
-        }
+        if (clipSpaceVertex1.x < -clipSpaceVertex1.w && clipSpaceVertex2.x < -clipSpaceVertex2.w && clipSpaceVertex3.x < -clipSpaceVertex3.w) continue; // left
+        if (clipSpaceVertex1.x >  clipSpaceVertex1.w && clipSpaceVertex2.x >  clipSpaceVertex2.w && clipSpaceVertex3.x >  clipSpaceVertex3.w) continue; // right
+        if (clipSpaceVertex1.y < -clipSpaceVertex1.w && clipSpaceVertex2.y < -clipSpaceVertex2.w && clipSpaceVertex3.y < -clipSpaceVertex3.w) continue; // down
+        if (clipSpaceVertex1.y >  clipSpaceVertex1.w && clipSpaceVertex2.y >  clipSpaceVertex2.w && clipSpaceVertex3.y >  clipSpaceVertex3.w) continue; // up
+        if (clipSpaceVertex1.z >  clipSpaceVertex1.w && clipSpaceVertex2.z >  clipSpaceVertex2.w && clipSpaceVertex3.z >  clipSpaceVertex3.w) continue; // near
+        if (clipSpaceVertex1.z < -clipSpaceVertex1.w && clipSpaceVertex2.z < -clipSpaceVertex2.w && clipSpaceVertex3.z < -clipSpaceVertex3.w) continue; // far
+
+        Vector3 normalizedVertex1 = renderer.clipToNdc(clipSpaceVertex1);
+        Vector3 normalizedVertex2 = renderer.clipToNdc(clipSpaceVertex2);
+        Vector3 normalizedVertex3 = renderer.clipToNdc(clipSpaceVertex3);
+
+        Vector2 screenVertex1 = renderer.ndcToScreen(normalizedVertex1);
+        Vector2 screenVertex2 = renderer.ndcToScreen(normalizedVertex2);
+        Vector2 screenVertex3 = renderer.ndcToScreen(normalizedVertex3);
+
+        Vector3 screenVertexWithZ1(screenVertex1.x, screenVertex1.y, -clipSpaceVertex1.z / clipSpaceVertex1.w);
+        Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, -clipSpaceVertex2.z / clipSpaceVertex2.w);
+        Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, -clipSpaceVertex3.z / clipSpaceVertex3.w);
+
+        renderer.drawLine3D(screenVertexWithZ1, screenVertexWithZ2, object.viewportDisplay.color);
+        renderer.drawLine3D(screenVertexWithZ2, screenVertexWithZ3, object.viewportDisplay.color);
+        renderer.drawLine3D(screenVertexWithZ3, screenVertexWithZ1, object.viewportDisplay.color);
     }
 }
 
@@ -96,3 +73,4 @@ double FrontOnlyRenderStrategy::cosBeetwenVectors( Vector3& normalVector ,  Vect
         );
 
 }
+

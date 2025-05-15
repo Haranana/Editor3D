@@ -34,8 +34,13 @@ public:
     void clearRenderingSurface();
     void setScene(std::shared_ptr<Scene> newScene);
     void setCamera(std::shared_ptr<Camera> newCamera);
-    Vector4 toClip(const Vector3& v, const Matrix4& modelMatrix);
 
+    Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
+    Vector4 worldToClip(const Vector3& v);
+    Vector3 modelToWorld(const Vector3& v, const Matrix4& modelMatrix);
+    Vector3 worldToCamera(const Vector3& v);
+    Vector3 clipToNdc(const Vector4& v);
+    Vector2 ndcToScreen(const Vector3& v);
 
     //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
     bool drawPixel(int x, int y, double z, const Color& c);

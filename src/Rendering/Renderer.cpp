@@ -31,9 +31,36 @@ void Renderer::renderScene(){
     renderSceneObjects();
 }
 
-Vector4 Renderer::toClip(const Vector3& v, const Matrix4& modelMatrix){
-    Vector4 clip = VP * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
-    return clip;
+Vector4 Renderer::modelToClip(const Vector3& v, const Matrix4& modelMatrix){
+    Vector4 result = camera->getProjectionMatrix() * camera->getViewMatrix() * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
+    return result;
+}
+
+Vector4 Renderer::worldToClip(const Vector3& v){
+    Vector4 result = camera->getProjectionMatrix() * camera->getViewMatrix() * Vector4(v.x,v.y,v.z, 1.0);
+    return result;
+}
+
+Vector3 Renderer::modelToWorld(const Vector3& v, const Matrix4& modelMatrix){
+    Vector4 resultHom = modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
+    Vector3 result = Vector3(resultHom.x, resultHom.y, resultHom.z);
+    return result;
+}
+
+Vector3 Renderer::worldToCamera(const Vector3& v){
+    Vector4 resultHom = camera->getViewMatrix() * Vector4(v.x,v.y,v.z, 1.0);
+    Vector3 result = Vector3(resultHom.x, resultHom.y, resultHom.z);
+    return result;
+}
+
+Vector3 Renderer::clipToNdc(const Vector4& v){
+    return Vector3(v.x/v.w, v.y/v.w, v.z/v.w);
+}
+
+Vector2 Renderer::ndcToScreen(const Vector3& v){
+    return Vector2(
+        (v.x + 1) * 0.5 * renderingSurface->getImg()->width(),
+        (1 - (v.y + 1)*0.5) * renderingSurface->getImg()->width());
 }
 
 void Renderer::setRenderingSurface(std::shared_ptr<RenderingSurface> newRenderingSurface){

@@ -5,6 +5,8 @@
 
 class RenderableObject3D;
 class Renderer;
+class Vector3;
+class Vector4;
 
 class BasicRenderStrategy : public RenderStrategy {
 public:

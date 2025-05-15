@@ -12,49 +12,48 @@
 
 void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
 {
-    auto camera = renderer.getCamera();
-    auto renderingSurface = renderer.getRenderingSurface();
-    LinePainter linePainter(renderingSurface->getImg());
-    PixelPainter pixelPainter(renderingSurface->getImg());
+    std::vector<Vector4> clipSpaceVertices;
+    clipSpaceVertices.reserve(object.vertices.size());
+    for (auto& v : object.vertices)
+        clipSpaceVertices.push_back(renderer.modelToClip(v, object.transform.getTransMatrix()));
 
-    Matrix4 modelMatrix = object.transform.getTransMatrix();
-    Matrix4 viewMatrix  = camera->getViewMatrix();
-    Matrix4 modelView   = viewMatrix * modelMatrix;
+    for (size_t i = 0; i < object.faceVertexIndices.size(); i += 3)
+    {
+        Vector4 clipSpaceVertex1 = clipSpaceVertices[object.faceVertexIndices[i]];
+        Vector4 clipSpaceVertex2 = clipSpaceVertices[object.faceVertexIndices[i+1]];
+        Vector4 clipSpaceVertex3 = clipSpaceVertices[object.faceVertexIndices[i+2]];
 
-    //transformacja punktow
-    for(int vertexIt = 0; vertexIt < static_cast<int>(object.vertices.size()); vertexIt++){
-        auto vert4 = Vectors::vector3to4(object.vertices[vertexIt]);
-        Vector4 transformed4 = modelView * vert4;
-        object.transformedVertices[vertexIt] = Vectors::vector4to3(transformed4);
-    }
+        if (clipSpaceVertex1.x < -clipSpaceVertex1.w && clipSpaceVertex2.x < -clipSpaceVertex2.w && clipSpaceVertex3.x < -clipSpaceVertex3.w) continue; // left
+        if (clipSpaceVertex1.x >  clipSpaceVertex1.w && clipSpaceVertex2.x >  clipSpaceVertex2.w && clipSpaceVertex3.x >  clipSpaceVertex3.w) continue; // right
+        if (clipSpaceVertex1.y < -clipSpaceVertex1.w && clipSpaceVertex2.y < -clipSpaceVertex2.w && clipSpaceVertex3.y < -clipSpaceVertex3.w) continue; // down
+        if (clipSpaceVertex1.y >  clipSpaceVertex1.w && clipSpaceVertex2.y >  clipSpaceVertex2.w && clipSpaceVertex3.y >  clipSpaceVertex3.w) continue; // up
+        if (clipSpaceVertex1.z >  clipSpaceVertex1.w && clipSpaceVertex2.z >  clipSpaceVertex2.w && clipSpaceVertex3.z >  clipSpaceVertex3.w) continue; // near
+        if (clipSpaceVertex1.z < -clipSpaceVertex1.w && clipSpaceVertex2.z < -clipSpaceVertex2.w && clipSpaceVertex3.z < -clipSpaceVertex3.w) continue; // far
 
-    //projekcja perspektywiczna
-    std::vector<Vector3>screenCoordinates;
-    for(const auto& vertex : object.transformedVertices){
+        Vector3 normalizedVertex1 = renderer.clipToNdc(clipSpaceVertex1);
+        Vector3 normalizedVertex2 = renderer.clipToNdc(clipSpaceVertex2);
+        Vector3 normalizedVertex3 = renderer.clipToNdc(clipSpaceVertex3);
 
+        Vector2 screenVertex1 = renderer.ndcToScreen(normalizedVertex1);
+        Vector2 screenVertex2 = renderer.ndcToScreen(normalizedVertex2);
+        Vector2 screenVertex3 = renderer.ndcToScreen(normalizedVertex3);
 
-        Vector2 screenPoint(
-            (vertex.x * camera->getFov()) / (camera->getFov() + vertex.z),
-            (vertex.y * camera->getFov()) / (camera->getFov() + vertex.z)
-            );
+        Vector3 screenVertexWithZ1(screenVertex1.x, screenVertex1.y, -clipSpaceVertex1.z / clipSpaceVertex1.w);
+        Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, -clipSpaceVertex2.z / clipSpaceVertex2.w);
+        Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, -clipSpaceVertex3.z / clipSpaceVertex3.w);
 
-        screenCoordinates.push_back(Vector3(screenPoint.x + renderingSurface->getMiddle().x,
-                                            screenPoint.y + renderingSurface->getMiddle().y,
-                                            vertex.z));
+        double w0_inv = 1.0 / clipSpaceVertex1.w,
+            w1_inv = 1.0 / clipSpaceVertex2.w,
+            w2_inv = 1.0 / clipSpaceVertex3.w;
 
-    }
+        double z0_ndc = normalizedVertex1.z,             // 0…1 (Scratchpixel wariant)
+            z1_ndc = normalizedVertex2.z,
+            z2_ndc = normalizedVertex3.z;
 
-    for (int it = 0; it < static_cast<int>(object.faceVertexIndices.size()); it += 3) {
-
-        Vector3 v1 = screenCoordinates[object.faceVertexIndices[it]];
-        Vector3 v2 = screenCoordinates[object.faceVertexIndices[it+1]];
-        Vector3 v3 = screenCoordinates[object.faceVertexIndices[it+2]];
-        if (-v1.z < renderer.getCamera()->nearPlane || -v2.z < renderer.getCamera()->nearPlane || -v3.z < renderer.getCamera()->nearPlane) continue;
-
-        double minX = std::min({v1.x, v2.x, v3.x});
-        double maxX = std::max({v1.x, v2.x, v3.x});
-        double minY = std::min({v1.y, v2.y, v3.y});
-        double maxY = std::max({v1.y, v2.y, v3.y});
+        double minX = std::min({screenVertexWithZ1.x, screenVertexWithZ2.x, screenVertexWithZ3.x});
+        double maxX = std::max({screenVertexWithZ1.x, screenVertexWithZ2.x, screenVertexWithZ3.x});
+        double minY = std::min({screenVertexWithZ1.y, screenVertexWithZ2.y, screenVertexWithZ3.y});
+        double maxY = std::max({screenVertexWithZ1.y, screenVertexWithZ2.y, screenVertexWithZ3.y});
 
         minX = (int)std::max(0, (int)std::floor(minX));
         maxX = (int)std::min(renderer.getRenderingSurface()->getImg()->width()-1, (int)std::floor(maxX));
@@ -67,41 +66,30 @@ void RasterRenderStrategy::render(RenderableObject3D& object, Renderer& renderer
                 double curPixelX = x+0.5;
                 double curPixelY = y+0.5;
 
-                double w0 = edgeFunction(v2, v3, Vector3(curPixelX, curPixelY, 0));
-                double w1 = edgeFunction(v3, v1, Vector3(curPixelX, curPixelY, 0));
-                double w2 = edgeFunction(v1, v2, Vector3(curPixelX, curPixelY, 0));
+                double w0 = edgeFunction(screenVertexWithZ2, screenVertexWithZ3, Vector3(curPixelX, curPixelY, 0));
+                double w1 = edgeFunction(screenVertexWithZ3, screenVertexWithZ1, Vector3(curPixelX, curPixelY, 0));
+                double w2 = edgeFunction(screenVertexWithZ1, screenVertexWithZ2, Vector3(curPixelX, curPixelY, 0));
 
-                // Aby mieć 'obszar' trójkąta, najpierw policzmy area = edgeFunction(v1,v2,v3)
-                double area = edgeFunction(v1, v2, v3);
-
-                // W zależności od znaku area, warunek w0>=0,... lub <=0
-                // Zakładam, że area może być >0, więc wewnątrz jest w0>=0 itd.
-                // (Jeśli odwrotne winding, trzeba by sprawdzić <0)
-                if (area < 0.0) {
-                    w0 = -w0; w1 = -w1; w2 = -w2; area = -area;
+                double area = edgeFunction(screenVertexWithZ1, screenVertexWithZ2, screenVertexWithZ3);
+                if (area == 0) continue;
+                if (area < 0) {
+                    w0 = -w0; w1 = -w1; w2 = -w2;
+                    area = -area;
                 }
 
-                if (w0 >= 0 && w1 >= 0 && w2 >= 0){
+                if (w0 < 0 || w1 < 0 || w2 < 0) continue;
 
-                    // 5c) interpolacja Z - (prosta: z w wierzchołkach)
-                    //    (na razie "liniowo" – docelowo: perspective-correct = 1/z)
-                    double zInterpol =
-                        (v1.z * w0 + v2.z * w1 + v3.z * w2) / area;
-                    double depth = -zInterpol;
+                double zOverW = w0*z0_ndc*w0_inv + w1*z1_ndc*w1_inv + w2*z2_ndc*w2_inv;
+                double oneOverW = w0*w0_inv + w1*w1_inv + w2*w2_inv;
+                double depth = zOverW / oneOverW;            // 0…1, mniejsze = bliżej
 
-                    if (depth  < (*renderer.getZBuffer())[y][x])
-                    {
-                        // Nowy fragment jest bliżej
-                        (*renderer.getZBuffer())[y][x] = zInterpol;
+                renderer.drawPixel(x, y, depth, object.viewportDisplay.color);
 
-                        //pixelPainter.drawPixel(Vector2(x , y) , Color(0,0,200,255));
-                        pixelPainter.drawPixel(Vector2(x , y) , object.viewportDisplay.color);
-                    }
-                }
             }
         }
     }
-}//sad
+
+}
 
 double RasterRenderStrategy::edgeFunction(const Vector3 &a, const Vector3 &b, const Vector3 &c) {
     return (c.x - a.x) * (b.y - a.y)
