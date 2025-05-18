@@ -62,7 +62,9 @@ private:
     //reset every value inside zBuffer to infinity
     void resetZBuffer();
 
-    Matrix4 VP;
+    Matrix4 viewProjectionMatrix;
+    Matrix4 viewMatrix;
+    Matrix4 ProjectionMatrix;
 
     void renderSceneObjects();
 

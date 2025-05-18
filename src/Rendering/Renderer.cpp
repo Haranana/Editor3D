@@ -24,9 +24,9 @@ Renderer::Renderer(
 void Renderer::renderScene(){
     resetZBuffer();
 
-    Matrix4 view = camera->getViewMatrix();
-    Matrix4 proj = camera->getProjectionMatrix();
-    VP = proj * view;
+    viewMatrix = camera->getViewMatrix();
+    ProjectionMatrix = camera->getProjectionMatrix();
+    viewProjectionMatrix = ProjectionMatrix * viewMatrix;
 
     renderSceneObjects();
 }
@@ -60,7 +60,7 @@ Vector3 Renderer::clipToNdc(const Vector4& v){
 Vector2 Renderer::ndcToScreen(const Vector3& v){
     return Vector2(
         (v.x + 1) * 0.5 * renderingSurface->getImg()->width(),
-        (1 - (v.y + 1)*0.5) * renderingSurface->getImg()->width());
+        (1 - (v.y + 1)*0.5) * renderingSurface->getImg()->height());
 }
 
 void Renderer::setRenderingSurface(std::shared_ptr<RenderingSurface> newRenderingSurface){
