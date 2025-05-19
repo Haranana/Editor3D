@@ -10,7 +10,7 @@ class Vector4;
 
 class BasicRenderStrategy : public RenderStrategy {
 public:
-    void render(RenderableObject3D& object, Renderer& renderer) override;
+    void render(RenderableObject3D& object, Renderer& renderer, int objId) override;
 };
 
 #endif // BASICRENDERSTRATEGY_H

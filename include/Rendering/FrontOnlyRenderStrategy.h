@@ -12,7 +12,7 @@ class Renderer;
 
 class FrontOnlyRenderStrategy : public RenderStrategy {
 public:
-    void render(RenderableObject3D& object, Renderer& renderer) override;
+    void render(RenderableObject3D& object, Renderer& renderer, int objId) override;
 private:
     double cosBeetwenVectors( Vector3& normalVector ,  Vector3& cameraVector);
 };

@@ -23,6 +23,14 @@
 class Renderer{
 public:
 
+    struct IdBufferElement{
+        bool isEmpty = true;
+        int objectId = -1;
+        int faceId = -1;
+        int vertexId = -1;
+        std::pair<int, int> edgeVertices = {-1,-1};
+    };
+
     Renderer(
         //std::shared_ptr<RenderingSurface> renderingSurface,
         std::shared_ptr<QImage> img,
@@ -47,7 +55,7 @@ public:
     bool drawPixel(int x, int y, double z, const Color& c);
 
     //do poprawienia na perspective correct (1/z)
-    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, const Color& color = Color(255,255,255,255));
+    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, IdBufferElement& idBufferElement, const Color& color = Color(255,255,255,255));
 
     std::shared_ptr<Camera> getCamera();
     std::shared_ptr<Scene> getScene();
@@ -58,12 +66,13 @@ public:
     std::shared_ptr<LinePainter> linePainter;
 
     std::shared_ptr<ClippingManager> clippingManager;
-
+    std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 
 private:
 
     //reset every value inside zBuffer to infinity
     void resetZBuffer();
+    void resetIdBuffer();
 
     Matrix4 viewProjectionMatrix;
     Matrix4 viewMatrix;
@@ -78,6 +87,8 @@ private:
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
     std::shared_ptr<std::vector<std::vector<float>>>zBuffer;
+
+
 
 
 };

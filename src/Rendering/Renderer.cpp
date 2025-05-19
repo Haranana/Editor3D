@@ -17,6 +17,14 @@ Renderer::Renderer(
         }
     }
 
+    idBuffer = std::make_shared<std::vector<std::vector<IdBufferElement>>>();
+    for(int itY = 0; itY < static_cast<int>(renderingSurface->getImg()->height()) ; itY++){
+        idBuffer->push_back({});
+        for(int itX = 0; itX < static_cast<int>(renderingSurface->getImg()->width()) ; itX++){
+            (*idBuffer)[itY].push_back(IdBufferElement());
+        }
+    }
+
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
     linePainter = std::make_shared<LinePainter>(renderingSurface->getImg());
     clippingManager = std::make_shared<ClippingManager>();
@@ -24,6 +32,7 @@ Renderer::Renderer(
 
 void Renderer::renderScene(){
     resetZBuffer();
+    resetIdBuffer();
 
     viewMatrix = camera->getViewMatrix();
     ProjectionMatrix = camera->getProjectionMatrix();
@@ -89,7 +98,6 @@ bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
     if (depth < (*zBuffer)[y][x]) {
         (*zBuffer)[y][x]   = depth;
         pixelPainter->drawPixel(Vector2(x,y),color);
-        //renderingSurface->getImg()->setPixelColor(x, y, c.toQColor());
 
         return true;
     }
@@ -97,8 +105,10 @@ bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
 }
 
 void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
-                          const Color& color)
+                          IdBufferElement& idBufferElement, const Color& color)
 {
+
+    IdBufferElement element = idBufferElement;
     // aScr, bScr: x,y w pikselach, z = depth 0..1 (mniejsza = bliżej)
     int x0 = int(std::round(aScr.x));
     int y0 = int(std::round(aScr.y));
@@ -115,8 +125,18 @@ void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
     for (int i = 0, x = x0, y = y0; i <= steps; ++i)
     {
         double t = steps ? double(i) / steps : 0.0;
-        double depth = aScr.z + t * (bScr.z - aScr.z);   // liniowo w 0..1
-        drawPixel(x, y, depth, color);
+        double depth = aScr.z + t * (bScr.z - aScr.z);
+        if( drawPixel(x, y, depth, color)){
+            if(i == 0 && element.edgeVertices.first != -1){
+                element.vertexId = element.edgeVertices.first;
+            }else if(i == steps && element.edgeVertices.second != -1){
+                element.vertexId = element.edgeVertices.second;
+            }else{
+                element.vertexId = -1;
+            }
+            element.isEmpty = false;
+            (*idBuffer)[y][x] = element;
+        }
 
         int e2 = err << 1;
         if (e2 > -dy) { err -= dy; x += sx; }
@@ -148,7 +168,7 @@ void Renderer::renderSceneObjects(){
 
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
-            if(curObject->renderStrategy) curObject->renderStrategy->render(*curObject , *this);
+            if(curObject->renderStrategy) curObject->renderStrategy->render(*curObject , *this, objIt);
         }
     }
 }
@@ -157,6 +177,14 @@ void Renderer::resetZBuffer(){
     for(int itY = 0; itY < static_cast<int>(zBuffer->size()) ; itY++){
         for(int itX = 0; itX < static_cast<int>((*zBuffer)[itY].size()) ; itX++){
             (*zBuffer)[itY][itX] = std::numeric_limits<float>::infinity();
+        }
+    }
+}
+
+void Renderer::resetIdBuffer(){
+    for(int itY = 0; itY < static_cast<int>(zBuffer->size()) ; itY++){
+        for(int itX = 0; itX < static_cast<int>((*zBuffer)[itY].size()) ; itX++){
+            (*idBuffer)[itY][itX] = IdBufferElement();
         }
     }
 }

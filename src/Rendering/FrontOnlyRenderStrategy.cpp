@@ -9,7 +9,7 @@
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
 
-void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
+void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, int objId)
 {
     std::vector<Vector4> clipSpaceVertices;
     clipSpaceVertices.reserve(object.vertices.size());

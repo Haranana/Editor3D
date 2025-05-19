@@ -9,7 +9,7 @@
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
 
-void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
+void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, int objId)
 {
     bool even = true;
 

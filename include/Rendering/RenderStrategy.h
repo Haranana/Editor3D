@@ -11,7 +11,7 @@ class Renderer;
 class RenderStrategy {
 public:
     virtual ~RenderStrategy() = default;
-    virtual void render(RenderableObject3D& obj, Renderer& renderer) = 0;
+    virtual void render(RenderableObject3D& obj, Renderer& renderer, int objId) = 0;
 };
 
 #endif // RENDERSTRATEGY_H

@@ -10,7 +10,7 @@ class Renderer;
 
 class RasterRenderStrategy : public RenderStrategy {
 public:
-    void render(RenderableObject3D& object, Renderer& renderer) override;
+    void render(RenderableObject3D& object, Renderer& renderer, int objId) override;
     double edgeFunction(const Vector3 &a, const Vector3 &b, const Vector3 &c);
 };
 

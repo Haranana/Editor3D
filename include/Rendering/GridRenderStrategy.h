@@ -8,7 +8,7 @@ class Renderer;
 
 class GridRenderStrategy : public RenderStrategy {
 public:
-    void render(RenderableObject3D& object, Renderer& renderer) override;
+    void render(RenderableObject3D& object, Renderer& renderer, int objId) override;
 };
 
 

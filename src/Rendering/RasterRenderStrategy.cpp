@@ -10,7 +10,7 @@
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
 
-void RasterRenderStrategy::render(RenderableObject3D& obj, Renderer& renderer)
+void RasterRenderStrategy::render(RenderableObject3D& obj, Renderer& renderer, int objId)
 {
     const int width  = renderer.getRenderingSurface()->getImg()->width();
     const int height = renderer.getRenderingSurface()->getImg()->height();
