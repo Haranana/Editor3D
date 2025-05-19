@@ -25,6 +25,7 @@ public:
 
     struct IdBufferElement{
         bool isEmpty = true;
+        bool mock = false;
         int objectId = -1;
         int faceId = -1;
         int vertexId = -1;

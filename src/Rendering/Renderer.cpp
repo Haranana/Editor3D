@@ -109,6 +109,7 @@ void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
 {
 
     IdBufferElement element = idBufferElement;
+    bool isMock = element.mock;
     // aScr, bScr: x,y w pikselach, z = depth 0..1 (mniejsza = bliżej)
     int x0 = int(std::round(aScr.x));
     int y0 = int(std::round(aScr.y));
@@ -127,6 +128,7 @@ void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
         double t = steps ? double(i) / steps : 0.0;
         double depth = aScr.z + t * (bScr.z - aScr.z);
         if( drawPixel(x, y, depth, color)){
+            if(!isMock){
             if(i == 0 && element.edgeVertices.first != -1){
                 element.vertexId = element.edgeVertices.first;
             }else if(i == steps && element.edgeVertices.second != -1){
@@ -136,6 +138,7 @@ void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
             }
             element.isEmpty = false;
             (*idBuffer)[y][x] = element;
+            }
         }
 
         int e2 = err << 1;

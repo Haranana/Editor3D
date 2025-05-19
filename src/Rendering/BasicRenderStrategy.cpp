@@ -43,10 +43,8 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer,
         for(size_t vertexIt = 0; vertexIt < screenDepthVertices.size(); vertexIt++){
             Renderer::IdBufferElement el;
             el.objectId = objId;
-            //el.vertexId = object.faceVertexIndices[i];
             el.faceId = i/3;
-            //el.edgeVertices = {object.faceVertexIndices[i+vertexIt],
-            //                    vertexIt+1 == screenDepthVertices.size()? object.faceVertexIndices[i] : object.faceVertexIndices[i+vertexIt+1]};
+
             int idxA = (vertexIt < 3 ? object.faceVertexIndices[i+vertexIt] : -1);
             int idxB = ((vertexIt+1)<3 ? object.faceVertexIndices[i+vertexIt+1] : -1);
             el.edgeVertices = { idxA, idxB };

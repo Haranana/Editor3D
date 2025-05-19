@@ -57,7 +57,15 @@ void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& rende
         }
 
         for(size_t vertexIt = 0; vertexIt < screenDepthVertices.size(); vertexIt++){
-            renderer.drawLine3D(screenDepthVertices[vertexIt], screenDepthVertices[ (vertexIt+1) % screenDepthVertices.size() ], object.viewportDisplay.color);
+            Renderer::IdBufferElement el;
+            el.objectId = objId;
+            el.faceId = i/3;
+
+            int idxA = (vertexIt < 3 ? object.faceVertexIndices[i+vertexIt] : -1);
+            int idxB = ((vertexIt+1)<3 ? object.faceVertexIndices[i+vertexIt+1] : -1);
+            el.edgeVertices = { idxA, idxB };
+
+            renderer.drawLine3D(screenDepthVertices[vertexIt], screenDepthVertices[ (vertexIt+1) % screenDepthVertices.size() ],el, object.viewportDisplay.color);
         }
     }
 }

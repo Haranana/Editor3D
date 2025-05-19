@@ -44,9 +44,34 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, 
         Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, -clipSpaceVertex2.z / clipSpaceVertex2.w);
         Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, -clipSpaceVertex3.z / clipSpaceVertex3.w);
 
-        renderer.drawLine3D(screenVertexWithZ1, screenVertexWithZ2, object.viewportDisplay.color);
+        Renderer::IdBufferElement element1,element2,element3;
+        element1.mock = true;
+        element2.mock = true;
+        element3.mock = true;
+        renderer.drawLine3D(screenVertexWithZ1, screenVertexWithZ2,element1, object.viewportDisplay.color);
+        if(!even) renderer.drawLine3D(screenVertexWithZ2, screenVertexWithZ3,element2, object.viewportDisplay.color);
+        if(even) renderer.drawLine3D(screenVertexWithZ3, screenVertexWithZ1,element3, object.viewportDisplay.color);
+        even = even? false : true;
+
+        /*
+        Renderer::IdBufferElement element1;
+        element1.faceId = object.faceVertexIndices[i];
+        element1.objectId = objId;
+        element1.faceId = i/3;
+        element1.edgeVertices = {object.faceVertexIndices[i], object.faceVertexIndices[i+1]};
+        renderer.drawLine3D(screenVertexWithZ1, screenVertexWithZ2,element1, object.viewportDisplay.color);
+
+        Renderer::IdBufferElement element2;
+        element1.faceId = object.faceVertexIndices[i];
+        element1.objectId = objId;
+        element1.faceId = i/3;
+        element1.edgeVertices = {object.faceVertexIndices[i], object.faceVertexIndices[i+1]};
         if(!even) renderer.drawLine3D(screenVertexWithZ2, screenVertexWithZ3, object.viewportDisplay.color);
+
+
+        Renderer::IdBufferElement element3;
         if(even) renderer.drawLine3D(screenVertexWithZ3, screenVertexWithZ1, object.viewportDisplay.color);
         even = even? false : true;
+        */
     }
 }
