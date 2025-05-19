@@ -23,28 +23,26 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer)
         Vector4 clipSpaceVertex2 = clipSpaceVertices[object.faceVertexIndices[i+1]];
         Vector4 clipSpaceVertex3 = clipSpaceVertices[object.faceVertexIndices[i+2]];
 
-        if (clipSpaceVertex1.x < -clipSpaceVertex1.w && clipSpaceVertex2.x < -clipSpaceVertex2.w && clipSpaceVertex3.x < -clipSpaceVertex3.w) continue; // left
-        if (clipSpaceVertex1.x >  clipSpaceVertex1.w && clipSpaceVertex2.x >  clipSpaceVertex2.w && clipSpaceVertex3.x >  clipSpaceVertex3.w) continue; // right
-        if (clipSpaceVertex1.y < -clipSpaceVertex1.w && clipSpaceVertex2.y < -clipSpaceVertex2.w && clipSpaceVertex3.y < -clipSpaceVertex3.w) continue; // down
-        if (clipSpaceVertex1.y >  clipSpaceVertex1.w && clipSpaceVertex2.y >  clipSpaceVertex2.w && clipSpaceVertex3.y >  clipSpaceVertex3.w) continue; // up
-        if (clipSpaceVertex1.z >  clipSpaceVertex1.w && clipSpaceVertex2.z >  clipSpaceVertex2.w && clipSpaceVertex3.z >  clipSpaceVertex3.w) continue; // near
-        if (clipSpaceVertex1.z < -clipSpaceVertex1.w && clipSpaceVertex2.z < -clipSpaceVertex2.w && clipSpaceVertex3.z < -clipSpaceVertex3.w) continue; // far
+        std::vector<Vector4> clippedVectors = renderer.clippingManager->clipTriangle({clipSpaceVertex1, clipSpaceVertex2, clipSpaceVertex3});
 
-        Vector3 normalizedVertex1 = renderer.clipToNdc(clipSpaceVertex1);
-        Vector3 normalizedVertex2 = renderer.clipToNdc(clipSpaceVertex2);
-        Vector3 normalizedVertex3 = renderer.clipToNdc(clipSpaceVertex3);
+        std::vector<Vector3> normalizedVertices;
+        for(const auto& clippedVertex: clippedVectors){
+            normalizedVertices.push_back(renderer.clipToNdc(clippedVertex));
+        }
 
-        Vector2 screenVertex1 = renderer.ndcToScreen(normalizedVertex1);
-        Vector2 screenVertex2 = renderer.ndcToScreen(normalizedVertex2);
-        Vector2 screenVertex3 = renderer.ndcToScreen(normalizedVertex3);
+        std::vector<Vector2> screenVertices;
+        for(const auto& normalizedVertex: normalizedVertices){
+            screenVertices.push_back(renderer.ndcToScreen(normalizedVertex));
+        }
 
-        Vector3 screenVertexWithZ1(screenVertex1.x, screenVertex1.y, -clipSpaceVertex1.z / clipSpaceVertex1.w);
-        Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, -clipSpaceVertex2.z / clipSpaceVertex2.w);
-        Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, -clipSpaceVertex3.z / clipSpaceVertex3.w);
+        std::vector<Vector3> screenDepthVertices;
+        for(size_t vertexIt = 0; vertexIt < screenVertices.size(); vertexIt++){
+            screenDepthVertices.push_back({screenVertices[vertexIt].x, screenVertices[vertexIt].y, -clippedVectors[vertexIt].z / clippedVectors[vertexIt].w});
+        }
 
-        renderer.drawLine3D(screenVertexWithZ1, screenVertexWithZ2, object.viewportDisplay.color);
-        renderer.drawLine3D(screenVertexWithZ2, screenVertexWithZ3, object.viewportDisplay.color);
-        renderer.drawLine3D(screenVertexWithZ3, screenVertexWithZ1, object.viewportDisplay.color);
+        for(size_t vertexIt = 0; vertexIt < screenDepthVertices.size(); vertexIt++){
+            renderer.drawLine3D(screenDepthVertices[vertexIt], screenDepthVertices[ (vertexIt+1) % screenDepthVertices.size() ], object.viewportDisplay.color);
+        }
     }
 }
 

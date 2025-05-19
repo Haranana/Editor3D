@@ -28,6 +28,7 @@ SOURCES += \
     src/Math/Vector4.cpp \
     src/Math/Vectors.cpp \
     src/Rendering/BasicRenderStrategy.cpp \
+    src/Rendering/ClippingManager.cpp \
     src/Rendering/Color.cpp \
     src/Rendering/Colors.cpp \
     src/Rendering/FrontOnlyRenderStrategy.cpp \
@@ -64,6 +65,7 @@ HEADERS += \
     include/Math/Vector4.h \
     include/Math/Vectors.h \
     include/Rendering/BasicRenderStrategy.h \
+    include/Rendering/ClippingManager.h \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
     include/Rendering/FrontOnlyRenderStrategy.h \

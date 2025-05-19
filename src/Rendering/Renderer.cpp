@@ -19,6 +19,7 @@ Renderer::Renderer(
 
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
     linePainter = std::make_shared<LinePainter>(renderingSurface->getImg());
+    clippingManager = std::make_shared<ClippingManager>();
 }
 
 void Renderer::renderScene(){

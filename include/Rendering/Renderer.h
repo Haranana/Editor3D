@@ -11,6 +11,7 @@
 #include "RenderStrategy.h"
 #include "Scene/RenderableObject3D.h"
 #include "Rendering/PixelPainter.h"
+#include "Rendering/ClippingManager.h"
 #include "Rendering/LinePainter.h"
 #include <QImage>
 
@@ -56,6 +57,8 @@ public:
     std::shared_ptr<PixelPainter> pixelPainter;
     std::shared_ptr<LinePainter> linePainter;
 
+    std::shared_ptr<ClippingManager> clippingManager;
+
 
 private:
 
@@ -75,6 +78,7 @@ private:
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
     std::shared_ptr<std::vector<std::vector<float>>>zBuffer;
+
 
 };
 
