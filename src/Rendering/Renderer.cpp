@@ -16,15 +16,8 @@ Renderer::Renderer(
             (*zBuffer)[itY].push_back(std::numeric_limits<float>::infinity());
         }
     }
-
-    idBuffer = std::make_shared<std::vector<std::vector<IdBufferElement>>>();
-    for(int itY = 0; itY < static_cast<int>(renderingSurface->getImg()->height()) ; itY++){
-        idBuffer->push_back({});
-        for(int itX = 0; itX < static_cast<int>(renderingSurface->getImg()->width()) ; itX++){
-            (*idBuffer)[itY].push_back(IdBufferElement());
-        }
-    }
-
+    hitDetectionManager = std::make_shared<HitDetectionManager>(renderingSurface->getImg()->height(),
+                                                                renderingSurface->getImg()->width());
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
     linePainter = std::make_shared<LinePainter>(renderingSurface->getImg());
     clippingManager = std::make_shared<ClippingManager>();
@@ -32,7 +25,7 @@ Renderer::Renderer(
 
 void Renderer::renderScene(){
     resetZBuffer();
-    resetIdBuffer();
+    hitDetectionManager->resetIdBuffer();
 
     viewMatrix = camera->getViewMatrix();
     ProjectionMatrix = camera->getProjectionMatrix();
@@ -105,10 +98,10 @@ bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
 }
 
 void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
-                          IdBufferElement& idBufferElement, const Color& color)
+                          HitDetectionManager::IdBufferElement& idBufferElement, const Color& color)
 {
 
-    IdBufferElement element = idBufferElement;
+    HitDetectionManager::IdBufferElement element = idBufferElement;
     bool isMock = element.mock;
     // aScr, bScr: x,y w pikselach, z = depth 0..1 (mniejsza = bliżej)
     int x0 = int(std::round(aScr.x));
@@ -137,7 +130,7 @@ void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
                 element.vertexId = -1;
             }
             element.isEmpty = false;
-            (*idBuffer)[y][x] = element;
+            (*hitDetectionManager->idBuffer)[y][x] = element;
             }
         }
 
@@ -180,14 +173,6 @@ void Renderer::resetZBuffer(){
     for(int itY = 0; itY < static_cast<int>(zBuffer->size()) ; itY++){
         for(int itX = 0; itX < static_cast<int>((*zBuffer)[itY].size()) ; itX++){
             (*zBuffer)[itY][itX] = std::numeric_limits<float>::infinity();
-        }
-    }
-}
-
-void Renderer::resetIdBuffer(){
-    for(int itY = 0; itY < static_cast<int>(zBuffer->size()) ; itY++){
-        for(int itX = 0; itX < static_cast<int>((*zBuffer)[itY].size()) ; itX++){
-            (*idBuffer)[itY][itX] = IdBufferElement();
         }
     }
 }

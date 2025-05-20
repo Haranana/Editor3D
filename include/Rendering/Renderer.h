@@ -13,6 +13,7 @@
 #include "Rendering/PixelPainter.h"
 #include "Rendering/ClippingManager.h"
 #include "Rendering/LinePainter.h"
+#include "Rendering/HitDetectionManager.h"
 #include <QImage>
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
@@ -22,7 +23,7 @@
  */
 class Renderer{
 public:
-
+    /*
     struct IdBufferElement{
         bool isEmpty = true;
         bool mock = false;
@@ -30,7 +31,7 @@ public:
         int faceId = -1;
         int vertexId = -1;
         std::pair<int, int> edgeVertices = {-1,-1};
-    };
+    };*/
 
     Renderer(
         //std::shared_ptr<RenderingSurface> renderingSurface,
@@ -55,10 +56,11 @@ public:
     //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
     bool drawPixel(int x, int y, double z, const Color& c);
 
-    //do poprawienia na perspective correct (1/z)
-    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, IdBufferElement& idBufferElement, const Color& color = Color(255,255,255,255));
+    //do poprawienia na perspective correct (1/z) Chyba juz jest idk
+    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, HitDetectionManager::IdBufferElement& idBufferElement, const Color& color = Color(255,255,255,255));
 
     std::shared_ptr<Camera> getCamera();
+
     std::shared_ptr<Scene> getScene();
     std::shared_ptr<RenderingSurface> getRenderingSurface();
     std::shared_ptr<std::vector<std::vector<float>>>getZBuffer();
@@ -67,13 +69,14 @@ public:
     std::shared_ptr<LinePainter> linePainter;
 
     std::shared_ptr<ClippingManager> clippingManager;
-    std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
+    std::shared_ptr<HitDetectionManager> hitDetectionManager;
+    //std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 
 private:
 
     //reset every value inside zBuffer to infinity
     void resetZBuffer();
-    void resetIdBuffer();
+    //void resetIdBuffer();
 
     Matrix4 viewProjectionMatrix;
     Matrix4 viewMatrix;

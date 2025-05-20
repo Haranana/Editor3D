@@ -41,7 +41,7 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer,
         }
 
         for(size_t vertexIt = 0; vertexIt < screenDepthVertices.size(); vertexIt++){
-            Renderer::IdBufferElement el;
+            HitDetectionManager::IdBufferElement el;
             el.objectId = objId;
             el.faceId = i/3;
 

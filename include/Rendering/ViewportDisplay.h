@@ -2,7 +2,7 @@
 #define VIEWPORTDISPLAY_H
 
 #include "Rendering/Color.h"
-
+#include "Colors.h"
 class ViewportDisplay{
 public:
     enum DisplayMode{
@@ -15,6 +15,7 @@ public:
     DisplayMode displayMode = WIREFRAME;
     Color color = Color(128,128,128);
     Color wireframeColor = Color(200,110,170);
+    Color selectColor = Colors::Orange;
 
 };
 

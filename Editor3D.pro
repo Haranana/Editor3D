@@ -33,6 +33,7 @@ SOURCES += \
     src/Rendering/Colors.cpp \
     src/Rendering/FrontOnlyRenderStrategy.cpp \
     src/Rendering/GridRenderStrategy.cpp \
+    src/Rendering/HitDetectionManager.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PixelPainter.cpp \
     src/Rendering/RasterRenderStrategy.cpp \
@@ -71,6 +72,7 @@ HEADERS += \
     include/Rendering/Colors.h \
     include/Rendering/FrontOnlyRenderStrategy.h \
     include/Rendering/GridRenderStrategy.h \
+    include/Rendering/HitDetectionManager.h \
     include/Rendering/LinePainter.h \
     include/Rendering/PixelPainter.h \
     include/Rendering/RasterRenderStrategy.h \
