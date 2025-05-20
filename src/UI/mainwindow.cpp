@@ -15,6 +15,10 @@ MainWindow::MainWindow(QWidget* parent)
 
     QTimer* timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::refreshScene);
+    connect(sceneDisplay, &ImageLabel::pixelClicked,
+            this, [&](int x, int y){
+            onSceneDisplayClicked(x,y);
+    });
     timer->start(30);
 }
 
@@ -53,7 +57,7 @@ void MainWindow::setupUI()
     mainLayout->addWidget(leftPanel, 1);
 
     // --- Środkowy panel: podgląd sceny ---
-    sceneDisplay = new QLabel(this);
+    sceneDisplay = new ImageLabel(this);
     sceneDisplay->setFixedSize(800,600);
     sceneDisplay->setScaledContents(false);
 
@@ -88,17 +92,39 @@ void MainWindow::setupMenuBar(){
     QMenu *sceneMenu = menuBar->addMenu("Scene");
     QMenu *selectedObjectMenu = sceneMenu->addMenu("Sel. Object");
     QMenu *createObjectsMenu = objectsMenu->addMenu("Create");
+    QMenu *selectMenu = menuBar->addMenu("Select");
 
+    QActionGroup *selectActionGroup = new QActionGroup(this);
     QAction *importObjectAction = new QAction("&Import object");
     QAction *saveObjectAction = new QAction("&Save object");
     QAction *createObjectCube = new QAction("&Cube");
     QAction *createObjectCylinder = new QAction("&Cylinder");
     QAction *deleteSelectedObject = new QAction("&Delete");
+    QAction *selectObjects = new QAction("&Objects");
+    QAction *selectFaces = new QAction("&Faces");
+    QAction *selectEdges = new QAction("&Edges");
+    QAction *selectVertices = new QAction("&Vertices");
+
+    selectActionGroup->setExclusive(true);
+    selectObjects->setCheckable(true);
+    selectFaces->setCheckable(true);
+    selectEdges->setCheckable(true);
+    selectVertices->setCheckable(true);
+    selectActionGroup->addAction(selectObjects);
+    selectActionGroup->addAction(selectFaces);
+    selectActionGroup->addAction(selectEdges);
+    selectActionGroup->addAction(selectVertices);
+    selectObjects->setChecked(true);
+
+    selectMenu->addAction(selectObjects);
+    selectMenu->addAction(selectFaces);
+    selectMenu->addAction(selectEdges);
+    selectMenu->addAction(selectVertices);
 
     fileMenu->addAction(importObjectAction);
     fileMenu->addSeparator();
     fileMenu->addAction(saveObjectAction);
-    objectsMenu->addMenu(createObjectsMenu);
+    //objectsMenu->addMenu(createObjectsMenu);
 
     createObjectsMenu->addAction(createObjectCube);
     createObjectsMenu->addAction(createObjectCylinder);
@@ -123,6 +149,25 @@ void MainWindow::setupMenuBar(){
     QObject::connect(deleteSelectedObject, &QAction::triggered, [&](){
         onSceneMenuDeleteSelectedObject();
     });
+
+    QObject::connect(selectObjects, &QAction::triggered, [&](){
+        onSelectMenuChangeSelectMode(SelectMode::OBJECTS);
+    });
+
+    QObject::connect(selectFaces, &QAction::triggered, [&](){
+        onSelectMenuChangeSelectMode(SelectMode::FACES);
+    });
+
+
+    QObject::connect(selectEdges, &QAction::triggered, [&](){
+        onSelectMenuChangeSelectMode(SelectMode::EDGES);
+    });
+
+
+    QObject::connect(selectVertices, &QAction::triggered, [&](){
+        onSelectMenuChangeSelectMode(SelectMode::VERTICES);
+    });
+
 }
 
 void MainWindow::setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout){
@@ -418,8 +463,11 @@ void MainWindow::refreshScene()
     auto imgPtr = renderer->getRenderingSurface()->getImg();
     if (!imgPtr) return;
 
+    /*
     QPixmap pix = QPixmap::fromImage(*imgPtr);
     sceneDisplay->setPixmap(pix);
+    */
+    sceneDisplay->setImage(*imgPtr);
 }
 
 void MainWindow::onAddCubeClicked()
@@ -772,6 +820,13 @@ void MainWindow::onSceneMenuDeleteSelectedObject(){
     refreshScene();
 }
 
+void MainWindow::onSelectMenuChangeSelectMode(SelectMode newSelectMode){
+    curSelectMode = newSelectMode;
+}
+
+void MainWindow::onSceneDisplayClicked(int x, int y){
+    std::cout<<"X: "<<x<<"  :  Y: "<<y<<std::endl;
+}
 /*
  * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu
  * nullptr - nic , renderableObject - viewportDisplay i transform itp...

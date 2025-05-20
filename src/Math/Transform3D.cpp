@@ -25,7 +25,7 @@ Vector3 Transform3D::getScales() {
 }
 
 void Transform3D::setPosition(Vector3 newPosition) {
-    std::cout<<"Cur Z params: "<<newPosition.z<<std::endl;
+    //std::cout<<"Cur Z params: "<<newPosition.z<<std::endl;
     translationParameters = newPosition;
     updateTranslationMatrix();
     updateTransMatrix();

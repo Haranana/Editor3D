@@ -16,7 +16,9 @@
 #include <QColorDialog>
 #include <QMenuBar>
 #include <QMenu>
+#include <QActionGroup>
 #include <QFileDialog>
+#include "UI/ImageLabel.h"
 
 #include "Scene/Scene.h"
 #include "Scene/Object3D.h"
@@ -47,6 +49,13 @@ public:
 
 private:
 
+    enum SelectMode{
+        OBJECTS,
+        FACES,
+        EDGES,
+        VERTICES
+    };
+
     void setupUI();
     void setupMenuBar();
         void setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout);
@@ -73,7 +82,7 @@ private:
 
     QWidget* centralWidgetContainer = nullptr;
     QListWidget* objectsList = nullptr;
-    QLabel* sceneDisplay = nullptr;
+    ImageLabel* sceneDisplay = nullptr;
 
     ColorPicker* colorPicker = nullptr;
 
@@ -106,7 +115,7 @@ private:
     QMenuBar* menuBar = nullptr;
 
     QPushButton* addCubeButton = nullptr;
-
+    SelectMode curSelectMode = OBJECTS;
 
 
 private slots:
@@ -132,6 +141,8 @@ private slots:
     void onObjectMenuCreateCylinder();
 
     void onSceneMenuDeleteSelectedObject();
+    void onSelectMenuChangeSelectMode(SelectMode newSelectMode);
+    void onSceneDisplayClicked(int x, int y);
 };
 
 

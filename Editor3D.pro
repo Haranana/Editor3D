@@ -49,6 +49,7 @@ SOURCES += \
     src/Scene/Scene.cpp \
     src/UI/ColorPicker.cpp \
     src/UI/ColorPreview.cpp \
+    src/UI/ImageLabel.cpp \
     src/UI/RenderWidget.cpp \
     src/UI/mainwindow.cpp \
     src/main.cpp
@@ -89,6 +90,7 @@ HEADERS += \
     include/Scene/Scene.h \
     include/UI/ColorPicker.h \
     include/UI/ColorPreview.h \
+    include/UI/ImageLabel.h \
     include/UI/RenderWidget.h \
     include/UI/mainwindow.h
 
