@@ -49,11 +49,16 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             screenVertices.push_back(renderer.ndcToScreen(nv));
 
         std::vector<Vector3> screenDepthVertices;
+        std::vector<double> clipZ;     //   z_clip  (jeszcze bez /w)
+        std::vector<double> invW;      //   1 / w
         screenDepthVertices.reserve(clippedPoly.size());
         for (size_t i = 0; i < clippedPoly.size(); ++i) {
             auto& sv = screenVertices[i];
             auto& cv = clippedPoly[i];
-            double depth = -cv.z / cv.w;
+
+            clipZ.push_back(cv.z);
+            invW.push_back(1.0 / cv.w);
+
             double normalizedDepth = ((cv.z/cv.w)+1.0)*0.5;
             screenDepthVertices.push_back({ sv.x, sv.y, normalizedDepth });
         }
@@ -94,12 +99,25 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double z1 = screenDepthVertices[k].z;
                     double z2 = screenDepthVertices[k+1].z;
                     double sumInvW = w0*invW0 + w1*invW1 + w2*invW2;
+
+                    /*
                     double depth = (w0*z0*invW0
                                     + w1*z1*invW1
                                     + w2*z2*invW2)
                                    / sumInvW;
+                    */
+                    double num   = w0 * clipZ[0] * invW[0]
+                                 + w1 * clipZ[k] * invW[k]
+                                 + w2 * clipZ[k+1] * invW[k+1];
 
-                    if (renderer.drawPixel(x, y, depth, obj.viewportDisplay.color)) {
+                    double denom = w0 * invW[0]
+                                   + w1 * invW[k]
+                                   + w2 * invW[k+1];
+
+                    double depth = num/denom;
+                    double normalizedDepth = (depth + 1.0)*0.5;
+
+                    if (renderer.drawPixel(x, y, normalizedDepth, obj.viewportDisplay.color)) {
                         // Tylko fillId (faceId)
                         Renderer::IdBufferElement fillEl;
                         fillEl.objectId     = objId;
@@ -109,6 +127,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                 }
             }
         }
+
         Color edgeColor = Colors::Orange;
         Renderer::IdBufferElement edgeEl;
         edgeEl.objectId = objId;
@@ -119,7 +138,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             Vector3 B = screenDepthVertices[(i+1)%N];
 
             // 1-px papierowy offset głębi
-            A.z = std::max(0.0, A.z - 1e-4);   // nie zejdź poniżej 0
+            A.z = std::max(0.0, A.z - 1e-4);
             B.z = std::max(0.0, B.z - 1e-4);
 
             // oryginalne indeksy tylko dla pierwszych 3 punktów
