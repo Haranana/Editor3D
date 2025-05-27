@@ -82,9 +82,9 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             double invArea = 1.0 / area;
 
             // invW
-            double invW0 = 1.0 / clippedPoly[0].w;
-            double invW1 = 1.0 / clippedPoly[k].w;
-            double invW2 = 1.0 / clippedPoly[k+1].w;
+            //double invW0 = 1.0 / clippedPoly[0].w;
+            //double invW1 = 1.0 / clippedPoly[k].w;
+            //double invW2 = 1.0 / clippedPoly[k+1].w;
 
             // raster fill
             for (int y = minY; y <= maxY; ++y) {
@@ -95,10 +95,10 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double w2 = 1.0 - w0 - w1;
                     if (w0<0 || w1<0 || w2<0) continue;
 
-                    double z0 = screenDepthVertices[0].z;
-                    double z1 = screenDepthVertices[k].z;
-                    double z2 = screenDepthVertices[k+1].z;
-                    double sumInvW = w0*invW0 + w1*invW1 + w2*invW2;
+                    //double z0 = screenDepthVertices[0].z;
+                    //double z1 = screenDepthVertices[k].z;
+                    //double z2 = screenDepthVertices[k+1].z;
+                    //double sumInvW = w0*invW0 + w1*invW1 + w2*invW2;
 
                     /*
                     double depth = (w0*z0*invW0
@@ -115,9 +115,9 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                                    + w2 * invW[k+1];
 
                     double depth = num/denom;
-                    double normalizedDepth = (depth + 1.0)*0.5;
+                   // double normalizedDepth = (depth + 1.0)*0.5;
 
-                    if (renderer.drawPixel(x, y, normalizedDepth, obj.viewportDisplay.color)) {
+                    if (renderer.drawPixel(x, y, depth, obj.viewportDisplay.color)) {
                         // Tylko fillId (faceId)
                         Renderer::IdBufferElement fillEl;
                         fillEl.objectId     = objId;
