@@ -9,23 +9,17 @@ Renderer::Renderer(
     scene(scene),
     camera(camera)
 {
-    zBuffer = std::make_shared<std::vector<std::vector<float>>>();
-    for(int itY = 0; itY < static_cast<int>(renderingSurface->getImg()->height()) ; itY++){
-        zBuffer->push_back({});
-        for(int itX = 0; itX < static_cast<int>(renderingSurface->getImg()->width()) ; itX++){
-            (*zBuffer)[itY].push_back(std::numeric_limits<float>::infinity());
-        }
-    }
-    hitDetectionManager = std::make_shared<HitDetectionManager>(renderingSurface->getImg()->height(),
-                                                                renderingSurface->getImg()->width());
+    zBuffer = std::make_shared<Buffer<float>>(img->width(), img->height(), 0.0);
+    idBuffer = std::make_shared<Buffer<IdBufferElement>>(img->width(), img->height(), IdBufferElement{});
+
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
     linePainter = std::make_shared<LinePainter>(renderingSurface->getImg());
     clippingManager = std::make_shared<ClippingManager>();
 }
 
 void Renderer::renderScene(){
-    resetZBuffer();
-    hitDetectionManager->resetIdBuffer();
+    idBuffer->clear();
+    zBuffer->clear();
 
     viewMatrix = camera->getViewMatrix();
     ProjectionMatrix = camera->getProjectionMatrix();
@@ -84,7 +78,7 @@ void Renderer::setCamera(std::shared_ptr<Camera> newCamera){
 
 bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
 {
-    std::shared_ptr<std::vector<std::vector<float>>> zBuffer = getZBuffer();
+    //std::shared_ptr<std::vector<std::vector<float>>> zBuffer = getZBuffer();
     if (x < 0 || y < 0 || x >= renderingSurface->getImg()->width() || y >=renderingSurface->getImg()->height())
         return false;
 
@@ -97,11 +91,10 @@ bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
     return false;
 }
 
-void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
-                          HitDetectionManager::IdBufferElement& idBufferElement, const Color& color)
+void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,IdBufferElement& idBufferElement, const Color& color)
 {
 
-    HitDetectionManager::IdBufferElement element = idBufferElement;
+    IdBufferElement element = idBufferElement;
     bool isMock = element.mock;
     // aScr, bScr: x,y w pikselach, z = depth 0..1 (mniejsza = bliżej)
     int x0 = int(std::round(aScr.x));
@@ -130,7 +123,7 @@ void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,
                 element.vertexId = -1;
             }
             element.isEmpty = false;
-            (*hitDetectionManager->idBuffer)[y][x] = element;
+            (*idBuffer)[y][x] = element;
             }
         }
 
@@ -152,10 +145,11 @@ std::shared_ptr<RenderingSurface> Renderer::getRenderingSurface(){
     return renderingSurface;
 }
 
+/*
 std::shared_ptr<std::vector<std::vector<float>>> Renderer::getZBuffer(){
     return zBuffer;
 }
-
+*/
 
 void Renderer::renderSceneObjects(){
     LinePainter linePainter = LinePainter(renderingSurface->getImg());
@@ -169,6 +163,7 @@ void Renderer::renderSceneObjects(){
     }
 }
 
+/*
 void Renderer::resetZBuffer(){
     for(int itY = 0; itY < static_cast<int>(zBuffer->size()) ; itY++){
         for(int itX = 0; itX < static_cast<int>((*zBuffer)[itY].size()) ; itX++){
@@ -176,3 +171,4 @@ void Renderer::resetZBuffer(){
         }
     }
 }
+*/

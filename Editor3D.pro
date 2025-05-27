@@ -67,6 +67,7 @@ HEADERS += \
     include/Math/Vector4.h \
     include/Math/Vectors.h \
     include/Rendering/BasicRenderStrategy.h \
+    include/Rendering/Buffer.h \
     include/Rendering/ClippingManager.h \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \

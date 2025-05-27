@@ -2,6 +2,7 @@
 #define HITDETECTIONMANAGER_H
 #include <memory>
 #include <vector>
+#include "Rendering/Buffer.h"
 class HitDetectionManager{
 public:
     struct IdBufferElement{
@@ -14,11 +15,12 @@ public:
     };
 
     HitDetectionManager(int height, int width);
+    std::shared_ptr<Buffer<IdBufferElement>>idBuffer;
 
-    void resetIdBuffer();
-    IdBufferElement getBufferElement(int y, int x);
+    //void resetIdBuffer();
+    //IdBufferElement getBufferElement(int y, int x);
 
-    std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
+    //std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 private:
 
 };

@@ -100,16 +100,16 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
 
                     if (renderer.drawPixel(x, y, depth, obj.viewportDisplay.color)) {
                         // Tylko fillId (faceId)
-                        HitDetectionManager::IdBufferElement fillEl;
+                        Renderer::IdBufferElement fillEl;
                         fillEl.objectId     = objId;
                         fillEl.faceId       = int(face/3);
-                        (*renderer.hitDetectionManager->idBuffer)[y][x] = fillEl;
+                        (*renderer.idBuffer)[y][x] = fillEl;
                     }
                 }
             }
         }
         Color edgeColor = Colors::Orange;
-        HitDetectionManager::IdBufferElement edgeEl;
+        Renderer::IdBufferElement edgeEl;
         edgeEl.objectId = objId;
         edgeEl.faceId   = int(face/3);
         size_t N = screenDepthVertices.size();      // ← po klipowaniu!

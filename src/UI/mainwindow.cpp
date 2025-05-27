@@ -825,7 +825,11 @@ void MainWindow::onSelectMenuChangeSelectMode(SelectMode newSelectMode){
 }
 
 void MainWindow::onSceneDisplayClicked(int x, int y){
-    std::cout<<"X: "<<x<<"  :  Y: "<<y<<std::endl;
+
+    Renderer::IdBufferElement el = (*renderer->idBuffer)[y][x];
+    std::cout<<"X: "<<x<<"  :  Y: "<<y;
+    //std::cout<<"   | faceID: "<<el.faceId<<std::endl;
+    std::cout<<"    | vertexID: "<<el.vertexId<<" | edge: "<<el.edgeVertices.first<<" : "<<el.edgeVertices.second<<std::endl;
 }
 /*
  * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu

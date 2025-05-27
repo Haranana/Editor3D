@@ -44,7 +44,7 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, 
         Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, -clipSpaceVertex2.z / clipSpaceVertex2.w);
         Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, -clipSpaceVertex3.z / clipSpaceVertex3.w);
 
-        HitDetectionManager::IdBufferElement element1,element2,element3;
+        Renderer::IdBufferElement element1,element2,element3;
         element1.mock = true;
         element2.mock = true;
         element3.mock = true;
