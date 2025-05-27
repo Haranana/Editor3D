@@ -40,9 +40,13 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, 
         Vector2 screenVertex2 = renderer.ndcToScreen(normalizedVertex2);
         Vector2 screenVertex3 = renderer.ndcToScreen(normalizedVertex3);
 
-        Vector3 screenVertexWithZ1(screenVertex1.x, screenVertex1.y, -clipSpaceVertex1.z / clipSpaceVertex1.w);
-        Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, -clipSpaceVertex2.z / clipSpaceVertex2.w);
-        Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, -clipSpaceVertex3.z / clipSpaceVertex3.w);
+        float normalizedDepth1 = ((clipSpaceVertex1.z/ clipSpaceVertex1.w)+1.0)*0.5;
+        float normalizedDepth2 = ((clipSpaceVertex1.z/ clipSpaceVertex1.w)+1.0)*0.5;
+        float normalizedDepth3 = ((clipSpaceVertex1.z/ clipSpaceVertex1.w)+1.0)*0.5;
+
+        Vector3 screenVertexWithZ1(screenVertex1.x, screenVertex1.y, normalizedDepth1);
+        Vector3 screenVertexWithZ2(screenVertex2.x, screenVertex2.y, normalizedDepth2);
+        Vector3 screenVertexWithZ3(screenVertex3.x, screenVertex3.y, normalizedDepth3);
 
         Renderer::IdBufferElement element1,element2,element3;
         element1.mock = true;

@@ -54,7 +54,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             auto& sv = screenVertices[i];
             auto& cv = clippedPoly[i];
             double depth = -cv.z / cv.w;
-            screenDepthVertices.push_back({ sv.x, sv.y, depth });
+            double normalizedDepth = ((cv.z/cv.w)+1.0)*0.5;
+            screenDepthVertices.push_back({ sv.x, sv.y, normalizedDepth });
         }
 
         // d) Fill-pass: Twoja oryginalna pętla barycentryczna
@@ -118,8 +119,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             Vector3 B = screenDepthVertices[(i+1)%N];
 
             // 1-px papierowy offset głębi
-            A.z -= 1e-4;
-            B.z -= 1e-4;
+            A.z = std::max(0.0, A.z - 1e-4);   // nie zejdź poniżej 0
+            B.z = std::max(0.0, B.z - 1e-4);
 
             // oryginalne indeksy tylko dla pierwszych 3 punktów
             int idxA = (i   < 3 ? obj.faceVertexIndices[face+i  ] : -1);

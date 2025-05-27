@@ -9,7 +9,7 @@ Renderer::Renderer(
     scene(scene),
     camera(camera)
 {
-    zBuffer = std::make_shared<Buffer<float>>(img->width(), img->height(), 0.0);
+    zBuffer = std::make_shared<Buffer<float>>(img->width(), img->height(), std::numeric_limits<float>::infinity());
     idBuffer = std::make_shared<Buffer<IdBufferElement>>(img->width(), img->height(), IdBufferElement{});
 
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());

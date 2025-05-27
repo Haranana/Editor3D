@@ -15,6 +15,7 @@
 #include "Rendering/LinePainter.h"
 #include "Rendering/HitDetectionManager.h"
 #include <QImage>
+#include <limits>
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
  * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here

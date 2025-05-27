@@ -53,7 +53,8 @@ void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& rende
 
         std::vector<Vector3> screenDepthVertices;
         for(size_t vertexIt = 0; vertexIt < screenVertices.size(); vertexIt++){
-            screenDepthVertices.push_back({screenVertices[vertexIt].x, screenVertices[vertexIt].y, -clippedVectors[vertexIt].z / clippedVectors[vertexIt].w});
+            float normalizedDepth = ((clippedVectors[vertexIt].z/ clippedVectors[vertexIt].w)+1.0)*0.5;
+            screenDepthVertices.push_back({screenVertices[vertexIt].x, screenVertices[vertexIt].y,normalizedDepth});
         }
 
         for(size_t vertexIt = 0; vertexIt < screenDepthVertices.size(); vertexIt++){
