@@ -1,5 +1,7 @@
 #include "Rendering/Renderer.h"
 
+
+
 Renderer::Renderer(
     //std::shared_ptr<RenderingSurface> renderingSurface,
     std::shared_ptr<QImage> img,
@@ -91,6 +93,8 @@ bool Renderer::drawPixel(int x, int y, double depth, const Color& color)
     return false;
 }
 
+
+// debatowalne czy powinno byc to luzem w rendererze
 void Renderer::drawLine3D(const Vector3& aScr, const Vector3& bScr,IdBufferElement& idBufferElement, const Color& color)
 {
 
@@ -159,6 +163,16 @@ void Renderer::renderSceneObjects(){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->renderStrategy) curObject->renderStrategy->render(*curObject , *this, objIt);
+        }
+    }
+}
+
+void Renderer::highlightObjectsSelectedElements(){
+    for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
+
+        std::shared_ptr<Object3D> object = scene->getObject(objIt);
+        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+
         }
     }
 }

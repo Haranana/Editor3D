@@ -53,8 +53,10 @@ private:
         OBJECTS,
         FACES,
         EDGES,
-        VERTICES
+        VERTICES,
+        NONE
     };
+
 
     void setupUI();
     void setupMenuBar();
@@ -115,7 +117,7 @@ private:
     QMenuBar* menuBar = nullptr;
 
     QPushButton* addCubeButton = nullptr;
-    SelectMode curSelectMode = OBJECTS;
+    SelectMode curSelectMode = NONE;
 
 
 private slots:

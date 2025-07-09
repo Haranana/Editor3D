@@ -3,6 +3,7 @@
 
 #include "Color.h"
 
+// collection of popular colors
 namespace Colors{
 extern const Color Black;
 extern const Color White;

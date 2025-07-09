@@ -9,7 +9,9 @@ class RenderableObject3D;
 class Renderer;
 
 //Requirements: at least 3 vertices per face
-
+/*
+ * renders only edges that ought to be visible to user, based on renderer's camera
+ */
 class FrontOnlyRenderStrategy : public RenderStrategy {
 public:
     void render(RenderableObject3D& object, Renderer& renderer, int objId) override;

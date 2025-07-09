@@ -22,6 +22,14 @@
  * the output of Renderer is then shown to the user
  * in the future, Renderer will also be probably used to rendering some UI elements such as selection arrows or grids
  */
+
+/* As for 09/07:
+ * - Przechowuje id oraz z buffery
+ * - przechowuje renderingSurface, scene i kamere
+ * - przechowuje narzedzia do rysowania
+ * - renderuje scene: wywoluje render() na kazdym aplikowalnym obiekcie
+ * - przenoszeni vectory miedzy przestrzeniami
+*/
 class Renderer{
 public:
 
@@ -60,8 +68,8 @@ public:
     //do poprawienia na perspective correct (1/z) Chyba juz jest idk
     void drawLine3D(const Vector3& vec1,  const Vector3& vec2, IdBufferElement& idBufferElement, const Color& color = Color(255,255,255,255));
 
-    std::shared_ptr<Buffer<IdBufferElement>> idBuffer;
-    std::shared_ptr<Buffer<float>>zBuffer;
+    std::shared_ptr<Buffer<IdBufferElement>> idBuffer; //pewnie powinno byc prywatne
+    std::shared_ptr<Buffer<float>>zBuffer; //rowniez pewnie powinno byc prywatne
     std::shared_ptr<Camera> getCamera();
 
     std::shared_ptr<Scene> getScene();
@@ -77,7 +85,7 @@ public:
 
 private:
 
-    //reset every value inside zBuffer to infinity
+    //reset every value inside zBuffer to infinity - moved to separate classes
     //void resetZBuffer();
     //void resetIdBuffer();
 
@@ -86,7 +94,9 @@ private:
     Matrix4 ProjectionMatrix;
 
     void renderSceneObjects();
+    void highlightObjectsSelectedElements();
 
+    //can't find any instance where it's used, probably safe to delete
     const int zOffsetDefaultValue = -200;
     int zOffset = zOffsetDefaultValue;
 

@@ -1,6 +1,13 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 #include <vector>
+
+
+/*
+ * Data structure similiar in usage to list of lists but
+ * faster thanks to actually being single list
+ * useful when structure is cleared/filled very often, such as z-buffer and id-buffer
+*/
 template<typename T>
 class Buffer{
 public:

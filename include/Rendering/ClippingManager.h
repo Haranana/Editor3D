@@ -4,6 +4,10 @@
 #include <vector>
 #include <map>
 #include "Math/Vector4.h"
+
+/*
+ * Unsure whether it's used anywhere
+ */
 class ClippingManager{
 private:
     enum PlaneType{

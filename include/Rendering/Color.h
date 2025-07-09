@@ -3,8 +3,11 @@
 
 #include <iostream>
 
-/* elements of Color, both in bits of QImage in used format, and in this class
+/*
+ * Color class
+ * elements of Color, both in bits of QImage in used format, and in this class
  * are always in order: Blue, Green, Red, Alpha
+ * alpha should not be changed unless there's veeeery good reason to do so
 */
 class Color{
 public:

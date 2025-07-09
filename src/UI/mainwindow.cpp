@@ -114,7 +114,7 @@ void MainWindow::setupMenuBar(){
     selectActionGroup->addAction(selectFaces);
     selectActionGroup->addAction(selectEdges);
     selectActionGroup->addAction(selectVertices);
-    selectObjects->setChecked(true);
+    //selectObjects->setChecked(true);
 
     selectMenu->addAction(selectObjects);
     selectMenu->addAction(selectFaces);
@@ -497,7 +497,7 @@ void MainWindow::onObjectSelected()
 
 
     int objectId = objectsList->currentRow();
-    //std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
+    std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
         currentObject = nullptr;
         return;
@@ -827,9 +827,27 @@ void MainWindow::onSelectMenuChangeSelectMode(SelectMode newSelectMode){
 void MainWindow::onSceneDisplayClicked(int x, int y){
 
     Renderer::IdBufferElement el = (*renderer->idBuffer)[y][x];
+
     std::cout<<"X: "<<x<<"  :  Y: "<<y;
-    //std::cout<<"   | faceID: "<<el.faceId<<std::endl;
-    std::cout<<"    | vertexID: "<<el.vertexId<<" | edge: "<<el.edgeVertices.first<<" : "<<el.edgeVertices.second<<std::endl;
+    std::cout<<"    | vertexID: "<<el.vertexId<<" | edge: "<<el.edgeVertices.first<<" : "<<el.edgeVertices.second
+              <<" | face: "<<el.faceId<<" | object: "<<el.objectId<<std::endl;
+
+    if(el.objectId!=-1){
+        switch(curSelectMode){
+        case OBJECTS:
+            scene->getObject(el.objectId)->viewportDisplay.selectObject();
+            break;
+        case EDGES:
+            scene->getObject(el.objectId)->viewportDisplay.selectEdge(el.edgeVertices.first, el.edgeVertices.second);
+            break;
+        case VERTICES:
+            scene->getObject(el.objectId)->viewportDisplay.selectVertex(el.vertexId);
+            break;
+        case FACES:
+            scene->getObject(el.objectId)->viewportDisplay.selectFace(el.faceId);
+            break;
+        }
+    }
 }
 /*
  * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu

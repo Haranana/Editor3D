@@ -1,11 +1,4 @@
 #include "Rendering/RasterRenderStrategy.h"
-#include "Rendering/Renderer.h"
-#include "Scene/Camera.h"
-#include "Rendering/RenderingSurface.h"
-#include "Rendering/LinePainter.h"
-#include "Rendering/PixelPainter.h"
-#include "Math/Vectors.h"
-
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
