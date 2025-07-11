@@ -52,22 +52,27 @@ std::pair<Vector4, Vector4> ClippingManager::clipLine(const std::pair<Vector4, V
     std::pair<Vector4, Vector4> result = e;
 
     for(const auto &curPlane : planes){
-        const Vector4& v1 = e.first;
-        const Vector4& v2 = e.second;
+        const Vector4& v1 = result.first;
+        const Vector4& v2 = result.second;
 
         bool v1Inside = isVectorInsideScreen(curPlane, v1);
         bool v2Inside = isVectorInsideScreen(curPlane, v2);
 
         if (v1Inside && v2Inside){
-            return std::make_pair(v1, v2);
+           // return std::make_pair(v1, v2);
+            result = std::make_pair(v1, v2);
         }else if(v1Inside){
-            return std::make_pair(v1, intersect(v1,v2, curPlane));
+           // return std::make_pair(v1, intersect(v1,v2, curPlane));
+            result = std::make_pair(v1, intersect(v1,v2, curPlane));
         }else if(v2Inside){
-            return std::make_pair(intersect(v1,v2, curPlane), v2);
+           // return std::make_pair(intersect(v1,v2, curPlane), v2);
+            result = std::make_pair(intersect(v1,v2, curPlane), v2);
         }else{
             return std::make_pair(Vector4(-1,-1,-1,-1), Vector4(-1,-1,-1,-1));
         }
+
     }
+    return result;
 }
 
 std::vector<Vector4> ClippingManager::clipTriangle(const std::vector<Vector4>& triangle){
@@ -77,8 +82,6 @@ std::vector<Vector4> ClippingManager::clipTriangle(const std::vector<Vector4>& t
         std::vector<Vector4> out;
         if(clippedPoly.empty()) break;
         for(size_t curVertexId = 0; curVertexId < clippedPoly.size(); curVertexId++){
-
-
             const Vector4& v1 = clippedPoly[curVertexId];
             const Vector4& v2 = clippedPoly[(curVertexId+1)%clippedPoly.size()];
 

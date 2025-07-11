@@ -70,6 +70,7 @@ public:
     void drawCircle3D(const Vector3& v, IdBufferElement& idBufferElement,int radius, const Color& color = Color(255,255,255,255));
     void drawLine3D(const Vector3& vec1,  const Vector3& vec2, const Color& color = Color(255,255,255,255));
     void drawCircle3D(const Vector3& v,int radius, const Color& color = Color(255,255,255,255));
+    void drawSquare3D(const Vector3& v,int radius, const Color& color = Color(255,255,255,255));
     //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
     bool drawPixel(int x, int y, double z, const Color& c);
 

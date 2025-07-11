@@ -224,6 +224,19 @@ void Renderer::drawCircle3D(const Vector3& v, int radius, const Color& color){
     }
 }
 
+void Renderer::drawSquare3D(const Vector3& v,int radius, const Color& color){
+    int startX = v.x - radius/2;
+    int endX = v.x + radius/2;
+    int startY = v.y - radius/2;
+    int endY = v.y + radius/2;
+
+    for(int curY = startY; curY < endY; curY++){
+        for(int curX = startX; curX < endX; curX++){
+            drawPixel(curX, curY, v.z, color);
+        }
+    }
+}
+
 std::shared_ptr<Camera> Renderer::getCamera(){
     return camera;
 }
@@ -269,11 +282,11 @@ void Renderer::highlightObjectsSelectedElements(){
                 if(!clippingManager->isVectorInsideScreen(clipV)) continue;
                 Vector3 ndcV = clipToNdc(clipV);
                 Vector2 screenV = ndcToScreen(ndcV);
-                Vector3 screenDepthV = Vector3(screenV.x , screenV.y, ((clipV.z/clipV.w)+1.0)*0.5);
+                Vector3 screenDepthV = Vector3(screenV.x , screenV.y, ((clipV.z/clipV.w)+1.0)*0.5 -1e-4); //-1e-4 is for bias, please document future me
                 //IdBufferElement element;
                 //element.objectId = objIt;
                 //element.vertexId = curObject->viewportDisplay.selectedVertex;
-                drawCircle3D(screenDepthV , /*element*/ 5, curObject->viewportDisplay.selectColor);
+                drawSquare3D(screenDepthV , /*element*/ 5, curObject->viewportDisplay.selectColor);
                 /*
                 Vector3 renderedV = Vector3(
                 ndcToScreen(clipToNdc(modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()))).x,
@@ -294,8 +307,8 @@ void Renderer::highlightObjectsSelectedElements(){
                 std::pair<Vector3, Vector3> ndcE = std::make_pair(clipToNdc(clippedE.first), clipToNdc(clippedE.second));
                 std::pair<Vector2, Vector2> screenE = std::make_pair(ndcToScreen(ndcE.first), ndcToScreen(ndcE.second));
                 std::pair<Vector3, Vector3> screenDepthE = std::make_pair(
-                    Vector3(screenE.first.x , screenE.first.y, ((clippedE.first.z/clippedE.first.w)+1.0)*0.5),
-                    Vector3(screenE.second.x , screenE.second.y, ((clippedE.second.z/clippedE.second.w)+1.0)*0.5)
+                    Vector3(screenE.first.x , screenE.first.y, ((clippedE.first.z/clippedE.first.w)+1.0)*0.5 -1e-4),
+                    Vector3(screenE.second.x , screenE.second.y, ((clippedE.second.z/clippedE.second.w)+1.0)*0.5 -1e-4)
                     );
                 drawLine3D(screenDepthE.first , screenDepthE.second, curObject->viewportDisplay.selectColor);
 
@@ -307,19 +320,13 @@ void Renderer::highlightObjectsSelectedElements(){
                 const int height = getRenderingSurface()->getImg()->height();
 
                 std::vector<Vector4> clip;
-                clip.reserve(curObject->vertices.size());
                 Matrix4 M = curObject->transform.getTransMatrix();
-                for (auto& v : curObject->vertices)
-                    clip.push_back(modelToClip(v, M));
 
-                //iterate through every face
-                for (size_t face = 0; face < curObject->faceVertexIndices.size(); face += 3)
-                {
                     int selectedFace = curObject->viewportDisplay.selectedFace;
-                    //original vertices in clip-space
-                    Vector4 cv0 = modelToClip(curObject->vertices[curObject->faceVertexIndices[selectedFace]], M);
-                    Vector4 cv1 = modelToClip(curObject->vertices[curObject->faceVertexIndices[selectedFace+1]], M);
-                    Vector4 cv2 = modelToClip(curObject->vertices[curObject->faceVertexIndices[selectedFace+2]], M);
+                    //original vertices in clip-spaces
+                    Vector4 cv0 = modelToClip(curObject->vertices[curObject->faceVertexIndices[3*selectedFace]], M);
+                    Vector4 cv1 = modelToClip(curObject->vertices[curObject->faceVertexIndices[3*selectedFace+1]], M);
+                    Vector4 cv2 = modelToClip(curObject->vertices[curObject->faceVertexIndices[3*selectedFace+2]], M);
 
                     auto clippedPoly =
                         clippingManager->clipTriangle({cv0, cv1, cv2});
@@ -398,7 +405,7 @@ void Renderer::highlightObjectsSelectedElements(){
 
                                 double depth = num/denom;
 
-                                drawPixel(x, y, depth, curObject->viewportDisplay.selectColor);
+                                drawPixel(x, y, depth-1e-4, curObject->viewportDisplay.selectColor);
 
                             }
                         }
@@ -406,5 +413,5 @@ void Renderer::highlightObjectsSelectedElements(){
             }
         }
     }
-    }
+
 }
