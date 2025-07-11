@@ -13,7 +13,6 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
 
     //building clip-space for all vertices
     std::vector<Vector4> clip;
-    clip.reserve(obj.vertices.size());
     Matrix4 M = obj.transform.getTransMatrix();
     for (auto& v : obj.vertices)
         clip.push_back(renderer.modelToClip(v, M));

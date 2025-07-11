@@ -23,6 +23,15 @@ double ClippingManager::planeValue(ClippingManager::PlaneType planeType, const V
     }
 }
 
+bool ClippingManager::isVectorInsideScreen(const Vector4& v){
+    for(const auto &curPlane : planes){
+        if( planeValue(curPlane, v) < 0.0){
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ClippingManager::isVectorInsideScreen(ClippingManager::PlaneType planeType, const Vector4& v){
     return planeValue(planeType, v) >= 0.0;
 }
@@ -37,6 +46,28 @@ Vector4 ClippingManager::intersect(const Vector4& v1, const Vector4& v2, Clippin
                    v1.y + t*(v2.y - v1.y),
                    v1.z + t*(v2.z - v1.z),
                    v1.w + t*(v2.w - v1.w) };
+}
+
+std::pair<Vector4, Vector4> ClippingManager::clipLine(const std::pair<Vector4, Vector4>& e){
+    std::pair<Vector4, Vector4> result = e;
+
+    for(const auto &curPlane : planes){
+        const Vector4& v1 = e.first;
+        const Vector4& v2 = e.second;
+
+        bool v1Inside = isVectorInsideScreen(curPlane, v1);
+        bool v2Inside = isVectorInsideScreen(curPlane, v2);
+
+        if (v1Inside && v2Inside){
+            return std::make_pair(v1, v2);
+        }else if(v1Inside){
+            return std::make_pair(v1, intersect(v1,v2, curPlane));
+        }else if(v2Inside){
+            return std::make_pair(intersect(v1,v2, curPlane), v2);
+        }else{
+            return std::make_pair(Vector4(-1,-1,-1,-1), Vector4(-1,-1,-1,-1));
+        }
+    }
 }
 
 std::vector<Vector4> ClippingManager::clipTriangle(const std::vector<Vector4>& triangle){

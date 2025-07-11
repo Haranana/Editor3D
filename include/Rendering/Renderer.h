@@ -62,11 +62,16 @@ public:
     Vector3 clipToNdc(const Vector4& v);
     Vector2 ndcToScreen(const Vector3& v);
 
-    //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
-    bool drawPixel(int x, int y, double z, const Color& c);
+
 
     //do poprawienia na perspective correct (1/z) Chyba juz jest idk
+    //probably should create different class, some Painter3D for those but eh
     void drawLine3D(const Vector3& vec1,  const Vector3& vec2, IdBufferElement& idBufferElement, const Color& color = Color(255,255,255,255));
+    void drawCircle3D(const Vector3& v, IdBufferElement& idBufferElement,int radius, const Color& color = Color(255,255,255,255));
+    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, const Color& color = Color(255,255,255,255));
+    void drawCircle3D(const Vector3& v,int radius, const Color& color = Color(255,255,255,255));
+    //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
+    bool drawPixel(int x, int y, double z, const Color& c);
 
     std::shared_ptr<Buffer<IdBufferElement>> idBuffer; //pewnie powinno byc prywatne
     std::shared_ptr<Buffer<float>>zBuffer; //rowniez pewnie powinno byc prywatne

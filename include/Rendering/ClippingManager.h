@@ -6,7 +6,7 @@
 #include "Math/Vector4.h"
 
 /*
- * Unsure whether it's used anywhere
+ * should simplify clipTriangle to use isVector... and clipLine
  */
 class ClippingManager{
 private:
@@ -21,6 +21,11 @@ private:
 
 public:
     std::vector<Vector4> clipTriangle(const std::vector<Vector4>& triangle);
+
+    //currently returns ((-1,-1,-1,-1),(-1,-1,-1,-1)) when nothing is inside screen, probably should be replaced
+    //with something more readable
+    std::pair<Vector4, Vector4> clipLine(const std::pair<Vector4, Vector4>& e);
+    bool isVectorInsideScreen(const Vector4& v);
 
 private:
 
