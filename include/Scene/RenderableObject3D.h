@@ -3,6 +3,7 @@
 
 #include "Rendering/RenderStrategy.h"
 #include "Object3D.h"
+#include "Rendering/Texture.h"
 
 class BasicRenderStrategy;
 class RenderStrategy;
@@ -32,6 +33,8 @@ public:
 
     //wspolrzedne uv tekstur
     std::vector<Vector2> textureCoords;
+    //tekstura calego obiektu, byc moze w przyszlosci zostanie to zamienione na tekstury scian
+    std::shared_ptr<Texture> texture;
 
     std::unique_ptr<RenderStrategy> renderStrategy;
 

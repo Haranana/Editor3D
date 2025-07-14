@@ -2,6 +2,7 @@
 #include "Rendering/BasicRenderStrategy.h"
 #include "Rendering/FrontOnlyRenderStrategy.h"
 #include "Rendering/RasterRenderStrategy.h"
+#include <algorithm>
 
 Cube::Cube(int sideLength) : sideLength(sideLength){
 
@@ -87,6 +88,8 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
     //renderStrategy = std::make_unique<BasicRenderStrategy>();
    // renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
     renderStrategy = std::make_unique<BasicRenderStrategy>();
+
+    textureCoords.resize(vertices.size() , Vector2(0.0,0.0));
 
     //W przyszlosci pewnie dobrze by bylo rozszerzyc program o uzywanie startingPosition
     //transform.setPosition(startingPosition);

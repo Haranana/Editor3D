@@ -287,6 +287,7 @@ void Renderer::highlightObjectsSelectedElements(){
                 //element.objectId = objIt;
                 //element.vertexId = curObject->viewportDisplay.selectedVertex;
                 drawSquare3D(screenDepthV , /*element*/ 5, curObject->viewportDisplay.selectColor);
+
                 /*
                 Vector3 renderedV = Vector3(
                 ndcToScreen(clipToNdc(modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()))).x,
@@ -315,7 +316,7 @@ void Renderer::highlightObjectsSelectedElements(){
 
             }else if(selectedElement == ViewportDisplay::FACES){
                 if(curObject->viewportDisplay.selectedFace ==-1) continue;
-                std::cout<<"HIGHLIGHTING FACE"<<std::endl;
+                //std::cout<<"HIGHLIGHTING FACE"<<std::endl;
                 const int width  = getRenderingSurface()->getImg()->width();
                 const int height = getRenderingSurface()->getImg()->height();
 

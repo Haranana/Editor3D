@@ -13,9 +13,12 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
 
     //building clip-space for all vertices
     std::vector<Vector4> clip;
+    std::vector<Vector2> uv;
     Matrix4 M = obj.transform.getTransMatrix();
-    for (auto& v : obj.vertices)
+    for (auto& v : obj.vertices){
         clip.push_back(renderer.modelToClip(v, M));
+         uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
+    }
 
     //iterate through every face
     for (size_t face = 0; face < obj.faceVertexIndices.size(); face += 3)
@@ -49,6 +52,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
         std::vector<Vector3> screenDepthVertices;
         std::vector<double> clipZ;
         std::vector<double> invW;
+        std::vector<double> u_over_w, v_over_w;
         screenDepthVertices.reserve(clippedPoly.size());
 
         for (size_t i = 0; i < clippedPoly.size(); ++i) {
@@ -57,6 +61,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
 
             clipZ.push_back(cv.z);
             invW.push_back(1.0 / cv.w);
+            u_over_w.push_back( obj.textureCoords[obj.faceVertexIndices[face + i]].x * invW.back() );
+            v_over_w.push_back( obj.textureCoords[obj.faceVertexIndices[face + i]].y * invW.back() );
 
             double normalizedDepth = ((cv.z/cv.w)+1.0)*0.5;
             screenDepthVertices.push_back({ sv.x, sv.y, normalizedDepth });
@@ -106,11 +112,31 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                                    + w1 * invW[k]
                                    + w2 * invW[k+1];
 
+                    double u_num = w0*u_over_w[0] + w1*u_over_w[k] + w2*u_over_w[k+1];
+                    double v_num = w0*v_over_w[0] + w1*v_over_w[k] + w2*v_over_w[k+1];
+                    double invDen = denom;              // to samo, już policzone
+                    double texU = u_num / invDen;
+                    double texV = v_num / invDen;
+
                     double depth = num/denom;
+
+                    QRgb sample;
+                    if (obj.texture && !obj.texture->image.isNull()){
+                        qDebug("texture loaded");
+                        int iu = std::clamp(int(texU * obj.texture->image.width ()),0,obj.texture->image.width ()-1);
+                        int iv = std::clamp(int((1-texV) * obj.texture->image.height()),0,obj.texture->image.height()-1);
+                        sample = obj.texture->image.pixel(iu,iv);
+                    }else{
+                        sample = qRgba(obj.viewportDisplay.color.R,
+                                       obj.viewportDisplay.color.G,
+                                       obj.viewportDisplay.color.B,
+                                       255);
+                    }
+                    Color pix( qBlue(sample), qGreen(sample), qRed(sample), qAlpha(sample) );
 
                     // logic of drawing pixel and z-buffor check is in renderer but
                     // updating id-buffer is here (for whatever reason?)
-                    if (renderer.drawPixel(x, y, depth, obj.viewportDisplay.color)) {
+                    if (renderer.drawPixel(x, y, depth, pix)) {
                         // Tylko fillId (faceId)
                         Renderer::IdBufferElement fillEl;
                         fillEl.objectId     = objId;

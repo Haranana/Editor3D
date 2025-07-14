@@ -100,6 +100,7 @@ void MainWindow::setupMenuBar(){
     QAction *createObjectCube = new QAction("&Cube");
     QAction *createObjectCylinder = new QAction("&Cylinder");
     QAction *deleteSelectedObject = new QAction("&Delete");
+    QAction *assignTectureToObject = new QAction("&Assign texture");
     QAction *selectObjects = new QAction("&Objects");
     QAction *selectFaces = new QAction("&Faces");
     QAction *selectEdges = new QAction("&Edges");
@@ -129,6 +130,7 @@ void MainWindow::setupMenuBar(){
     createObjectsMenu->addAction(createObjectCube);
     createObjectsMenu->addAction(createObjectCylinder);
     selectedObjectMenu->addAction(deleteSelectedObject);
+    selectedObjectMenu->addAction(assignTectureToObject);
 
     QObject::connect(importObjectAction, &QAction::triggered, [&](){
         onFileMenuImportObject();
@@ -148,6 +150,10 @@ void MainWindow::setupMenuBar(){
 
     QObject::connect(deleteSelectedObject, &QAction::triggered, [&](){
         onSceneMenuDeleteSelectedObject();
+    });
+
+    QObject::connect(assignTectureToObject, &QAction::triggered, [&](){
+        onSceneMenuAssignTectureToObject();
     });
 
     QObject::connect(selectObjects, &QAction::triggered, [&](){
@@ -848,6 +854,28 @@ void MainWindow::onSceneDisplayClicked(int x, int y){
             break;
         }
     }
+}
+
+void MainWindow::onSceneMenuAssignTectureToObject(){
+    qDebug("onSceneMenuAssignTectureToObject");
+    if (!currentObject) return;
+    QString path = QFileDialog::getOpenFileName(
+        this,"Select texture","","Images (*.png *.jpg *.bmp)");
+    if (path.isEmpty()) return;
+
+    auto tex = std::make_shared<Texture>();
+    tex->path  = path;
+    tex->image = QImage(path).convertToFormat(QImage::Format_RGBA8888);
+    if (tex->image.isNull()) { qDebug()<<"Bad image"; return; }
+
+    if (auto rend = dynamic_cast<RenderableObject3D*>(currentObject.get()))
+        rend->texture = tex;
+
+    // krok 3 ➜ generujemy UV dla zaznaczonej / całej siatki
+    generatePlanarUV(*dynamic_cast<RenderableObject3D*>(currentObject.get()),
+                     Plane::XY);   // na razie XY
+
+    refreshScene();
 }
 /*
  * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu

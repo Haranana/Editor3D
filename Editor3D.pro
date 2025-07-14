@@ -62,6 +62,7 @@ HEADERS += \
     include/Math/Matrix3.h \
     include/Math/Matrix4.h \
     include/Math/Transform3D.h \
+    include/Math/UVProjector.h \
     include/Math/Vector2.h \
     include/Math/Vector3.h \
     include/Math/Vector4.h \
@@ -81,6 +82,7 @@ HEADERS += \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \
     include/Rendering/RenderingSurface.h \
+    include/Rendering/Texture.h \
     include/Rendering/ViewportDisplay.h \
     include/Scene/Camera.h \
     include/Scene/Cube.h \

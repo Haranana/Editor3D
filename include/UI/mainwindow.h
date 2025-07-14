@@ -20,6 +20,7 @@
 #include <QFileDialog>
 #include "UI/ImageLabel.h"
 
+#include "Math/UVProjector.h"
 #include "Scene/Scene.h"
 #include "Scene/Object3D.h"
 #include "Scene/Cube.h"
@@ -143,6 +144,8 @@ private slots:
     void onObjectMenuCreateCylinder();
 
     void onSceneMenuDeleteSelectedObject();
+    void onSceneMenuAssignTectureToObject();
+
     void onSelectMenuChangeSelectMode(SelectMode newSelectMode);
     void onSceneDisplayClicked(int x, int y);
 };
