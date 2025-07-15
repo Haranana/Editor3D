@@ -2,6 +2,7 @@
 #define VECTOR3_H
 
 #include <iostream>
+#include <cmath>
 
 class Vector3{
 
@@ -13,6 +14,11 @@ public:
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
+
+    Vector3 normalize() const;
+    double length() const;
+    Vector3 crossProduct(const Vector3& otherVector) const;
+    double dotProduct(const Vector3& otherVector) const;
 
     bool operator==(const Vector3& otherVector) const;
     Vector3& operator=(const Vector3& otherVector);

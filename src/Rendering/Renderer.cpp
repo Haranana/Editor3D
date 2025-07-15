@@ -17,6 +17,7 @@ Renderer::Renderer(
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
     linePainter = std::make_shared<LinePainter>(renderingSurface->getImg());
     clippingManager = std::make_shared<ClippingManager>();
+    shadingManager = std::make_shared<ShadingManager>();
 }
 
 void Renderer::renderScene(){
@@ -235,6 +236,13 @@ void Renderer::drawSquare3D(const Vector3& v,int radius, const Color& color){
             drawPixel(curX, curY, v.z, color);
         }
     }
+}
+
+Vector3 Renderer::getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool clockwise){
+    double modifier = 0.0;
+    clockwise? modifier=-1.0 : modifier=1.0;
+
+    return Vector3( ((v1-v0).crossProduct(v2-v0))*modifier );
 }
 
 std::shared_ptr<Camera> Renderer::getCamera(){

@@ -39,6 +39,7 @@ SOURCES += \
     src/Rendering/RasterRenderStrategy.cpp \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingSurface.cpp \
+    src/Rendering/ShadingManager.cpp \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
     src/Scene/Cylinder.cpp \
@@ -82,6 +83,7 @@ HEADERS += \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \
     include/Rendering/RenderingSurface.h \
+    include/Rendering/ShadingManager.h \
     include/Rendering/Texture.h \
     include/Rendering/ViewportDisplay.h \
     include/Scene/Camera.h \

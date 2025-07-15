@@ -15,6 +15,7 @@
 #include "Rendering/LinePainter.h"
 #include "Rendering/HitDetectionManager.h"
 #include <QImage>
+#include "Rendering/ShadingManager.h"
 #include <limits>
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
@@ -62,7 +63,7 @@ public:
     Vector3 clipToNdc(const Vector4& v);
     Vector2 ndcToScreen(const Vector3& v);
 
-
+    Vector3 getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool clockwise = true);
 
     //do poprawienia na perspective correct (1/z) Chyba juz jest idk
     //probably should create different class, some Painter3D for those but eh
@@ -86,6 +87,7 @@ public:
     std::shared_ptr<LinePainter> linePainter;
 
     std::shared_ptr<ClippingManager> clippingManager;
+    std::shared_ptr<ShadingManager> shadingManager;
     //std::shared_ptr<HitDetectionManager> hitDetectionManager;
     //std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 
@@ -110,7 +112,6 @@ private:
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
     //std::shared_ptr<std::vector<std::vector<float>>>zBuffer;
-
 
 
 

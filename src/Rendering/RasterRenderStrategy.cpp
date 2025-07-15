@@ -114,15 +114,15 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
 
                     double u_num = w0*u_over_w[0] + w1*u_over_w[k] + w2*u_over_w[k+1];
                     double v_num = w0*v_over_w[0] + w1*v_over_w[k] + w2*v_over_w[k+1];
-                    double invDen = denom;              // to samo, już policzone
+                    double invDen = denom;
                     double texU = u_num / invDen;
                     double texV = v_num / invDen;
 
                     double depth = num/denom;
-
+                    /*
                     QRgb sample;
                     if (obj.texture && !obj.texture->image.isNull()){
-                        qDebug("texture loaded");
+                        //qDebug("texture loaded");
                         int iu = std::clamp(int(texU * obj.texture->image.width ()),0,obj.texture->image.width ()-1);
                         int iv = std::clamp(int((1-texV) * obj.texture->image.height()),0,obj.texture->image.height()-1);
                         sample = obj.texture->image.pixel(iu,iv);
@@ -133,10 +133,10 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                                        255);
                     }
                     Color pix( qBlue(sample), qGreen(sample), qRed(sample), qAlpha(sample) );
-
+                    */
                     // logic of drawing pixel and z-buffor check is in renderer but
                     // updating id-buffer is here (for whatever reason?)
-                    if (renderer.drawPixel(x, y, depth, pix)) {
+                    if (renderer.drawPixel(x, y, depth, /*pix*/ obj.viewportDisplay.color)) {
                         // Tylko fillId (faceId)
                         Renderer::IdBufferElement fillEl;
                         fillEl.objectId     = objId;

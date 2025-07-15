@@ -6,6 +6,26 @@ Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z) {}
 
 Vector3::Vector3(const Vector3& otherVector) : x(otherVector.x), y(otherVector.y), z(otherVector.z) {}
 
+Vector3 Vector3::normalize() const{
+    return *this/this->length();
+}
+
+double Vector3::length() const{
+    return sqrt(pow(x,2)+pow(y,2)+pow(z,2));
+}
+
+Vector3 Vector3::crossProduct(const Vector3& otherVector) const{
+    return Vector3(this->y * otherVector.z - this->z * otherVector.y,
+                   this->z * otherVector.x - this->x * otherVector.z,
+                   this->x * otherVector.y - this->y * otherVector.x);
+}
+
+double Vector3::dotProduct(const Vector3& otherVector) const{
+    return this->x * otherVector.x+
+                   this->y * otherVector.y+
+                   this->z * otherVector.z;
+}
+
 Vector3& Vector3::operator=(const Vector3& otherVector) {
     if (this != &otherVector) {
         this->x = otherVector.x;
