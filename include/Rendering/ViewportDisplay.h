@@ -7,7 +7,7 @@
 /*
  * Class that contains instructions about ways to render object
  */
-class ViewportDisplay{
+class  ViewportDisplay{
 public:
     enum DisplayMode{
       WIREFRAME,

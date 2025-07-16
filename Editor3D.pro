@@ -73,6 +73,7 @@ HEADERS += \
     include/Rendering/ClippingManager.h \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
+    include/Rendering/DisplaySettings.h \
     include/Rendering/FrontOnlyRenderStrategy.h \
     include/Rendering/GridRenderStrategy.h \
     include/Rendering/HitDetectionManager.h \

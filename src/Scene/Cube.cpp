@@ -97,8 +97,21 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
     //renderStrategy = std::make_unique<BasicRenderStrategy>();
    // renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
     renderStrategy = std::make_unique<BasicRenderStrategy>();
+    displaySettings = std::make_unique<DisplaySettings>();
 
     textureCoords.resize(vertices.size() , Vector2(0.0,0.0));
+
+    vertexToFaceNormals.resize(vertices.size() , {});
+    for (size_t face = 0; face < faceVertexIndices.size(); face += 3) {
+        int idx0 = faceVertexIndices[face    ];
+        int idx1 = faceVertexIndices[face + 1];
+        int idx2 = faceVertexIndices[face + 2];
+        // normal każdej ściany już masz w normals[face/3]
+        int faceNormalIdx = face / 3;
+        vertexToFaceNormals[idx0].push_back(faceNormalIdx);
+        vertexToFaceNormals[idx1].push_back(faceNormalIdx);
+        vertexToFaceNormals[idx2].push_back(faceNormalIdx);
+    }
 
     //W przyszlosci pewnie dobrze by bylo rozszerzyc program o uzywanie startingPosition
     //transform.setPosition(startingPosition);

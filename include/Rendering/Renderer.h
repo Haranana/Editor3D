@@ -99,6 +99,8 @@ private:
     //void resetZBuffer();
     //void resetIdBuffer();
 
+    void renderObject( RenderableObject3D& obj, int objId);
+
     Matrix4 viewProjectionMatrix;
     Matrix4 viewMatrix;
     Matrix4 ProjectionMatrix;

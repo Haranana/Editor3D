@@ -4,6 +4,7 @@
 #include "Rendering/RenderStrategy.h"
 #include "Object3D.h"
 #include "Rendering/Texture.h"
+#include "Rendering/DisplaySettings.h"
 
 class BasicRenderStrategy;
 class RenderStrategy;
@@ -30,6 +31,16 @@ public:
 
     //tablica wektorow normalnych ścian
     std::vector<Vector3> normals;
+
+    // dwuwymiarowa lista przechowujaca informacje dla wierzcholka o danym indeksie
+    // normalne scian o jakich indeksach z nim granicza
+    std::vector<std::vector<int>> vertexToFaceNormals;
+
+    //normalne wierzcholkow;
+    std::vector<Vector3> vertexNormals;
+
+
+    std::shared_ptr<DisplaySettings> displaySettings;
 
     //wspolrzedne uv tekstur
     std::vector<Vector2> textureCoords;

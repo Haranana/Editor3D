@@ -5,6 +5,8 @@ RenderableObject3D::RenderableObject3D() {
     renderStrategy = std::make_unique<BasicRenderStrategy>();
 }
 
+
+//do zrobienia dla wszystkic obiektow
 RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
     vertices(otherObject.vertices),
     transformedVertices(otherObject.transformedVertices),
@@ -14,6 +16,8 @@ RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
 {
     this->transform = otherObject.transform;
     renderStrategy = std::make_unique<BasicRenderStrategy>();
+    displaySettings = std::make_unique<DisplaySettings>();
+
 }
 
 void RenderableObject3D::setRenderStrategy(std::unique_ptr<RenderStrategy> newStrategy) {
