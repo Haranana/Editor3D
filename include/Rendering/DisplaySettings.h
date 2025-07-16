@@ -19,7 +19,8 @@ public:
     enum class ShadingMode{
         NONE,
         FLAT_SHADING,
-        SMOOT_SHADING
+        GOURAUD_SHADING,
+        PHONG_SHADIN
     };
 
     bool hideUnseenWireframes = false; //not implemented!

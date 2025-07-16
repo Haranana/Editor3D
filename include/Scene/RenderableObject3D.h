@@ -27,6 +27,7 @@ public:
     std::vector<Vector3> transformedVertices;
 
     //kolejne indeksy wierzcholkow wszystkich scian obiektu, zakladamy, ze kazdy polygon ma dokladnie 3 wierzcholki
+    //przykladowo faceVertexIndices[faceId] zwroci id pierwszego wierzcholka w scianie o danej faceId
     std::vector<int> faceVertexIndices;
 
     //tablica wektorow normalnych ścian

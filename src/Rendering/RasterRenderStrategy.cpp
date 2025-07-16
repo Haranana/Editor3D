@@ -10,6 +10,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
     //preparation
     const int width  = renderer.getRenderingSurface()->getImg()->width();
     const int height = renderer.getRenderingSurface()->getImg()->height();
+    Color baseColor = obj.viewportDisplay.color;
 
     //building clip-space for all vertices
     std::vector<Vector4> clip;
@@ -20,16 +21,28 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
         uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
     }
 
+    //world space vertices are used in smooth shading
+    std::vector<Vector3>worldSpaceVertices(obj.vertices.size());
+    for(auto& v : obj.vertices){
+        worldSpaceVertices.push_back(renderer.modelToWorld(v , obj.transform.getTransMatrix()));
+    }
+
     std::vector<Vector3> transformedNormals;
     for(auto& n : obj.normals){
         transformedNormals.push_back(renderer.faceNormalToWorld(obj.transform, n));
+
+    }
+
+    std::vector<Vector3> transformedVertexNormals;
+    for(auto&n : obj.vertexNormals){
+        transformedVertexNormals.push_back(renderer.faceNormalToWorld(obj.transform, n));
     }
 
     //iterate through every face
     for (size_t face = 0; face < obj.faceVertexIndices.size(); face += 3)
     {
         //parameters for simple shading
-        Color baseColor = obj.viewportDisplay.color;
+        /*
         Vector3 normal = transformedNormals[face/3];
         Vector3 faceCenterWorldSpace = (renderer.modelToWorld(obj.vertices[obj.faceVertexIndices[face]] , obj.transform.getTransMatrix()) +
                                         renderer.modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]] , obj.transform.getTransMatrix()) +
@@ -37,6 +50,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
 
         Color shadedColor = renderer.shadingManager.get()->shadeColorFR(renderer.getCamera()->transform.getPosition(),
                                                                         faceCenterWorldSpace,normal,baseColor);
+        */
+
 
 
         //original vertices in clip-space
@@ -122,6 +137,10 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double w2 = 1.0 - w0 - w1;
                     if (w0<0 || w1<0 || w2<0) continue;
 
+
+
+
+
                     //depth interpolation / perspective-correct interpolation
                     double num   = w0 * clipZ[0] * invW[0]
                                  + w1 * clipZ[k] * invW[k]
@@ -138,6 +157,30 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double texV = v_num / invDen;
 
                     double depth = num/denom;
+
+
+                    //calculating interpolated normals for gouroud shading
+                    Vector3 nv0 = transformedVertexNormals[obj.faceVertexIndices[face]];
+                    Vector3 nv1 = transformedVertexNormals[obj.faceVertexIndices[face+1]];
+                    Vector3 nv2 = transformedVertexNormals[obj.faceVertexIndices[face+2]];
+
+                    Vector3 wv0 = worldSpaceVertices[obj.faceVertexIndices[face]];
+                    Vector3 wv1 = worldSpaceVertices[obj.faceVertexIndices[face+1]];
+                    Vector3 wv2 = worldSpaceVertices[obj.faceVertexIndices[face+2]];
+
+
+                    /*
+                    double interNormalAlpha = ( (nv1.y-nv2.y)*(px-nv2.x) + (nv2.x-nv1.x)*(py-nv2.y))/
+                                              ((nv1.y - nv2.y)*(nv0.x - nv2.x)+(nv2.x-nv1.x)*(nv0.y-nv2.y));
+                    double interNormalBeta = ( (nv2.y-nv0.y)*(px-nv2.x) + (nv0.x-nv2.x)*(py-nv2.y))/
+                                             ((nv1.y - nv2.y)*(nv0.x - nv2.x)+(nv2.x-nv1.x)*(nv0.y-nv2.y));
+                    double interNormalGamma = 1.0 - interNormalAlpha - interNormalBeta;
+                    Vector3 interNormal = (nv0 * interNormalAlpha) + (nv1*interNormalBeta) + (nv2 * interNormalGamma);
+                    */
+                    Vector3 interNormal = ((nv0 * w0) + (nv1 * w1) + (nv2 * w2) ).normalize();
+                    Vector3 worldVertex = ((wv0 * w0) + (wv1 * w1) + (wv2 * w2));
+                    Color shadedColor = renderer.shadingManager.get()->shadeColorFR(renderer.getCamera()->transform.getPosition(),
+                                                                                    worldVertex,interNormal,baseColor);
                     /*
                     QRgb sample;
                     if (obj.texture && !obj.texture->image.isNull()){

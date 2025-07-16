@@ -113,6 +113,14 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
         vertexToFaceNormals[idx2].push_back(faceNormalIdx);
     }
 
+    for (size_t vi = 0; vi < vertices.size(); ++vi) {
+        Vector3 nSum(0, 0, 0);
+        for (int ni : vertexToFaceNormals[vi]) {
+            nSum = nSum + normals[ni];
+        }
+        vertexNormals.push_back(nSum.normalize());
+    }
+
     //W przyszlosci pewnie dobrze by bylo rozszerzyc program o uzywanie startingPosition
     //transform.setPosition(startingPosition);
     //transform.setPosition(Vector3(0,0,0));
