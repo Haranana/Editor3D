@@ -17,6 +17,7 @@
 #include <QImage>
 #include "Rendering/ShadingManager.h"
 #include <limits>
+#include "Math/Matrices.h"
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
  * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here
@@ -63,7 +64,8 @@ public:
     Vector3 clipToNdc(const Vector4& v);
     Vector2 ndcToScreen(const Vector3& v);
 
-    Vector3 getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool clockwise = true);
+    Vector3 getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool inverse = false);
+    Vector3 faceNormalToWorld( Transform3D objTransform, const Vector3& normal);
 
     //do poprawienia na perspective correct (1/z) Chyba juz jest idk
     //probably should create different class, some Painter3D for those but eh

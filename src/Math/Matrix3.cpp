@@ -51,6 +51,16 @@ Matrix3 Matrix3::getInversion() const{
     return adj;
 }
 
+Matrix3 Matrix3::transpose() const{
+    Matrix3 resultMatrix;
+    for (int rowIt = 0; rowIt < 3; rowIt++) {
+        for (int colIt = 0; colIt < 3; colIt++) {
+            resultMatrix.matrix[rowIt][colIt] = matrix[colIt][rowIt];
+        }
+    }
+    return resultMatrix;
+}
+
 Vector3 Matrix3::operator*(const Vector3& vector) const{
     Vector3 result;
 

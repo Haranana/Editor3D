@@ -83,6 +83,15 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
                         3,7,4
     };
 
+    for(size_t face = 0; face < faceVertexIndices.size(); face+=3){
+        Vector3 v0 = vertices[faceVertexIndices[face]];
+        Vector3 v1 = vertices[faceVertexIndices[face+1]];
+        Vector3 v2 = vertices[faceVertexIndices[face+2]];
+
+        normals.push_back(((v1-v0).crossProduct(v2-v0)*(-1.0)).normalize()); //vertices are declare clockwise so we multiply by -1 to make normal positive
+        // normals.push_back(((v1-v0).crossProduct(v2-v0)*(-1.0))); //vertices are declare clockwise so we multiply by -1 to make normal positive
+    }
+
     //normalne i tekstury zostana dodane w przyszlosci
 
     //renderStrategy = std::make_unique<BasicRenderStrategy>();

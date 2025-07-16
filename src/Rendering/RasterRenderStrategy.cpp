@@ -17,12 +17,28 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
     Matrix4 M = obj.transform.getTransMatrix();
     for (auto& v : obj.vertices){
         clip.push_back(renderer.modelToClip(v, M));
-         uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
+        uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
+    }
+
+    std::vector<Vector3> transformedNormals;
+    for(auto& n : obj.normals){
+        transformedNormals.push_back(renderer.faceNormalToWorld(obj.transform, n));
     }
 
     //iterate through every face
     for (size_t face = 0; face < obj.faceVertexIndices.size(); face += 3)
     {
+        //parameters for simple shading
+        Color baseColor = obj.viewportDisplay.color;
+        Vector3 normal = transformedNormals[face/3];
+        Vector3 faceCenterWorldSpace = (renderer.modelToWorld(obj.vertices[obj.faceVertexIndices[face]] , obj.transform.getTransMatrix()) +
+                                        renderer.modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]] , obj.transform.getTransMatrix()) +
+                                        renderer.modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]] , obj.transform.getTransMatrix()))*(1.0/3.0);
+
+        Color shadedColor = renderer.shadingManager.get()->shadeColorFR(renderer.getCamera()->transform.getPosition(),
+                                                                        faceCenterWorldSpace,normal,baseColor);
+
+
         //original vertices in clip-space
         Vector4 cv0 = clip[obj.faceVertexIndices[face    ]];
         Vector4 cv1 = clip[obj.faceVertexIndices[face + 1]];
@@ -68,6 +84,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             screenDepthVertices.push_back({ sv.x, sv.y, normalizedDepth });
         }
 
+
+
         // d) Fill-pass: Twoja oryginalna pętla barycentryczna
         for (size_t k = 1; k + 1 < clippedPoly.size(); ++k)
         {
@@ -92,6 +110,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             double invArea = 1.0 / area;
 
             // raster fill
+
             for (int y = minY; y <= maxY; ++y) {
                 for (int x = minX; x <= maxX; ++x) {
 
@@ -136,7 +155,12 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     */
                     // logic of drawing pixel and z-buffor check is in renderer but
                     // updating id-buffer is here (for whatever reason?)
-                    if (renderer.drawPixel(x, y, depth, /*pix*/ obj.viewportDisplay.color)) {
+                    //Color baseColor = obj.viewportDisplay.color;
+                   // Vector3 normal = transformedNormals[face/3];
+                    //VERIFY IF CAMERA ACTUALLY UPDATES POSITION IN EVERY FRAME
+                   // Color shadedColor = renderer.shadingManager.get()->shadeColorFR(renderer.getCamera()->transform.getPosition(),
+                                                                               //     Vector3(x,y,depth),normal,baseColor);
+                    if (renderer.drawPixel(x, y, depth, /*pix*/ /*obj.viewportDisplay.color*/shadedColor)) {
                         // Tylko fillId (faceId)
                         Renderer::IdBufferElement fillEl;
                         fillEl.objectId     = objId;

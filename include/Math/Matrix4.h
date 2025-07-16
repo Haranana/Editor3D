@@ -31,7 +31,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Matrix4& matrix);
 
-private:
+private: //to chyba jest bledne
     std::array<std::array<double,4>,4> matrix = {{
         {{0, 0, 0}},
         {{0, 0, 0}},

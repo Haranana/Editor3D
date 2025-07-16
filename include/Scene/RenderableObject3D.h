@@ -28,7 +28,7 @@ public:
     //kolejne indeksy wierzcholkow wszystkich scian obiektu, zakladamy, ze kazdy polygon ma dokladnie 3 wierzcholki
     std::vector<int> faceVertexIndices;
 
-    //tablica wektorow normalnych
+    //tablica wektorow normalnych ścian
     std::vector<Vector3> normals;
 
     //wspolrzedne uv tekstur

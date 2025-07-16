@@ -104,5 +104,12 @@ Matrix4 rotationZ(double angle) {
     }});
 }
 
+Matrix3 Matrix4To3(const Matrix4& m){
+    return Matrix3({{
+        {{m.get(0,0), m.get(0,1), m.get(0,2)}},
+        {{m.get(1,0), m.get(1,1), m.get(1,2)}},
+        {{m.get(2,0), m.get(2,1), m.get(2,2)}}
+    }});
+}
 
 }

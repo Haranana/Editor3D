@@ -17,6 +17,7 @@ public:
     void set(std::array<std::array<double ,3>,3> matrix);
 
     Matrix3 getInversion() const;
+    Matrix3 transpose() const;
 
     Vector3 operator*(const Vector3& vector) const;
     Matrix3 operator+(const Matrix3& otherMatrix);

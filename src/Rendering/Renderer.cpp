@@ -238,11 +238,15 @@ void Renderer::drawSquare3D(const Vector3& v,int radius, const Color& color){
     }
 }
 
-Vector3 Renderer::getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool clockwise){
+Vector3 Renderer::getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool inverse){
     double modifier = 0.0;
-    clockwise? modifier=-1.0 : modifier=1.0;
+    inverse? modifier=-1.0 : modifier=1.0;
 
     return Vector3( ((v1-v0).crossProduct(v2-v0))*modifier );
+}
+
+Vector3 Renderer::faceNormalToWorld(Transform3D objTransform, const Vector3& normal){
+    return ((Matrices4::Matrix4To3(objTransform.getTransMatrix()).getInversion().transpose())*normal).normalize();
 }
 
 std::shared_ptr<Camera> Renderer::getCamera(){

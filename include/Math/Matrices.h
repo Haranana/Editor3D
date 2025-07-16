@@ -12,6 +12,7 @@ namespace Matrices3 {
  Matrix3 scaling(double x, double y);
  Matrix3 rotation(double angle);
  Matrix3 shearing(double x, double y);
+
 }
 
 //A collection of functions that return commonly used 4x4 Matrices
@@ -23,6 +24,7 @@ namespace Matrices4 {
  Matrix4 rotationX(double angle);
  Matrix4 rotationY(double angle);
  Matrix4 rotationZ(double angle);
+ Matrix3 Matrix4To3(const Matrix4& m);
 }
 
 #endif // MATRICES_H

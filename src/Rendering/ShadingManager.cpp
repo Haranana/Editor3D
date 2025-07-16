@@ -20,5 +20,5 @@ double ShadingManager::getFacingRatio(const Vector3& cameraPosition,
 
 Vector3 ShadingManager::getCameraPointVector(const Vector3& cameraPosition,
                              const Vector3& point) const{
-    return (cameraPosition-point).normalize();
+    return (point - cameraPosition).normalize();
 }
