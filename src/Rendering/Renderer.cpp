@@ -271,7 +271,8 @@ void Renderer::renderSceneObjects(){
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->renderStrategy){
 
-                curObject->renderStrategy->render(*curObject , *this, objIt);
+                //curObject->renderStrategy->render(*curObject , *this, objIt);
+                renderObject(*curObject , objIt);
             }
         }
     }
@@ -433,131 +434,134 @@ void Renderer::highlightObjectsSelectedElements(){
 
 void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
-    /*
+
     //object is hidden => return
     if(obj.displaySettings.get()->renderMode == DisplaySettings::RenderMode::NONE){
         return;
     }
 
-    //function range parameters
+    // preprocess
     const int width  = getRenderingSurface()->getImg()->width();
     const int height = getRenderingSurface()->getImg()->height();
     const Matrix4 M = obj.transform.getTransMatrix();
-    Color finalColor;
+    const Vector3 camPos = getCamera()->transform.getPosition();
+    const Color baseColor = obj.viewportDisplay.color;
+    Color finalColor = baseColor;
 
     //calculating object uv
+    /*
     std::vector<Vector2> uv;
     for (auto& v : obj.vertices){
         uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
-    }
+    }*/
 
     //building clip-space for all vertices
-    std::vector<Vector4> clip;
-    for (auto& v : obj.vertices){
-        clip.push_back(modelToClip(v, M));
-    }
+    std::vector<ClippingManager::ClippedVertex> clipVertices;
+    std::vector<Vector2> uv;
+    for(size_t i = 0; i < obj.vertices.size(); i++){
 
-    //transforming normals to world space
-    std::vector<Vector3> transformedNormals;
-    if(obj.displaySettings->shadingMode != DisplaySettings::ShadingMode::NONE){
-        for(auto& n : obj.normals){
-            transformedNormals.push_back(faceNormalToWorld(obj.transform, n));
+        const Vector3& localSpaceVertex = obj.vertices[i];
+
+        Vector4 clipSpaceVertex = modelToClip(localSpaceVertex , M);
+        double invertedW = 1.0/clipSpaceVertex.w;
+        Vector3 worldSpaceVertex = modelToWorld(localSpaceVertex, M);
+        Vector3 worldSpaceNormal = faceNormalToWorld(obj.transform , obj.vertexNormals[i]);
+
+        //calculate light at vertices, used in Gourand shading
+        Color vertColor;
+        switch(obj.displaySettings->lightingMode){
+            case DisplaySettings::LightingModel::FACE_RATIO:
+                vertColor = shadingManager->shadeColorFR(
+                    camPos,
+                    worldSpaceVertex,
+                    worldSpaceNormal,
+                    baseColor
+                    );
+                break;
+            case DisplaySettings::LightingModel::LAMBERT:
+                break;
+            case DisplaySettings::LightingModel::NONE:
+                break;
         }
+
+        clipVertices.push_back({
+            clipSpaceVertex,
+            invertedW,
+            worldSpaceVertex * invertedW,
+            worldSpaceNormal * invertedW,
+            vertColor * invertedW
+        });
     }
 
     //iterate through every face
     for (size_t face = 0; face < obj.faceVertexIndices.size(); face += 3)
     {
-        //parameters for simple shading
-        if(obj.displaySettings->shadingMode != DisplaySettings::ShadingMode::NONE){
-            Color baseColor = obj.viewportDisplay.color;
-            Vector3 normal = transformedNormals[face/3];
-            Vector3 faceCenterWorldSpace = (modelToWorld(obj.vertices[obj.faceVertexIndices[face]] , obj.transform.getTransMatrix()) +
-                                            modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]] , obj.transform.getTransMatrix()) +
-                                            modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]] , obj.transform.getTransMatrix()))*(1.0/3.0);
-
-            Color shadedColor = shadingManager.get()->shadeColorFR(getCamera()->transform.getPosition(),
-                                                                    faceCenterWorldSpace,normal,baseColor);
-            Color finalColor = shadedColor;
-        }
 
         //original vertices in clip-space
-        Vector4 cv0 = clip[obj.faceVertexIndices[face    ]];
-        Vector4 cv1 = clip[obj.faceVertexIndices[face + 1]];
-        Vector4 cv2 = clip[obj.faceVertexIndices[face + 2]];
+        ClippingManager::ClippedVertex cv0 = clipVertices[obj.faceVertexIndices[face    ]];
+        ClippingManager::ClippedVertex cv1 = clipVertices[obj.faceVertexIndices[face + 1]];
+        ClippingManager::ClippedVertex cv2 = clipVertices[obj.faceVertexIndices[face + 2]];
 
         //clipping triangle
-        auto clippedPoly =
-            clippingManager->clipTriangle({cv0, cv1, cv2});
+        std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
         if (clippedPoly.size() < 3) continue;
 
-        // clip -> ndc
-        std::vector<Vector3> normalizedVertices;
-        normalizedVertices.reserve(clippedPoly.size());
-        for (auto& cv : clippedPoly)
-            normalizedVertices.push_back(clipToNdc(cv));
-
-
-        // ndc -> screen
-        std::vector<Vector2> screenVertices;
-        screenVertices.reserve(normalizedVertices.size());
-        for (auto& nv : normalizedVertices)
-            screenVertices.push_back(ndcToScreen(nv));
-
-
-        // preparing data
-        // screenDepthVertices = {screen.x , screen.y, normalized.z}; normalization in range [0,1]
-        std::vector<Vector3> screenDepthVertices;
-        std::vector<double> clipZ;
-        std::vector<double> invW;
-        std::vector<double> u_over_w, v_over_w;
-        screenDepthVertices.reserve(clippedPoly.size());
-
-        for (size_t i = 0; i < clippedPoly.size(); ++i) {
-            auto& sv = screenVertices[i];
-            auto& cv = clippedPoly[i];
-
-            clipZ.push_back(cv.z);
-            invW.push_back(1.0 / cv.w);
-
-            if(obj.displaySettings->rasterMode == DisplaySettings::RasterMode::RASTER_TEXTURE){
-                u_over_w.push_back( obj.textureCoords[obj.faceVertexIndices[face + i]].x * invW.back() );
-                v_over_w.push_back( obj.textureCoords[obj.faceVertexIndices[face + i]].y * invW.back() );
-            }
-
-            double normalizedDepth = ((cv.z/cv.w)+1.0)*0.5;
-            screenDepthVertices.push_back({ sv.x, sv.y, normalizedDepth });
+        // clip -> ndc -> screen - > screen with normalized depth
+        std::vector<Vector3> screenVerticesWithDepth;
+        screenVerticesWithDepth.reserve(clippedPoly.size());
+        for (ClippingManager::ClippedVertex& cv : clippedPoly){
+            Vector3 normalizedClipVertex = clipToNdc(cv.clip);
+            Vector2 screenSpaceVertex = ndcToScreen(normalizedClipVertex);
+            screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.clip.z/cv.clip.w)+1.0)*0.5));
         }
 
+        //Fill-pass
+        for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
+        {
+            // Fan-triangulation
+            Vector3& A = screenVerticesWithDepth[0];
+            Vector3& B = screenVerticesWithDepth[k];
+            Vector3& C = screenVerticesWithDepth[k+1];
 
-        if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
-        // d) Fill-pass: Twoja oryginalna pętla barycentryczna
-            for (size_t k = 1; k + 1 < clippedPoly.size(); ++k)
-            {
-                // Fan-triangulation
-                auto& A = screenVertices[0];
-                auto& B = screenVertices[k];
-                auto& C = screenVertices[k+1];
+            ClippingManager::ClippedVertex v0 = clippedPoly[0];
+            ClippingManager::ClippedVertex v1 = clippedPoly[k];
+            ClippingManager::ClippedVertex v2 = clippedPoly[k+1];
 
-                // bounding box for rasterization
-                // beyond this rectangle there's no need to make further checks
-                int minX = std::max(0, int(std::floor(std::min({A.x,B.x,C.x}))));
-                int maxX = std::min(width-1, int(std::ceil(std::max({A.x,B.x,C.x}))));
-                int minY = std::max(0, int(std::floor(std::min({A.y,B.y,C.y}))));
-                int maxY = std::min(height-1, int(std::ceil(std::max({A.y,B.y,C.y}))));
+            // bounding box for rasterization
+            // beyond this rectangle there's no need to make further checks
+            int minX = std::max(0, int(std::floor(std::min({A.x,B.x,C.x}))));
+            int maxX = std::min(width-1, int(std::ceil(std::max({A.x,B.x,C.x}))));
+            int minY = std::max(0, int(std::floor(std::min({A.y,B.y,C.y}))));
+            int maxY = std::min(height-1, int(std::ceil(std::max({A.y,B.y,C.y}))));
 
-                //calculating area of triangle
-                //if triangle's area = 0, nothing to raster
-                //inv area will be used in further calculations
-                double area = (B.x - A.x)*(C.y - A.y)
-                              - (B.y - A.y)*(C.x - A.x);
-                if (area == 0.0) continue;
-                double invArea = 1.0 / area;
+            //calculating area of triangle
+            //if triangle's area = 0, nothing to raster
+            //inv area will be used in further calculations
+            double area = (B.x - A.x)*(C.y - A.y)
+                          - (B.y - A.y)*(C.x - A.x);
+            if (area == 0.0) continue;
+            double invArea = 1.0 / area;
 
-                // raster fill
+            //if flat shading is used we calculateColor once using normal at middle of triangle
+            if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
+                obj.displaySettings->shadingMode == DisplaySettings::Shading::FLAT){
+                int middleX = minX + (maxX - minX)/2;
+                int middleY = minY + (maxY - minY)/2;
+                double w0 = ((B.x-middleX)*(C.y-middleY) - (B.y-middleY)*(C.x-middleX)) * invArea;
+                double w1 = ((C.x-middleX)*(A.y-middleY) - (C.y-middleY)*(A.x-middleX)) * invArea;
+                double w2 = 1.0 - w0 - w1;
+                double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+                Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
+                Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
+                finalColor = shadingManager.get()->shadeColorFR(
+                    getCamera()->transform.getPosition(),
+                    interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
+            }
 
-                for (int y = minY; y <= maxY; ++y) {
-                    for (int x = minX; x <= maxX; ++x) {
+            // raster fill
+            if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
+                for (int y = minY; y <= maxY; y++) {
+                    for (int x = minX; x <= maxX; x++) {
 
                         double px = x + 0.5, py = y + 0.5; //middle of current pixel
 
@@ -567,46 +571,29 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         double w2 = 1.0 - w0 - w1;
                         if (w0<0 || w1<0 || w2<0) continue;
 
-                        //depth interpolation / perspective-correct interpolation
-                        double num   = w0 * clipZ[0] * invW[0]
-                                     + w1 * clipZ[k] * invW[k]
-                                     + w2 * clipZ[k+1] * invW[k+1];
 
-                        double denom = w0 * invW[0]
-                                       + w1 * invW[k]
-                                       + w2 * invW[k+1];
-                        double depth = num/denom;
+                        double depth = (w0*v0.clip.z/v0.clip.w + w1*v1.clip.z/v1.clip.w + w2*v2.clip.z/v2.clip.w) / (w0/v0.clip.w + w1/v1.clip.w + w2/v2.clip.w);
 
-                        if(obj.displaySettings->rasterMode == DisplaySettings::RasterMode::RASTER_TEXTURE){
+                        if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
+                            obj.displaySettings->shadingMode == DisplaySettings::Shading::PHONG){
 
-                            double u_num = w0*u_over_w[0] + w1*u_over_w[k] + w2*u_over_w[k+1];
-                            double v_num = w0*v_over_w[0] + w1*v_over_w[k] + w2*v_over_w[k+1];
-                            double invDen = denom;
-                            double texU = u_num / invDen;
-                            double texV = v_num / invDen;
+                            double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
 
-                            QRgb sample;
-                            if (obj.texture && !obj.texture->image.isNull()){
-                                //qDebug("texture loaded");
-                                int iu = std::clamp(int(texU * obj.texture->image.width ()),0,obj.texture->image.width ()-1);
-                                int iv = std::clamp(int((1-texV) * obj.texture->image.height()),0,obj.texture->image.height()-1);
-                                sample = obj.texture->image.pixel(iu,iv);
-                            }else{
-                                sample = qRgba(obj.viewportDisplay.color.R,
-                                               obj.viewportDisplay.color.G,
-                                               obj.viewportDisplay.color.B,
-                                               255);
-                            }
-                            Color pix( qBlue(sample), qGreen(sample), qRed(sample), qAlpha(sample) );
-                            finalColor = pix;
+                            Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
+                            Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
+                            finalColor = shadingManager.get()->shadeColorFR(
+                                getCamera()->transform.getPosition(),
+                                interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
+
+                        }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
+                                   obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
+
+                            double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+                            Color interpolatedColor = (v0.colorOverW*w0 + v1.colorOverW*w1 + v2.colorOverW*w2)/invDenom;
+                            finalColor = interpolatedColor;
                         }
 
-                        // logic of drawing pixel and z-buffor check is in renderer but
-                        // updating id-buffer is here (for whatever reason?)
-                        //VERIFY IF CAMERA ACTUALLY UPDATES POSITION IN EVERY FRAME
-
                         if (drawPixel(x, y, depth, finalColor)) {
-                            // Tylko fillId (faceId)
                             Renderer::IdBufferElement fillEl;
                             fillEl.objectId     = objId;
                             fillEl.faceId       = int(face/3);
@@ -616,16 +603,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 }
             }
         }
-
-        //pass wireframe - drawing edges of rasterizatied triangle
-        if(obj.displaySettings->colorWireframes){
+        if(obj.displaySettings->colorWireframes || obj.displaySettings->renderMode == DisplaySettings::RenderMode::WIREFRAME){
+            //pass wireframe - drawing edges of rasterizatied triangle
             Renderer::IdBufferElement edgeEl;
             edgeEl.objectId = objId;
             edgeEl.faceId   = int(face/3);
-            size_t N = screenDepthVertices.size();
-            for (size_t i = 0; i < N; ++i) {
-                Vector3 A = screenDepthVertices[i];
-                Vector3 B = screenDepthVertices[(i+1)%N];
+            size_t N = screenVerticesWithDepth.size();
+            for (size_t i = 0; i < N; i++) {
+                Vector3 A = screenVerticesWithDepth[i];
+                Vector3 B = screenVerticesWithDepth[(i+1)%N];
 
                 A.z = std::max(0.0, A.z - 1e-4);
                 B.z = std::max(0.0, B.z - 1e-4);
@@ -635,9 +621,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 if (i == 2) idxB = obj.faceVertexIndices[face];
 
                 edgeEl.edgeVertices = { idxA, idxB };
-                drawLine3D(A, B, edgeEl, obj.viewportDisplay.wireframeColor);
+                drawLine3D(A,
+                           B,
+                           edgeEl,
+                           obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color);
             }
         }
     }
-    */
+
 }

@@ -438,12 +438,14 @@ void MainWindow::setupScene()
     defaultCamera->visibleInScene = false;
     scene->specialSceneObjects.defaultCamera = defaultCamera;
 
-
+    //add Vertical grid
+    /*
     std::shared_ptr<Grid> verticalGrid = std::make_shared<Grid>(Grid::Orientation::VERTICAL);
     //scene->specialSceneObjects.VerticalGrid =
     scene->addObject(verticalGrid);
     QListWidgetItem* vGridItem = new QListWidgetItem("Vertical Grid");
     objectsList->addItem(vGridItem);
+    */
 
     /*
     std::shared_ptr<Grid> horizontalGrid = std::make_shared<Grid>(Grid::Orientation::HORIZONTAL);

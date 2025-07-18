@@ -12,22 +12,29 @@ public:
 
     enum class RasterMode{
         NONE,
-        RASTER_COLOR,
-        RASTER_TEXTURE,
+        COLOR,
+        TEXTURE,
     };
 
-    enum class ShadingMode{
+    enum class Shading{
         NONE,
-        FLAT_SHADING,
-        GOURAUD_SHADING,
-        PHONG_SHADIN
+        FLAT,
+        GOURAUD,
+        PHONG
+    };
+
+    enum class LightingModel{
+        NONE,
+        FACE_RATIO,
+        LAMBERT,
     };
 
     bool hideUnseenWireframes = false; //not implemented!
     bool colorWireframes = true;
     RenderMode renderMode = RenderMode::WIREFRAME;
     RasterMode rasterMode = RasterMode::NONE ;
-    ShadingMode shadingMode = ShadingMode::FLAT_SHADING;
+    Shading shadingMode = Shading::FLAT;
+    LightingModel lightingMode = LightingModel::FACE_RATIO;
 };
 
 #endif // DISPLAYSETTINGS_H

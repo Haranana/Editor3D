@@ -12,7 +12,6 @@ public:
                         const Vector3& normal,
                         const Color& color) const;
 
-
 private:
     //returns vector beetwen camera and specified point, used in calculating facing ratio
     double getFacingRatio(const Vector3& cameraPosition,

@@ -33,7 +33,8 @@ ClippingManager::ClippedVertex ClippingManager::interpolateClippedVertices(const
         v1.clip      + (v2.clip      - v1.clip)      * t,
         v1.invW      + (v2.invW      - v1.invW)      * t,
         v1.worldSpaceVertexOverW  + (v2.worldSpaceVertexOverW  - v1.worldSpaceVertexOverW)  * t,
-        v1.worldSpaceNormalOverW   + (v2.worldSpaceNormalOverW   - v1.worldSpaceNormalOverW)   * t
+        v1.worldSpaceNormalOverW   + (v2.worldSpaceNormalOverW   - v1.worldSpaceNormalOverW)   * t,
+        v1.colorOverW + (v2.colorOverW   - v1.colorOverW)   * t
     };
 }
 
