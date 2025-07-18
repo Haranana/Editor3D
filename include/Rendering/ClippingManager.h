@@ -32,7 +32,7 @@ public:
         double  invW;         // 1/w        // used in various interpolations
         Vector3 worldSpaceVertexOverW;     // world-space position/w used in Phong shading
         Vector3 worldSpaceNormalOverW;      // world-space normal/w used in Phong shading
-        Color colorOverW; //used in Gauround shading
+        Vector3 colorOverW; //used in Gauround shading
     };
 
     std::vector<ClippedVertex> clipTriangle(const std::vector<ClippedVertex>& triangle);

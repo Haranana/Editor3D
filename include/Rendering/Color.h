@@ -12,6 +12,8 @@
  * colors support basic operators for sake of simplifing color interpolation
  * arithmetic operations on colors do not change alpha, and results are usually:
  *  max(0,result) and min(255, result) so they are safe to use
+ *
+ *  Operator overload is as of 18/07 obsolete, Gr. Shading don't use it anymore in color interpolation
 */
 class Color{
 public:

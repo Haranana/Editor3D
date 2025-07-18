@@ -1,4 +1,5 @@
 #include "Math/Vectors.h"
+#include "algorithm"
 
 namespace Vectors{
 
@@ -24,6 +25,18 @@ Vector3 vector2to3(const Vector2& vector){
 
 Vector4 vector2to4(const Vector2& vector){
     return Vector4(vector.x , vector.y , 1.0, 1.0);
+}
+
+Vector3 colorToVector3(const Color& color){
+    double normB = std::clamp((color.B - 0.0) / (255.0 - 0.0), 0.0, 1.0);
+    double normG = std::clamp((color.G - 0.0) / (255.0 - 0.0), 0.0, 1.0);
+    double normR = std::clamp((color.R - 0.0) / (255.0 - 0.0), 0.0, 1.0);
+
+    return Vector3(normB , normG, normR);
+}
+
+Color vector3ToColor(const Vector3& vector){
+    return Color(vector.x*255, vector.y*255, vector.z*255);
 }
 
 }

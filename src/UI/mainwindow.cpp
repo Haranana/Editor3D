@@ -391,9 +391,9 @@ void MainWindow::setupUIPropertyTreeViewportDisplay(){
     displayModeItem->setText(0 , "display as");
     objectDisplayModeComboBox = new QComboBox(this);
     QVBoxLayout* displayModeComboBoxLayput = new QVBoxLayout(objectDisplayModeComboBox);
-    objectDisplayModeComboBox->insertItem(0 , "wireframe" , QVariant(ViewportDisplay::DisplayMode::WIREFRAME));
-    objectDisplayModeComboBox->insertItem(1 , "solid" , QVariant(ViewportDisplay::DisplayMode::SOLID));
-    objectDisplayModeComboBox->insertItem(2 , "textured" , QVariant(ViewportDisplay::DisplayMode::TEXTURED));
+    objectDisplayModeComboBox->insertItem(0 , "wireframe" , QVariant(static_cast<int>(DisplaySettings::RenderMode::WIREFRAME)));
+    objectDisplayModeComboBox->insertItem(1 , "solid" , QVariant(static_cast<int>(DisplaySettings::RenderMode::RASTER)));
+    //objectDisplayModeComboBox->insertItem(2 , "textured" , QVariant(ViewportDisplay::DisplayMode::TEXTURED));
     objectDisplayModeComboBox->setLayout(displayModeComboBoxLayput); //Jaki jest sens dodawania widget w konstruktorze layouta jesli tutaj go znowu przydzielam?
     objectParametersPropertyTree->setItemWidget(displayModeItem, 1, objectDisplayModeComboBox);
 
@@ -745,6 +745,7 @@ void MainWindow::onSCeneObjectRotChangedSlider()
 }
 
 void MainWindow::onDisplayModeCurIndexChanged(){
+    /*
     if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
     currentObject->viewportDisplay.displayMode = objectDisplayModeComboBox->itemData(objectDisplayModeComboBox->currentIndex()).value<ViewportDisplay::DisplayMode>();
         switch(currentObject->viewportDisplay.displayMode){
@@ -758,7 +759,24 @@ void MainWindow::onDisplayModeCurIndexChanged(){
             currentRenderableObject->setRenderStrategy(std::make_unique<FrontOnlyRenderStrategy>()); //TODO change to an actuall textured render
             break;
         }
+    }*/
+
+    if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
+        currentRenderableObject->displaySettings->renderMode =
+            static_cast<DisplaySettings::RenderMode>
+            (objectDisplayModeComboBox->itemData(objectDisplayModeComboBox->currentIndex()).toInt());
+        /*
+        switch(currentObject->viewportDisplay.displayMode){
+        case ViewportDisplay::WIREFRAME:
+            currentRenderableObject->setRenderStrategy(std::make_unique<BasicRenderStrategy>());
+            break;
+        case ViewportDisplay::SOLID:
+            currentRenderableObject->setRenderStrategy(std::make_unique<RasterRenderStrategy>());
+            break;
+        }
+    */
     }
+
 }
 
 void MainWindow::onDisplayColorPickerValueChanged(const Color& color){

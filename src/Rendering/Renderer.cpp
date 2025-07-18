@@ -1,5 +1,5 @@
 #include "Rendering/Renderer.h"
-
+#include "Math/Vectors.h"
 
 
 Renderer::Renderer(
@@ -468,15 +468,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
         Vector3 worldSpaceNormal = faceNormalToWorld(obj.transform , obj.vertexNormals[i]);
 
         //calculate light at vertices, used in Gourand shading
-        Color vertColor;
+        Vector3 vertColor;
         switch(obj.displaySettings->lightingMode){
             case DisplaySettings::LightingModel::FACE_RATIO:
-                vertColor = shadingManager->shadeColorFR(
+                vertColor = Vectors::colorToVector3(shadingManager->shadeColorFR(
                     camPos,
                     worldSpaceVertex,
                     worldSpaceNormal,
                     baseColor
-                    );
+                    ));
                 break;
             case DisplaySettings::LightingModel::LAMBERT:
                 break;
@@ -589,8 +589,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                    obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
 
                             double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
-                            Color interpolatedColor = (v0.colorOverW*w0 + v1.colorOverW*w1 + v2.colorOverW*w2)/invDenom;
-                            finalColor = interpolatedColor;
+                            Vector3 interpolatedColor = (v0.colorOverW*w0 + v1.colorOverW*w1 + v2.colorOverW*w2)/invDenom;
+                            finalColor = Vectors::vector3ToColor(interpolatedColor);
                         }
 
                         if (drawPixel(x, y, depth, finalColor)) {

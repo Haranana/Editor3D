@@ -7,7 +7,6 @@ public:
         NONE,
         WIREFRAME,
         RASTER,
-
     };
 
     enum class RasterMode{
@@ -31,9 +30,9 @@ public:
 
     bool hideUnseenWireframes = false; //not implemented!
     bool colorWireframes = true;
-    RenderMode renderMode = RenderMode::WIREFRAME;
-    RasterMode rasterMode = RasterMode::NONE ;
-    Shading shadingMode = Shading::FLAT;
+    RenderMode renderMode = RenderMode::RASTER;
+    RasterMode rasterMode = RasterMode::COLOR ;
+    Shading shadingMode = Shading::GOURAUD;
     LightingModel lightingMode = LightingModel::FACE_RATIO;
 };
 
