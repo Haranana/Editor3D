@@ -11,6 +11,7 @@
 
 void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, int objId)
 {
+    /*
     std::vector<Vector4> clipSpaceVertices;
     clipSpaceVertices.reserve(object.vertices.size());
     std::vector<Vector3> cameraSpaceVertices;
@@ -69,6 +70,7 @@ void FrontOnlyRenderStrategy::render(RenderableObject3D& object, Renderer& rende
             renderer.drawLine3D(screenDepthVertices[vertexIt], screenDepthVertices[ (vertexIt+1) % screenDepthVertices.size() ],el, object.viewportDisplay.color);
         }
     }
+*/
 }
 
 double FrontOnlyRenderStrategy::cosBeetwenVectors( Vector3& normalVector ,  Vector3& cameraVector){

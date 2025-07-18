@@ -53,6 +53,7 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer,
             renderer.drawLine3D(screenDepthVertices[vertexIt], screenDepthVertices[ (vertexIt+1) % screenDepthVertices.size() ],el, object.viewportDisplay.color);
         }
     }
+
 }
 
 

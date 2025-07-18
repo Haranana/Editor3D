@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <map>
-#include "Math/Vector4.h"
+#include "Math/Vectors.h"
 
 /*
  * should simplify clipTriangle to use isVector... and clipLine
@@ -20,8 +20,17 @@ private:
     };
 
 public:
-    std::vector<Vector4> clipTriangle(const std::vector<Vector4>& triangle);
+    //little helper class for speeding up shading
+    struct ClippedVertex {
+        Vector4 clip;         // clip-space (x,y,z,w)
+        double  invW;         // 1/w
+        Vector3 worldSpaceVertexOverW;     // world-space position/w
+        Vector3 worldSpaceNormalOverW;      // world-space normal/w
+    };
 
+    std::vector<ClippedVertex> clipTriangle(const std::vector<ClippedVertex>& triangle);
+    std::vector<Vector4> clipTriangle(const std::vector<Vector4>& triangle);
+    ClippedVertex interpolateClippedVertices(const ClippedVertex& a, const ClippedVertex& b, PlaneType curPlane);
     //currently returns ((-1,-1,-1,-1),(-1,-1,-1,-1)) when nothing is inside screen, probably should be replaced
     //with something more readable
     std::pair<Vector4, Vector4> clipLine(const std::pair<Vector4, Vector4>& e);

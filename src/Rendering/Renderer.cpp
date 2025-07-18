@@ -278,6 +278,7 @@ void Renderer::renderSceneObjects(){
 }
 
 void Renderer::highlightObjectsSelectedElements(){
+    /*
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
 
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
@@ -298,16 +299,16 @@ void Renderer::highlightObjectsSelectedElements(){
                 //IdBufferElement element;
                 //element.objectId = objIt;
                 //element.vertexId = curObject->viewportDisplay.selectedVertex;
-                drawSquare3D(screenDepthV , /*element*/ 5, curObject->viewportDisplay.selectColor);
+                drawSquare3D(screenDepthV , 5, curObject->viewportDisplay.selectColor);
 
-                /*
-                Vector3 renderedV = Vector3(
-                ndcToScreen(clipToNdc(modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()))).x,
-                ndcToScreen(clipToNdc(modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()))).y,
-                ((modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()).z /
-                      modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()).w)+1.0)*0.5
-                    );
-                */
+
+               // Vector3 renderedV = Vector3(
+               // ndcToScreen(clipToNdc(modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()))).x,
+               // ndcToScreen(clipToNdc(modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()))).y,
+               // ((modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()).z /
+               //       modelToClip(curObject->vertices[curObject->viewportDisplay.selectedVertex] , curObject->transform.getTransMatrix()).w)+1.0)*0.5
+               //     );
+
 
             }else if(selectedElement == ViewportDisplay::EDGES){
                 if(curObject->viewportDisplay.selectedEdge == std::pair<int,int>(-1,-1)) continue;
@@ -426,11 +427,13 @@ void Renderer::highlightObjectsSelectedElements(){
             }
         }
     }
+    */
 
 }
 
 void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
+    /*
     //object is hidden => return
     if(obj.displaySettings.get()->renderMode == DisplaySettings::RenderMode::NONE){
         return;
@@ -602,7 +605,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         // updating id-buffer is here (for whatever reason?)
                         //VERIFY IF CAMERA ACTUALLY UPDATES POSITION IN EVERY FRAME
 
-                        if (drawPixel(x, y, depth, /*pix*/ /*obj.viewportDisplay.color*/finalColor)) {
+                        if (drawPixel(x, y, depth, finalColor)) {
                             // Tylko fillId (faceId)
                             Renderer::IdBufferElement fillEl;
                             fillEl.objectId     = objId;
@@ -636,4 +639,5 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             }
         }
     }
+    */
 }

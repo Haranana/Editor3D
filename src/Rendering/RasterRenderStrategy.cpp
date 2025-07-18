@@ -3,23 +3,43 @@
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
 
+/* --+-- Lasciate ogni speranza, voi ch'entrate --+-- */
 void RasterRenderStrategy::render(RenderableObject3D& obj,
                                   Renderer& renderer,
                                   int objId)
 {
-    //preparation
+    //preparation / preprocess
     const int width  = renderer.getRenderingSurface()->getImg()->width();
     const int height = renderer.getRenderingSurface()->getImg()->height();
+    const Matrix4 M = obj.transform.getTransMatrix();
     Color baseColor = obj.viewportDisplay.color;
 
     //building clip-space for all vertices
-    std::vector<Vector4> clip;
+    std::vector<ClippingManager::ClippedVertex> clipVertices;
     std::vector<Vector2> uv;
-    Matrix4 M = obj.transform.getTransMatrix();
+    for(size_t i = 0; i < obj.vertices.size(); i++){
+
+        const Vector3& localSpaceVertex = obj.vertices[i];
+
+        Vector4 clipSpaceVertex = renderer.modelToClip(localSpaceVertex , M);
+        double invertedW = 1.0/clipSpaceVertex.w;
+        Vector3 worldSpaceVertex = renderer.modelToWorld(localSpaceVertex, M);
+        Vector3 worldSpaceFaceNormal = renderer.faceNormalToWorld(obj.transform , obj.vertexNormals[i]);
+
+        clipVertices.push_back({
+            clipSpaceVertex,
+            invertedW,
+            worldSpaceVertex * invertedW,
+            worldSpaceFaceNormal * invertedW
+        });
+    }
+
+    /*
     for (auto& v : obj.vertices){
         clip.push_back(renderer.modelToClip(v, M));
         uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
     }
+
 
     //world space vertices are used in smooth shading
     std::vector<Vector3>worldSpaceVertices(obj.vertices.size());
@@ -37,7 +57,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
     for(auto&n : obj.vertexNormals){
         transformedVertexNormals.push_back(renderer.faceNormalToWorld(obj.transform, n));
     }
-
+    */
     //iterate through every face
     for (size_t face = 0; face < obj.faceVertexIndices.size(); face += 3)
     {
@@ -52,34 +72,35 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                                                                         faceCenterWorldSpace,normal,baseColor);
         */
 
-
-
         //original vertices in clip-space
-        Vector4 cv0 = clip[obj.faceVertexIndices[face    ]];
-        Vector4 cv1 = clip[obj.faceVertexIndices[face + 1]];
-        Vector4 cv2 = clip[obj.faceVertexIndices[face + 2]];
+        ClippingManager::ClippedVertex cv0 = clipVertices[obj.faceVertexIndices[face    ]];
+        ClippingManager::ClippedVertex cv1 = clipVertices[obj.faceVertexIndices[face + 1]];
+        ClippingManager::ClippedVertex cv2 = clipVertices[obj.faceVertexIndices[face + 2]];
 
         //clipping triangle
-        auto clippedPoly =
-            renderer.clippingManager->clipTriangle({cv0, cv1, cv2});
+        std::vector<ClippingManager::ClippedVertex> clippedPoly = renderer.clippingManager->clipTriangle({cv0, cv1, cv2});
         if (clippedPoly.size() < 3) continue;
 
-        // clip -> ndc
-        std::vector<Vector3> normalizedVertices;
-        normalizedVertices.reserve(clippedPoly.size());
-        for (auto& cv : clippedPoly)
-            normalizedVertices.push_back(renderer.clipToNdc(cv));
 
+        // clip -> ndc -> screen - > screen with normalized depth
+        std::vector<Vector3> screenVerticesWithDepth;
+        screenVerticesWithDepth.reserve(clippedPoly.size());
+        for (ClippingManager::ClippedVertex& cv : clippedPoly){
+            Vector3 normalizedClipVertex = renderer.clipToNdc(cv.clip);
+            Vector2 screenSpaceVertex = renderer.ndcToScreen(normalizedClipVertex);
+            screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.clip.z/cv.clip.w)+1.0)*0.5));
+        }
 
         // ndc -> screen
-        std::vector<Vector2> screenVertices;
+        /*
         screenVertices.reserve(normalizedVertices.size());
         for (auto& nv : normalizedVertices)
             screenVertices.push_back(renderer.ndcToScreen(nv));
-
+        */
 
         // preparing data
         // screenDepthVertices = {screen.x , screen.y, normalized.z}; normalization in range [0,1]
+        /*
         std::vector<Vector3> screenDepthVertices;
         std::vector<double> clipZ;
         std::vector<double> invW;
@@ -98,16 +119,20 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             double normalizedDepth = ((cv.z/cv.w)+1.0)*0.5;
             screenDepthVertices.push_back({ sv.x, sv.y, normalizedDepth });
         }
+        */
 
 
-
-        // d) Fill-pass: Twoja oryginalna pętla barycentryczna
-        for (size_t k = 1; k + 1 < clippedPoly.size(); ++k)
+        //Fill-pass
+        for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
         {
             // Fan-triangulation
-            auto& A = screenVertices[0];
-            auto& B = screenVertices[k];
-            auto& C = screenVertices[k+1];
+            Vector3& A = screenVerticesWithDepth[0];
+            Vector3& B = screenVerticesWithDepth[k];
+            Vector3& C = screenVerticesWithDepth[k+1];
+
+            ClippingManager::ClippedVertex v0 = clippedPoly[0];
+            ClippingManager::ClippedVertex v1 = clippedPoly[k];
+            ClippingManager::ClippedVertex v2 = clippedPoly[k+1];
 
             // bounding box for rasterization
             // beyond this rectangle there's no need to make further checks
@@ -125,9 +150,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
             double invArea = 1.0 / area;
 
             // raster fill
-
-            for (int y = minY; y <= maxY; ++y) {
-                for (int x = minX; x <= maxX; ++x) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int x = minX; x <= maxX; x++) {
 
                     double px = x + 0.5, py = y + 0.5; //middle of current pixel
 
@@ -137,11 +161,8 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double w2 = 1.0 - w0 - w1;
                     if (w0<0 || w1<0 || w2<0) continue;
 
-
-
-
-
                     //depth interpolation / perspective-correct interpolation
+                    /*
                     double num   = w0 * clipZ[0] * invW[0]
                                  + w1 * clipZ[k] * invW[k]
                                  + w2 * clipZ[k+1] * invW[k+1];
@@ -149,17 +170,28 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double denom = w0 * invW[0]
                                    + w1 * invW[k]
                                    + w2 * invW[k+1];
+                    */
 
+                    double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+
+                    Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
+                    Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
+                    double depth = (w0*v0.clip.z/v0.clip.w + w1*v1.clip.z/v1.clip.w + w2*v2.clip.z/v2.clip.w) / (w0/v0.clip.w + w1/v1.clip.w + w2/v2.clip.w);
+
+                    Color shadedColor = renderer.shadingManager.get()->shadeColorFR(
+                        renderer.getCamera()->transform.getPosition(),
+                        interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
+
+                   /*
                     double u_num = w0*u_over_w[0] + w1*u_over_w[k] + w2*u_over_w[k+1];
                     double v_num = w0*v_over_w[0] + w1*v_over_w[k] + w2*v_over_w[k+1];
                     double invDen = denom;
                     double texU = u_num / invDen;
                     double texV = v_num / invDen;
+                    */
+                //calculating interpolated normals for gouroud shading
+                    /*
 
-                    double depth = num/denom;
-
-
-                    //calculating interpolated normals for gouroud shading
                     Vector3 nv0 = transformedVertexNormals[obj.faceVertexIndices[face]];
                     Vector3 nv1 = transformedVertexNormals[obj.faceVertexIndices[face+1]];
                     Vector3 nv2 = transformedVertexNormals[obj.faceVertexIndices[face+2]];
@@ -167,7 +199,7 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     Vector3 wv0 = worldSpaceVertices[obj.faceVertexIndices[face]];
                     Vector3 wv1 = worldSpaceVertices[obj.faceVertexIndices[face+1]];
                     Vector3 wv2 = worldSpaceVertices[obj.faceVertexIndices[face+2]];
-
+                    */
 
                     /*
                     double interNormalAlpha = ( (nv1.y-nv2.y)*(px-nv2.x) + (nv2.x-nv1.x)*(py-nv2.y))/
@@ -177,10 +209,13 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
                     double interNormalGamma = 1.0 - interNormalAlpha - interNormalBeta;
                     Vector3 interNormal = (nv0 * interNormalAlpha) + (nv1*interNormalBeta) + (nv2 * interNormalGamma);
                     */
+
+                    /*
                     Vector3 interNormal = ((nv0 * w0) + (nv1 * w1) + (nv2 * w2) ).normalize();
                     Vector3 worldVertex = ((wv0 * w0) + (wv1 * w1) + (wv2 * w2));
                     Color shadedColor = renderer.shadingManager.get()->shadeColorFR(renderer.getCamera()->transform.getPosition(),
-                                                                                    worldVertex,interNormal,baseColor);
+                    */
+                     //                                         worldVertex,interNormal,baseColor);
                     /*
                     QRgb sample;
                     if (obj.texture && !obj.texture->image.isNull()){
@@ -219,10 +254,10 @@ void RasterRenderStrategy::render(RenderableObject3D& obj,
         Renderer::IdBufferElement edgeEl;
         edgeEl.objectId = objId;
         edgeEl.faceId   = int(face/3);
-        size_t N = screenDepthVertices.size();
+        size_t N = screenVerticesWithDepth.size();
         for (size_t i = 0; i < N; ++i) {
-            Vector3 A = screenDepthVertices[i];
-            Vector3 B = screenDepthVertices[(i+1)%N];
+            Vector3 A = screenVerticesWithDepth[i];
+            Vector3 B = screenVerticesWithDepth[(i+1)%N];
 
             A.z = std::max(0.0, A.z - 1e-4);
             B.z = std::max(0.0, B.z - 1e-4);
