@@ -78,7 +78,7 @@ public:
     bool drawPixel(int x, int y, double z, const Color& c);
 
     std::shared_ptr<Buffer<IdBufferElement>> idBuffer; //pewnie powinno byc prywatne
-    std::shared_ptr<Buffer<float>>zBuffer; //rowniez pewnie powinno byc prywatne
+    std::shared_ptr<Buffer<double>>zBuffer; //rowniez pewnie powinno byc prywatne
     std::shared_ptr<Camera> getCamera();
 
     std::shared_ptr<Scene> getScene();

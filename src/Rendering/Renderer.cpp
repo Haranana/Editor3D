@@ -11,7 +11,7 @@ Renderer::Renderer(
     scene(scene),
     camera(camera)
 {
-    zBuffer = std::make_shared<Buffer<float>>(img->width(), img->height(), std::numeric_limits<float>::infinity());
+    zBuffer = std::make_shared<Buffer<double>>(img->width(), img->height(), std::numeric_limits<double>::infinity());
     idBuffer = std::make_shared<Buffer<IdBufferElement>>(img->width(), img->height(), IdBufferElement{});
 
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
@@ -592,6 +592,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             Vector3 interpolatedColor = (v0.colorOverW*w0 + v1.colorOverW*w1 + v2.colorOverW*w2)/invDenom;
                             finalColor = Vectors::vector3ToColor(interpolatedColor);
                         }
+
 
                         if (drawPixel(x, y, depth, finalColor)) {
                             Renderer::IdBufferElement fillEl;

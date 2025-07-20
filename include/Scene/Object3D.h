@@ -17,6 +17,7 @@ public:
 
     Transform3D transform;
 
+    //probably should not be in Object3D, realistically should be deleted and every field moved to displaySettings
     ViewportDisplay viewportDisplay;
 
     //determines whether an object should be visible in scene list of object

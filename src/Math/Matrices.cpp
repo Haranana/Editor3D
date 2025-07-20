@@ -112,4 +112,37 @@ Matrix3 Matrix4To3(const Matrix4& m){
     }});
 }
 
+
+}
+
+namespace LightMatrices{
+Matrix4 lightView(const Vector3& eye , const Vector3& target, const Vector3& up){
+    Vector3 f = (target - eye).normalize();
+    Vector3 r = up.crossProduct(f).normalize();
+    Vector3 u = f.crossProduct(r);
+
+    return Matrix4({{
+        { r.x,  u.x, -f.x, 0 },
+        { r.y,  u.y, -f.y, 0 },
+        { r.z,  u.z, -f.z, 0 },
+        { -1.0*r.dotProduct(eye), -1.0*u.dotProduct(eye), f.dotProduct(eye), 1}
+    }});
+}
+Matrix4 orthogonalLightProjection(double left, double right, double bottom, double top, double near, double far){
+    return Matrix4({{
+        { 2/(right-left), 0,        0,          -(right+left)/(right-left) },
+        { 0,       2/(top-bottom),  0,          -(top+bottom)/(top-bottom) },
+        { 0,       0,       -2/(far-near),    -(far+near)/(far-near) },
+        { 0,       0,        0,           1           }
+    }});
+}
+Matrix4 PerspectiveLightProjection(double fovY, double near, double far, double screenAscpect){
+    double s = 1.0 / std::tan(fovY * 0.5);
+    return Matrix4({{
+        { s/screenAscpect, 0,  0,               0 },
+        { 0,        s,  0,               0 },
+        { 0,        0, -(far+near)/(far-near),    -2*far*near/(far-near) },
+        { 0,        0, -1,               0 }
+    }});
+}
 }

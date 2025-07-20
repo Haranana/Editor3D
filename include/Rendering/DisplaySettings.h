@@ -29,10 +29,10 @@ public:
     };
 
     bool hideUnseenWireframes = false; //not implemented!
-    bool colorWireframes = true;
+    bool colorWireframes = false;
     RenderMode renderMode = RenderMode::RASTER;
     RasterMode rasterMode = RasterMode::COLOR ;
-    Shading shadingMode = Shading::GOURAUD;
+    Shading shadingMode = Shading::PHONG;
     LightingModel lightingMode = LightingModel::FACE_RATIO;
 };
 

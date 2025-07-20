@@ -1,11 +1,5 @@
 #include "Math/Vector3.h"
 
-Vector3::Vector3() : x(0), y(0), z(0) {}
-
-Vector3::Vector3(double x, double y, double z) : x(x), y(y), z(z) {}
-
-Vector3::Vector3(const Vector3& otherVector) : x(otherVector.x), y(otherVector.y), z(otherVector.z) {}
-
 Vector3 Vector3::normalize() const{
     return *this/this->length();
 }
@@ -35,6 +29,10 @@ Vector3& Vector3::operator=(const Vector3& otherVector) {
     return *this;
 }
 
+bool Vector3::isParallel(const Vector3& otherVector) const {
+    static constexpr double accuracy = 0.999;
+    return fabs(this->dotProduct(otherVector)) > accuracy;
+}
 bool Vector3::operator==(const Vector3& otherVector) const {
     return this->x == otherVector.x && this->y == otherVector.y && this->z == otherVector.z;
 }

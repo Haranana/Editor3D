@@ -27,4 +27,11 @@ namespace Matrices4 {
  Matrix3 Matrix4To3(const Matrix4& m);
 }
 
+ //A collection of functions that return Matrices commonly used in Lighting and shading
+namespace LightMatrices {
+ Matrix4 lightView(const Vector3& point , const Vector3& light, const Vector3& up);
+ Matrix4 orthogonalLightProjection(double left, double right, double bottom, double top, double near, double far);
+ Matrix4 PerspectiveLightProjection(double fovY, double near, double far, double screenAscpect);
+ }
+
 #endif // MATRICES_H

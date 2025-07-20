@@ -90,12 +90,16 @@ HEADERS += \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
     include/Scene/Cylinder.h \
+    include/Scene/DistantLight.h \
     include/Scene/Grid.h \
+    include/Scene/Light.h \
     include/Scene/Object3D.h \
     include/Scene/ObjectLoader.h \
     include/Scene/ObjectSaver.h \
+    include/Scene/PointLight.h \
     include/Scene/RenderableObject3D.h \
     include/Scene/Scene.h \
+    include/Scene/SpotLight.h \
     include/UI/ColorPicker.h \
     include/UI/ColorPreview.h \
     include/UI/ImageLabel.h \
