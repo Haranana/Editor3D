@@ -10,6 +10,13 @@ double Matrix4::get(int row, int col) const {
     return matrix[row][col];
 }
 
+Vector4 Matrix4::getCol(int col) const{
+    return Vector4(matrix[0][col], matrix[1][col], matrix[2][col], matrix[3][col]);
+}
+Vector4 Matrix4::getRow(int row) const{
+    return Vector4(matrix[row][0], matrix[row][1], matrix[row][2], matrix[row][3]);
+}
+
 void Matrix4::set(int row, int col, double val) {
     matrix[row][col] = val;
 }

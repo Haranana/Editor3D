@@ -13,6 +13,8 @@ public:
     Matrix3(const Matrix3& otherMatrix);
 
     double get(int row, int col) const;
+    Vector3 getRow(int row) const;
+    Vector3 getCol(int col) const;
     void set(int row, int col, double val);
     void set(std::array<std::array<double ,3>,3> matrix);
 

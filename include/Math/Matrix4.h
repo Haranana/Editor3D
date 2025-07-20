@@ -5,6 +5,7 @@
 #include "Vector4.h"
 #include <array>
 #include <stdexcept>
+#include "Math/Vectors.h"
 #include <iostream>
 
 class Matrix4 {
@@ -15,6 +16,8 @@ public:
     Matrix4(const Matrix4& other);
 
     double get(int row, int col) const;
+    Vector4 getCol(int col) const;
+    Vector4 getRow(int row) const;
     void set(int row, int col, double val);
     void set(std::array<std::array<double,4>,4> matrix);
 

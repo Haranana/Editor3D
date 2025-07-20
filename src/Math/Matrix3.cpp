@@ -17,6 +17,13 @@ void Matrix3::set(std::array<std::array<double ,3>,3> matrix){
     this->matrix = matrix;
 }
 
+Vector3 Matrix3::getCol(int col) const{
+    return Vector3(matrix[0][col], matrix[1][col], matrix[2][col]);
+}
+Vector3 Matrix3::getRow(int row) const{
+    return Vector3(matrix[row][0], matrix[row][1], matrix[row][2]);
+}
+
 Matrix3 Matrix3::getInversion() const{
 
     double a = matrix[0][0];

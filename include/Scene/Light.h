@@ -7,10 +7,17 @@
 #include "Math/Matrices.h"
 #include "Rendering/Colors.h"
 class Light : public Object3D{
+public:
+    enum class LightType{
+        DISTANT,
+        SPOT,
+        POINT
+    };
 
     Color color = Colors::White;
     double intensity = 1.0;
     bool castsShadow = true;
+    LightType lightType = LightType::DISTANT;
 
 };
 
