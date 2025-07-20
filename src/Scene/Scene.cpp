@@ -1,7 +1,10 @@
 #include "Scene/Scene.h"
-
+#include <memory>
 void Scene::addObject(std::shared_ptr<Object3D> obj){
     objectsHierarchy.push_back(obj);
+    if (auto light = std::dynamic_pointer_cast<Light>(obj)) {
+        lightSources.push_back(light);
+    }
 }
 
 void Scene::removeObject(int id){

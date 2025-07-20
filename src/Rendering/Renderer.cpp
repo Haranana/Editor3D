@@ -1,5 +1,8 @@
 #include "Rendering/Renderer.h"
 #include "Math/Vectors.h"
+#include "Scene/DistantLight.h"
+#include "Scene/SpotLight.h"
+#include "Scene/PointLight.h"
 
 
 Renderer::Renderer(
@@ -432,6 +435,7 @@ void Renderer::highlightObjectsSelectedElements(){
 
 }
 
+/* --+-- Lasciate ogni speranza, voi ch'entrate --+-- */
 void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
 
@@ -447,6 +451,49 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const Vector3 camPos = getCamera()->transform.getPosition();
     const Color baseColor = obj.viewportDisplay.color;
     Color finalColor = baseColor;
+
+
+    //creating Shadow maps for every light source on the scene
+    std::vector<Vector3> cameraFrustum = camera->getFrustum();
+
+    //frustum to world
+    std::vector<Vector3> worldSpaceCameraFrustum;
+    for(Vector3& v : cameraFrustum){
+       worldSpaceCameraFrustum.push_back(modelToWorld(v , camera->transform.getTransMatrix()));
+    }
+
+    for(std::shared_ptr<Light>lightSource : scene->lightSources){
+        //cast Light to its proper subclass
+        if(lightSource->lightType == Light::LightType::DISTANT){
+            if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+
+                //get lightview Matrix
+                Vector3 bboxCenter = distantLight->getBBoxCenter(worldSpaceCameraFrustum);
+                Matrix4 lightView = distantLight->getViewMatrix(bboxCenter);
+
+                std::vector<Vector3> lightSpaceCameraFrustum;
+                for(Vector3& v : worldSpaceCameraFrustum){
+                    lightSpaceCameraFrustum.push_back(Vectors::vector4to3(lightView * Vectors::vector3to4(v)));
+                }
+
+                //calculating bounding box in light space
+                double minX = lightSpaceCameraFrustum[0].x, maxX = lightSpaceCameraFrustum[0].x,
+                minY = lightSpaceCameraFrustum[0].y, maxY = lightSpaceCameraFrustum[0].y,
+                minZ = lightSpaceCameraFrustum[0].z, maxZ = lightSpaceCameraFrustum[0].z;
+
+                for(Vector3& v : lightSpaceCameraFrustum){
+                    if(v.x > maxX) maxX = v.x;
+                    else if(v.x < minX ) minX = v.x;
+                    if(v.y > maxY) maxY = v.y;
+                    else if(v.y < minY ) minY = v.y;
+                    if(v.z > maxZ) maxZ = v.z;
+                    else if(v.z < minZ ) minZ = v.z;
+                }
+
+                Matrix4 lightProjection = distantLight->getProjectionMatrix(minX , maxX, maxY, minY ,  minZ, maxZ);
+
+            }
+    }
 
     //calculating object uv
     /*

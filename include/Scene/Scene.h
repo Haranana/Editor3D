@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include <memory>
 #include "Scene/Grid.h"
+#include "Light.h"
 
 class Scene{
 private:
@@ -26,11 +27,13 @@ public:
 
     std::shared_ptr<Object3D> getObject(int id);
 
+    //not used as for 20/07 may delete later
     SpecialSceneObjects specialSceneObjects;
-
+    std::vector<std::shared_ptr<Light>>lightSources;
 private:
 
     std::vector<std::shared_ptr<Object3D>>objectsHierarchy;
+
 
 
 };

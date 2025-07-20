@@ -43,7 +43,6 @@ public:
             meanY = meanY + v.y;
             meanZ = meanZ + v.z;
         }
-
         return Vector3(meanX/boundingBox.size() , meanY/boundingBox.size(), meanZ/boundingBox.size());
     }
 
