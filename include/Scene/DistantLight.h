@@ -2,6 +2,7 @@
 #define DISTANTLIGHT_H
 
 #include "Light.h"
+#include "limits.h"
 //despite having position because of inheritance DistantLight<-Light<-Object3D
 //its position should never be accessed due to definiton of distant light only its direction should ever be used
 //in any calculatins
@@ -11,12 +12,16 @@ public:
 
     static constexpr Vector3 defaultUp = Vector3(0,1,0);
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
+    static constexpr size_t defaultShadowMapSize = 512; //in pixels
 
-    std::shared_ptr<Buffer<double>> shadowMap;
     //probably should be kept normalized
     Vector3 direction;
+    Buffer<double> shadowMap;
 
-    DistantLight(Vector3 direction) : direction(direction.normalize()) {}
+    DistantLight(Vector3 direction) :
+        direction(direction.normalize()) ,
+        shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
+    {}
 
     Matrix4 getViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
         if(up.isParallel(direction)) up = secondChoiceUp;

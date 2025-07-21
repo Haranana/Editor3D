@@ -18,6 +18,7 @@
 #include "Rendering/ShadingManager.h"
 #include <limits>
 #include "Math/Matrices.h"
+#include "Scene/DistantLight.h"
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
  * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here
@@ -90,6 +91,7 @@ public:
 
     std::shared_ptr<ClippingManager> clippingManager;
     std::shared_ptr<ShadingManager> shadingManager;
+    void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
     //std::shared_ptr<HitDetectionManager> hitDetectionManager;
     //std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 

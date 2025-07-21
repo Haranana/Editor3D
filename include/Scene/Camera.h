@@ -20,7 +20,7 @@ public:
 private:
     static constexpr double defaultFovY = 60.0;
     static constexpr double defaultNearPlane = 0.1;
-    static constexpr double defaultFarPlane = 0.1;
+    static constexpr double defaultFarPlane = 1000.0;
 
 
      //wlasciwie to nie fov tylko odleglosc kamery od obrazu, todo zmienic nazwe,

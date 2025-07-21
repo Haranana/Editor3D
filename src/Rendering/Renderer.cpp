@@ -453,15 +453,14 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     Color finalColor = baseColor;
 
 
-    //creating Shadow maps for every light source on the scene
-    std::vector<Vector3> cameraFrustum = camera->getFrustum();
-
     //frustum to world
+    std::vector<Vector3> cameraFrustum = camera->getFrustum();
     std::vector<Vector3> worldSpaceCameraFrustum;
     for(Vector3& v : cameraFrustum){
        worldSpaceCameraFrustum.push_back(modelToWorld(v , camera->transform.getTransMatrix()));
     }
 
+    //filling shadow maps of light sources
     for(std::shared_ptr<Light>lightSource : scene->lightSources){
         //cast Light to its proper subclass
         if(lightSource->lightType == Light::LightType::DISTANT){
@@ -492,7 +491,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                 Matrix4 lightProjection = distantLight->getProjectionMatrix(minX , maxX, maxY, minY ,  minZ, maxZ);
 
+                //depth pass - filling shadow map of current light source
+
             }
+        }
     }
 
     //calculating object uv
@@ -676,5 +678,118 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             }
         }
     }
+}
 
+void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection){
+    //clear shadowMap
+    lightSource.shadowMap.clear();
+
+    for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
+        std::shared_ptr<Object3D> object = scene->getObject(objIt);
+        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+            if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
+
+
+
+
+            // Vector4 result = camera->getProjectionMatrix() * camera->getViewMatrix() * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
+            Matrix4 ligthtViewProjection = lightProjection * lightView;
+            Matrix4 M = curObject->transform.getTransMatrix();
+
+            //clipping preprocess
+            std::vector<Vector4> clipVertices;
+            for(size_t i = 0; i < curObject->vertices.size(); i++){
+                const Vector3& localSpaceVertex = curObject->vertices[i];
+
+                Vector4 clipSpaceVertex = ligthtViewProjection * M * Vectors::vector3to4(localSpaceVertex);
+                clipVertices.push_back({
+                    clipSpaceVertex,
+                });
+            }
+
+            for (size_t face = 0; face < curObject->faceVertexIndices.size(); face += 3)
+            {
+
+                //original vertices in clip-space
+                Vector4 cv0 = clipVertices[curObject->faceVertexIndices[face    ]];
+                Vector4 cv1 = clipVertices[curObject->faceVertexIndices[face + 1]];
+                Vector4 cv2 = clipVertices[curObject->faceVertexIndices[face + 2]];
+
+                //clipping triangle
+                std::vector<Vector4> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
+                if (clippedPoly.size() < 3) continue;
+
+                // clip -> ndc -> screen - > screen with normalized depth
+                std::vector<Vector3> screenVerticesWithDepth;
+                screenVerticesWithDepth.reserve(clippedPoly.size());
+                for (Vector4& cv : clippedPoly){
+                    Vector3 normalizedClipVertex = clipToNdc(cv);
+                    Vector2 screenSpaceVertex = Vector2(int( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMap.getCols()-1) ) ,
+                                                        int( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMap.getRows()-1) ));
+                    screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.z/cv.w)+1.0)*0.5));
+                }
+
+                //Fill-pass
+                for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
+                {
+                    // Fan-triangulation
+                    Vector3& A = screenVerticesWithDepth[0];
+                    Vector3& B = screenVerticesWithDepth[k];
+                    Vector3& C = screenVerticesWithDepth[k+1];
+
+                    Vector4 v0 = clippedPoly[0];
+                    Vector4 v1 = clippedPoly[k];
+                    Vector4 v2 = clippedPoly[k+1];
+
+                    // bounding box for rasterization
+                    // beyond this rectangle there's no need to make further checks
+                    int minX = std::max(0, int(std::floor(std::min({A.x,B.x,C.x}))));
+                    int maxX = std::min((int)lightSource.shadowMap.getCols()-1, int(std::ceil(std::max({A.x,B.x,C.x}))));
+                    int minY = std::max(0, int(std::floor(std::min({A.y,B.y,C.y}))));
+                    int maxY = std::min((int)lightSource.shadowMap.getRows()-1, int(std::ceil(std::max({A.y,B.y,C.y}))));
+
+                    //calculating area of triangle
+                    //if triangle's area = 0, nothing to raster
+                    //inv area will be used in further calculations
+                    double area = (B.x - A.x)*(C.y - A.y)
+                                  - (B.y - A.y)*(C.x - A.x);
+                    if (area == 0.0) continue;
+                    double invArea = 1.0 / area;
+
+
+                    for (int y = minY; y <= maxY; y++) {
+                        for (int x = minX; x <= maxX; x++) {
+
+                                double px = x + 0.5, py = y + 0.5; //middle of current pixel
+
+                                //checking if pixel is withing triangle using baricentric coordinates
+                                double w0 = ((B.x-px)*(C.y-py) - (B.y-py)*(C.x-px)) * invArea;
+                                double w1 = ((C.x-px)*(A.y-py) - (C.y-py)*(A.x-px)) * invArea;
+                                double w2 = 1.0 - w0 - w1;
+                                if (w0<0 || w1<0 || w2<0) continue;
+
+
+                                double invW0 = 1.0 / v0.w;
+                                double invW1 = 1.0 / v1.w;
+                                double invW2 = 1.0 / v2.w;
+
+                                double denom = w0*invW0      + w1*invW1      + w2*invW2;
+                                double ndcZ  = (w0*v0.z*invW0 + w1*v1.z*invW1 + w2*v2.z*invW2) / denom;
+                                //double ndcX = (w0*v0.x*invW0 + w1*v1.x*invW1 + w2*v2.x*invW2)/denom;
+                                //double ndcY = (w0*v0.y*invW0 + w1*v1.y*invW1 + w2*v2.y*invW2)/denom;
+
+                                double depth = ndcZ * 0.5 + 0.5;     // ndcZ normalized to  0 … 1
+                                //int sx = int((ndcX*0.5+0.5)*(lightSource.shadowMap.getCols()-1)); //ndcX to shadowMap pixel
+                                //int sy = int((1-(ndcY*0.5+0.5))*(lightSource.shadowMap.getRows()-1)); //ndcY to shadowMap pixel
+
+                                if (depth < lightSource.shadowMap[y][x])
+                                    lightSource.shadowMap[y][x] = depth;
+                        }
+                    }
+
+                }
+            }
+
+        }
+    }
 }
