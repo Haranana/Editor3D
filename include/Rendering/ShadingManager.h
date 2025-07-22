@@ -15,7 +15,7 @@ public:
                         const Vector3& normal,
                         const Color& color) const;
 
-    Vector3 getReflectedLightLambert(Vector3& lightDirection, Vector3& normal, double lightEnergy, double albedo = defaultAlbedo) const;
+    double getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo = defaultAlbedo) const;
 
     std::shared_ptr<Buffer<double>> shadowMap;
 private:

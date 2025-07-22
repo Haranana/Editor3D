@@ -30,7 +30,7 @@ void Renderer::renderScene(){
     viewMatrix = camera->getViewMatrix();
     ProjectionMatrix = camera->getProjectionMatrix();
     viewProjectionMatrix = ProjectionMatrix * viewMatrix;
-
+    updateShadowMaps();
     renderSceneObjects();
     highlightObjectsSelectedElements();
 }
@@ -453,52 +453,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     Color finalColor = baseColor;
 
 
-    //frustum to world
-    std::vector<Vector3> cameraFrustum = camera->getFrustum();
-    std::vector<Vector3> worldSpaceCameraFrustum;
-    for(Vector3& v : cameraFrustum){
-       worldSpaceCameraFrustum.push_back(modelToWorld(v , camera->transform.getTransMatrix()));
-    }
-
-    //filling shadow maps of light sources
-    for(std::shared_ptr<Light>lightSource : scene->lightSources){
-        //cast Light to its proper subclass
-        if(lightSource->lightType == Light::LightType::DISTANT){
-            if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
-
-                //get lightview Matrix
-                Vector3 bboxCenter = distantLight->getBBoxCenter(worldSpaceCameraFrustum);
-                distantLight->setViewMatrix(bboxCenter);
-                Matrix4 lightView = distantLight->getViewMatrix();
-
-                std::vector<Vector3> lightSpaceCameraFrustum;
-                for(Vector3& v : worldSpaceCameraFrustum){
-                    lightSpaceCameraFrustum.push_back(Vectors::vector4to3(lightView * Vectors::vector3to4(v)));
-                }
-
-                //calculating bounding box in light space
-                double minX = lightSpaceCameraFrustum[0].x, maxX = lightSpaceCameraFrustum[0].x,
-                minY = lightSpaceCameraFrustum[0].y, maxY = lightSpaceCameraFrustum[0].y,
-                minZ = lightSpaceCameraFrustum[0].z, maxZ = lightSpaceCameraFrustum[0].z;
-
-                for(Vector3& v : lightSpaceCameraFrustum){
-                    if(v.x > maxX) maxX = v.x;
-                    else if(v.x < minX ) minX = v.x;
-                    if(v.y > maxY) maxY = v.y;
-                    else if(v.y < minY ) minY = v.y;
-                    if(v.z > maxZ) maxZ = v.z;
-                    else if(v.z < minZ ) minZ = v.z;
-                }
-
-                distantLight->setProjectionMatrix(minX , maxX, maxY, minY ,  minZ, maxZ);
-                Matrix4 lightProjection = distantLight->getProjectionMatrix();
-                shadowMapDepthPass((*distantLight), lightView, lightProjection);
-                //depth pass - filling shadow map of current light source
-
-            }
-        }
-    }
-
     //calculating object uv
     /*
     std::vector<Vector2> uv;
@@ -634,19 +588,18 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
 
                             //shade check
+                            double lightMultiplier = 1.0;
                             for(std::shared_ptr<Light>lightSource : scene->lightSources){
-
-                                Vector3 lightMultiplier = Vector3(1.0,1.0,1.0);
                                 //cast Light to its proper subclass
                                 if(lightSource->lightType == Light::LightType::DISTANT){
                                     if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
 
                                         Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-                                        float depth = lightNdcCoord.z * 0.5f + 0.5f;
+                                        float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
                                         int sx = int((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1));
                                         int sy = int((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1));
-                                        if (depth > distantLight->shadowMap[sy][sx] + distantLight->bias){
+                                        if (depthInLightView <= distantLight->shadowMap[sy][sx] + distantLight->bias){
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   distantLight->direction, interpolatedWorldSpaceFaceNormal, distantLight->intensity
                                                                                                                          );
@@ -654,10 +607,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     }
                                 }
                             }
+                            /*
                             finalColor = shadingManager.get()->shadeColorFR(
                                 getCamera()->transform.getPosition(),
                                 interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
-
+                            */
+                            finalColor = baseColor * lightMultiplier;
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                                    obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
 
@@ -815,3 +770,55 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
         }
     }
 }
+
+void Renderer::updateShadowMaps(){
+    //frustum to world
+    std::vector<Vector3> cameraFrustum = camera->getFrustum();
+    std::vector<Vector3> worldSpaceCameraFrustum;
+    for(Vector3& v : cameraFrustum){
+        worldSpaceCameraFrustum.push_back(modelToWorld(v , camera->transform.getTransMatrix()));
+    }
+
+    //filling shadow maps of light sources
+    for(std::shared_ptr<Light>lightSource : scene->lightSources){
+        //cast Light to its proper subclass
+        if(lightSource->lightType == Light::LightType::DISTANT){
+            if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+
+                //get lightview Matrix
+                Vector3 bboxCenter = distantLight->getBBoxCenter(worldSpaceCameraFrustum);
+                distantLight->setViewMatrix(bboxCenter);
+                Matrix4 lightView = distantLight->getViewMatrix();
+
+                std::vector<Vector3> lightSpaceCameraFrustum;
+                for(Vector3& v : worldSpaceCameraFrustum){
+                    lightSpaceCameraFrustum.push_back(Vectors::vector4to3(lightView * Vectors::vector3to4(v)));
+                }
+
+                //calculating bounding box in light space
+                double minX = lightSpaceCameraFrustum[0].x, maxX = lightSpaceCameraFrustum[0].x,
+                    minY = lightSpaceCameraFrustum[0].y, maxY = lightSpaceCameraFrustum[0].y,
+                    minZ = lightSpaceCameraFrustum[0].z, maxZ = lightSpaceCameraFrustum[0].z;
+
+                const double padXY = 0.05 * std::max(maxX - minX, maxY - minY);
+                const double padZ  = 0.05 * (maxZ - minZ);
+
+                for(Vector3& v : lightSpaceCameraFrustum){
+                    if(v.x > maxX) maxX = v.x;
+                    else if(v.x < minX ) minX = v.x;
+                    if(v.y > maxY) maxY = v.y;
+                    else if(v.y < minY ) minY = v.y;
+                    if(v.z > maxZ) maxZ = v.z;
+                    else if(v.z < minZ ) minZ = v.z;
+                }
+
+                distantLight->setProjectionMatrix(minX - padXY , maxX + padXY, maxY + padXY, minY - padXY ,  minZ - padZ, maxZ + padZ);
+                Matrix4 lightProjection = distantLight->getProjectionMatrix();
+                shadowMapDepthPass((*distantLight), lightView, lightProjection);
+                //depth pass - filling shadow map of current light source
+
+            }
+        }
+    }
+}
+

@@ -3,8 +3,9 @@
 
 ShadingManager::ShadingManager() {}
 
-Vector3 getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo){
-    return lightDirection*normal*albedo*lightEnergy;
+double ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo) const{
+    double NdotL = std::max(0.0, normal.dotProduct(lightDirection*(-1.0)));
+    return NdotL * albedo * lightEnergy;
 }
 
 Color ShadingManager::shadeColorFR(const Vector3& cameraPosition,

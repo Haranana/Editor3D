@@ -92,6 +92,7 @@ public:
     std::shared_ptr<ClippingManager> clippingManager;
     std::shared_ptr<ShadingManager> shadingManager;
     void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
+    void updateShadowMaps();
     //std::shared_ptr<HitDetectionManager> hitDetectionManager;
     //std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 
