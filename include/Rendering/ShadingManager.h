@@ -8,11 +8,14 @@
 
 class ShadingManager{
 public:
+    static constexpr double defaultAlbedo = 0.18;
     ShadingManager();
     Color shadeColorFR(const Vector3& cameraPosition,
                         const Vector3& point,
                         const Vector3& normal,
                         const Color& color) const;
+
+    Vector3 getReflectedLightLambert(Vector3& lightDirection, Vector3& normal, double lightEnergy, double albedo = defaultAlbedo) const;
 
     std::shared_ptr<Buffer<double>> shadowMap;
 private:

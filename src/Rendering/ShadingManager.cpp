@@ -3,6 +3,10 @@
 
 ShadingManager::ShadingManager() {}
 
+Vector3 getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo){
+    return lightDirection*normal*albedo*lightEnergy;
+}
+
 Color ShadingManager::shadeColorFR(const Vector3& cameraPosition,
                    const Vector3& point,
                    const Vector3& normal,

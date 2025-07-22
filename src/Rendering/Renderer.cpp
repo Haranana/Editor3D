@@ -468,7 +468,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                 //get lightview Matrix
                 Vector3 bboxCenter = distantLight->getBBoxCenter(worldSpaceCameraFrustum);
-                Matrix4 lightView = distantLight->getViewMatrix(bboxCenter);
+                distantLight->setViewMatrix(bboxCenter);
+                Matrix4 lightView = distantLight->getViewMatrix();
 
                 std::vector<Vector3> lightSpaceCameraFrustum;
                 for(Vector3& v : worldSpaceCameraFrustum){
@@ -489,8 +490,9 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                     else if(v.z < minZ ) minZ = v.z;
                 }
 
-                Matrix4 lightProjection = distantLight->getProjectionMatrix(minX , maxX, maxY, minY ,  minZ, maxZ);
-
+                distantLight->setProjectionMatrix(minX , maxX, maxY, minY ,  minZ, maxZ);
+                Matrix4 lightProjection = distantLight->getProjectionMatrix();
+                shadowMapDepthPass((*distantLight), lightView, lightProjection);
                 //depth pass - filling shadow map of current light source
 
             }
@@ -630,6 +632,28 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                             Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
                             Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
+
+                            //shade check
+                            for(std::shared_ptr<Light>lightSource : scene->lightSources){
+
+                                Vector3 lightMultiplier = Vector3(1.0,1.0,1.0);
+                                //cast Light to its proper subclass
+                                if(lightSource->lightType == Light::LightType::DISTANT){
+                                    if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+
+                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                                        float depth = lightNdcCoord.z * 0.5f + 0.5f;
+                                        int sx = int((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1));
+                                        int sy = int((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1));
+                                        if (depth > distantLight->shadowMap[sy][sx] + distantLight->bias){
+                                            lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
+                                                                  distantLight->direction, interpolatedWorldSpaceFaceNormal, distantLight->intensity
+                                                                                                                         );
+                                        }
+                                    }
+                                }
+                            }
                             finalColor = shadingManager.get()->shadeColorFR(
                                 getCamera()->transform.getPosition(),
                                 interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
@@ -688,8 +712,6 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
-
-
 
 
             // Vector4 result = camera->getProjectionMatrix() * camera->getViewMatrix() * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);

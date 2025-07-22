@@ -23,18 +23,26 @@ public:
         shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
     {}
 
-    Matrix4 getViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
+    void setViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
         if(up.isParallel(direction)) up = secondChoiceUp;
-        return LightMatrices::lightView(bboxCenter, bboxCenter+direction, up);
+        viewMatrix = LightMatrices::lightView(bboxCenter, bboxCenter+direction, up);
+    }
+
+    Matrix4 getViewMatrix(){
+        return viewMatrix;
     };
 
-    Matrix4 getProjectionMatrix(double orthoLeft,
-                                double orthoRight,
-                                double orthoBottom,
-                                double orthoTop,
-                                double orthoNear,
-                                double orthoFar){
-        return LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+    void setProjectionMatrix(double orthoLeft,
+                             double orthoRight,
+                             double orthoBottom,
+                             double orthoTop,
+                             double orthoNear,
+                             double orthoFar){
+        projectionMatrix = LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
+    }
+
+    Matrix4 getProjectionMatrix(){
+        return projectionMatrix;
     };
 
     //should get 8 vertices as an argument
@@ -50,6 +58,9 @@ public:
         }
         return Vector3(meanX/boundingBox.size() , meanY/boundingBox.size(), meanZ/boundingBox.size());
     }
+
+    Matrix4 viewMatrix = Matrices4::identity();;
+    Matrix4 projectionMatrix = Matrices4::identity();
 
 
 };

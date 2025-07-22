@@ -17,6 +17,8 @@ class PointLight : public Light{
     static constexpr int defaultShadowMapSize = 512;
 
     std::vector<std::shared_ptr<Buffer<double>>> shadowMaps;
+
+
     Matrix4 getViewMatrix(int face){
         static const Vector3 dirs[6] = { {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} };
         static const Vector3 ups[6]  = { {0,-1,0},{0,-1,0},{0,0,1},{0,0,-1},{0,-1,0},{0,-1,0} };
