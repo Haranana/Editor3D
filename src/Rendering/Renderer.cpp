@@ -612,6 +612,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 getCamera()->transform.getPosition(),
                                 interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
                             */
+
                             finalColor = baseColor * lightMultiplier;
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                                    obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
@@ -621,7 +622,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             finalColor = Vectors::vector3ToColor(interpolatedColor);
                         }
 
-
+                        //if(finalColor!=Colors::Black && finalColor!=Colors::Gray) qDebug() << finalColor.B << " " << finalColor.G << " " << finalColor.R<< " "<< finalColor.A;
                         if (drawPixel(x, y, depth, finalColor)) {
                             Renderer::IdBufferElement fillEl;
                             fillEl.objectId     = objId;

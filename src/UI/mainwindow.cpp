@@ -92,6 +92,7 @@ void MainWindow::setupMenuBar(){
     QMenu *sceneMenu = menuBar->addMenu("Scene");
     QMenu *selectedObjectMenu = sceneMenu->addMenu("Sel. Object");
     QMenu *createObjectsMenu = objectsMenu->addMenu("Create");
+    QMenu *createObjectsLightMenu = createObjectsMenu->addMenu("Light");
     QMenu *selectMenu = menuBar->addMenu("Select");
 
     QActionGroup *selectActionGroup = new QActionGroup(this);
@@ -105,6 +106,7 @@ void MainWindow::setupMenuBar(){
     QAction *selectFaces = new QAction("&Faces");
     QAction *selectEdges = new QAction("&Edges");
     QAction *selectVertices = new QAction("&Vertices");
+    QAction *createDistantLight = new QAction("&Distant");
 
     selectActionGroup->setExclusive(true);
     selectObjects->setCheckable(true);
@@ -129,11 +131,17 @@ void MainWindow::setupMenuBar(){
 
     createObjectsMenu->addAction(createObjectCube);
     createObjectsMenu->addAction(createObjectCylinder);
+    createObjectsLightMenu->addAction(createDistantLight);
+    //createObjectsMenu->addMenu(createObjectCylinder);
     selectedObjectMenu->addAction(deleteSelectedObject);
     selectedObjectMenu->addAction(assignTectureToObject);
 
     QObject::connect(importObjectAction, &QAction::triggered, [&](){
         onFileMenuImportObject();
+    });
+
+    QObject::connect(createDistantLight , &QAction::triggered , [&](){
+        onObjectMenuCreateDistantLight();
     });
 
     QObject::connect(saveObjectAction, &QAction::triggered, [&](){
@@ -894,6 +902,21 @@ void MainWindow::onSceneMenuAssignTectureToObject(){
     // krok 3 ➜ generujemy UV dla zaznaczonej / całej siatki
     generatePlanarUV(*dynamic_cast<RenderableObject3D*>(currentObject.get()),
                      Plane::XY);   // na razie XY
+
+    refreshScene();
+}
+
+
+void MainWindow::onObjectMenuCreateDistantLight(){
+    std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( Vector3(0.6, -1.0, 0.4).normalize());
+    light->color = Colors::White;
+    light->intensity = 3.0;
+    light->bias = 0.0015;
+    light->castsShadow = true;
+
+    scene->addObject(light);
+    QString itemText = QString("light");
+    objectsList->addItem(itemText);
 
     refreshScene();
 }

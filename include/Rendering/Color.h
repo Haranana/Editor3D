@@ -2,6 +2,8 @@
 #define COLOR_H
 
 #include <iostream>
+#include <algorithm>
+#include <QDebug>
 
 /*
  * Color class
@@ -32,6 +34,11 @@ public:
     Color operator+(int val)const;
     Color operator-(int val)const;
     Color operator/(int val)const;
+
+    Color operator*(double val)const;
+    Color operator+(double val)const;
+    Color operator-(double val)const;
+    Color operator/(double val)const;
 
     bool operator==(const Color& otherColor) const;
     bool operator!=(const Color& otherColor) const;

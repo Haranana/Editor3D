@@ -79,6 +79,27 @@ Color Color::operator/(int val)const{return Color(
         std::min(255 ,  std::max(0 ,this->G / val)),
         std::min(255 ,  std::max(0, this->R / val))
         );}
+Color Color::operator*(double val)const{return Color(
+
+        std::clamp(int(this->B * val) , 0, 255),
+        std::clamp(int(this->G * val) , 0, 255),
+        std::clamp(int(this->R * val) , 0, 255)
+        );}
+Color Color::operator+(double val)const{return Color(
+        std::clamp(int(this->B + val) , 0, 255),
+        std::clamp(int(this->G + val) , 0, 255),
+        std::clamp(int(this->R + val) , 0, 255)
+        );}
+Color Color::operator-(double val)const{return Color(
+        std::clamp(int(this->B - val) , 0, 255),
+        std::clamp(int(this->G - val) , 0, 255),
+        std::clamp(int(this->R - val) , 0, 255)
+        );}
+Color Color::operator/(double val)const{return Color(
+        std::clamp(int(this->B / val) , 0, 255),
+        std::clamp(int(this->G / val) , 0, 255),
+        std::clamp(int(this->R / val) , 0, 255)
+        );}
 
 std::ostream& operator<<(std::ostream& os, const Color& color){
 

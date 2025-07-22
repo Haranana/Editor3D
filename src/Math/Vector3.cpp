@@ -30,8 +30,13 @@ Vector3& Vector3::operator=(const Vector3& otherVector) {
 }
 
 bool Vector3::isParallel(const Vector3& otherVector) const {
+
     static constexpr double accuracy = 0.999;
     return fabs(this->dotProduct(otherVector)) > accuracy;
+    /*
+    constexpr double epsilon = 1e-6;
+    Vector3 cross = this->crossProduct(otherVector);
+    return cross.length() < epsilon;*/
 }
 bool Vector3::operator==(const Vector3& otherVector) const {
     return this->x == otherVector.x && this->y == otherVector.y && this->z == otherVector.z;

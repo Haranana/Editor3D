@@ -8,7 +8,7 @@
 
 class ShadingManager{
 public:
-    static constexpr double defaultAlbedo = 0.18;
+    static constexpr double defaultAlbedo = 0.5;
     ShadingManager();
     Color shadeColorFR(const Vector3& cameraPosition,
                         const Vector3& point,
