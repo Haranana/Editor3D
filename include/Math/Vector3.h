@@ -19,8 +19,8 @@ public:
     double length() const;
     Vector3 crossProduct(const Vector3& otherVector) const;
     double dotProduct(const Vector3& otherVector) const;
-
     bool isParallel(const Vector3& otherVector) const;
+
     bool operator==(const Vector3& otherVector) const;
     Vector3& operator=(const Vector3& otherVector);
 

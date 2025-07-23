@@ -594,15 +594,39 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 if(lightSource->lightType == Light::LightType::DISTANT){
                                     if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
 
+                                        bool isInShadow = true;
+
                                         Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-                                        float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-                                        int sx = int((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1));
-                                        int sy = int((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1));
-                                        if (depthInLightView <= distantLight->shadowMap[sy][sx] + distantLight->bias){
+                                        if(lightProjCoord.w > 0.0){
+                                            isInShadow =false;
+                                        }
+                                        else{
+                                                Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
+
+                                                //check if we are not trying to get element from outside the buffer
+                                                float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                                float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+
+                                                //if something is outside shadowMap then it's definitely not in shadow
+                                                if (std::isfinite(u) && std::isfinite(v) &&
+                                                    ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+                                                    float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                                    int sx = int((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1));
+                                                    int sy = int((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1));
+
+                                                    if (depthInLightView <= distantLight->shadowMap[sy][sx] + distantLight->bias){
+                                                        isInShadow = false;
+                                                    }
+                                                }
+                                                else{
+                                                    isInShadow = false;
+                                                }
+                                        }
+                                        if(!isInShadow){
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   distantLight->direction, interpolatedWorldSpaceFaceNormal, distantLight->intensity
-                                                                                                                         );
+                                                                  );
                                         }
                                     }
                                 }
