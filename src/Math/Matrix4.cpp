@@ -153,3 +153,13 @@ std::ostream& operator<<(std::ostream& os, const Matrix4& matrix)
     }
     return os;
 }
+
+QDebug& operator<<(QDebug& dq, const Matrix4& matrix)
+{
+    for(int i=0; i<4; i++){
+        for(int j=0; j<4; j++){
+            dq << "[ " << matrix.matrix[i][0]<<", "<< matrix.matrix[i][1]<<", "<< matrix.matrix[i][2]<<", "<< matrix.matrix[i][3]<<" ]";
+        }
+    }
+    return dq;
+}

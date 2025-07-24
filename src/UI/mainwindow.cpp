@@ -12,14 +12,19 @@ MainWindow::MainWindow(QWidget* parent)
 {
     setupUI();
     setupScene();
+    loadTestScene();
+
 
     QTimer* timer = new QTimer(this);
+
     connect(timer, &QTimer::timeout, this, &MainWindow::refreshScene);
     connect(sceneDisplay, &ImageLabel::pixelClicked,
             this, [&](int x, int y){
             onSceneDisplayClicked(x,y);
     });
     timer->start(30);
+
+
 }
 
 MainWindow::~MainWindow()
@@ -513,6 +518,7 @@ void MainWindow::loadTestScene(){
     cube->transform.setScales(Vector3(0.2,0.2,0.2));
     cube->viewportDisplay.color = Colors::Blue;
 
+    //Vector3 lightDirection(0.0 , 1.0 , 1.0);
     Vector3 lightDirection(0.0 , 1.0 , 1.0);
     std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
     light->color = Colors::White;

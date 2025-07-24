@@ -4,6 +4,7 @@
 #include "Matrix3.h"
 #include "Matrix4.h"
 #include "cmath"
+#include "QDebug"
 
 //A collection of functions that return commonly used 3x3 Matrices
 namespace Matrices3 {

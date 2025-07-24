@@ -45,6 +45,12 @@ public:
         std::pair<int, int> edgeVertices = {-1,-1};
     };
 
+    enum DebugMode{
+        DEBUG_SHADOWMAP,
+        NONE
+    };
+    constexpr static DebugMode debugMode = DEBUG_SHADOWMAP;
+
     Renderer(
         std::shared_ptr<QImage> img,
         std::shared_ptr<Scene> scene,

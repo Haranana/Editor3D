@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <cmath>
-
+#include <QDebug>
 class Vector3{
 
 public:
@@ -35,6 +35,7 @@ public:
     Vector3 operator/(double val)const;
 
     friend std::ostream& operator<<(std::ostream& os, const Vector3& vector);
+    friend QDebug& operator<<(QDebug& qd, const Vector3& vector);
 
 };
 

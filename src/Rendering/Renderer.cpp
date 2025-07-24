@@ -799,10 +799,21 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
 void Renderer::updateShadowMaps(){
     //frustum to world
     std::vector<Vector3> cameraFrustum = camera->getFrustum();
+    /*
     std::vector<Vector3> worldSpaceCameraFrustum;
+
     for(Vector3& v : cameraFrustum){
         worldSpaceCameraFrustum.push_back(modelToWorld(v , camera->transform.getTransMatrix()));
-    }
+    }*/
+    /*
+    if(debugMode == DEBUG_SHADOWMAP){
+        for(const Vector3& v : cameraFrustum){
+            qDebug()<<"camera Frustum: "<<v;
+        }
+        for(Vector3& v : worldSpaceCameraFrustum){
+            qDebug()<<"worldSpaceCameraFrustum: "<<v;
+        }
+    }*/
 
     //filling shadow maps of light sources
     for(std::shared_ptr<Light>lightSource : scene->lightSources){
@@ -811,12 +822,17 @@ void Renderer::updateShadowMaps(){
             if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
 
                 //get lightview Matrix
-                Vector3 bboxCenter = distantLight->getBBoxCenter(worldSpaceCameraFrustum);
+                Vector3 bboxCenter = distantLight->getBBoxCenter(cameraFrustum);
                 distantLight->setViewMatrix(bboxCenter);
                 Matrix4 lightView = distantLight->getViewMatrix();
 
+                if(debugMode == DEBUG_SHADOWMAP){
+                    std::cout<<"Eye: "<<bboxCenter<<std::endl;
+                    std::cout<<"light View: \n"<<lightView<<"\n"<<std::endl;
+                }
+
                 std::vector<Vector3> lightSpaceCameraFrustum;
-                for(Vector3& v : worldSpaceCameraFrustum){
+                for(Vector3& v : cameraFrustum){
                     lightSpaceCameraFrustum.push_back(Vectors::vector4to3(lightView * Vectors::vector3to4(v)));
                 }
 
@@ -825,8 +841,7 @@ void Renderer::updateShadowMaps(){
                     minY = lightSpaceCameraFrustum[0].y, maxY = lightSpaceCameraFrustum[0].y,
                     minZ = lightSpaceCameraFrustum[0].z, maxZ = lightSpaceCameraFrustum[0].z;
 
-                const double padXY = 0.05 * std::max(maxX - minX, maxY - minY);
-                const double padZ  = 0.05 * (maxZ - minZ);
+
 
                 for(Vector3& v : lightSpaceCameraFrustum){
                     if(v.x > maxX) maxX = v.x;
@@ -837,8 +852,52 @@ void Renderer::updateShadowMaps(){
                     else if(v.z < minZ ) minZ = v.z;
                 }
 
-                distantLight->setProjectionMatrix(minX - padXY , maxX + padXY, maxY + padXY, minY - padXY ,  minZ - padZ, maxZ + padZ);
+                const double padXY = 0.05 * std::max(maxX - minX, maxY - minY);
+                const double padZ  = 0.05 * (maxZ - minZ);
+
+                // 1. back-off światła
+                double shift = maxZ + padZ;                     // punkt najbardziej z przodu
+                Matrix4 backOff = Matrices4::translation(0,0,-shift);
+                lightView = backOff * lightView;
+
+                // 2. przelicz bbox Z po cofnięciu
+                for (auto& v : cameraFrustum) {
+                    Vector3 inLS = Vectors::vector4to3(lightView * Vectors::vector3to4(v));
+                    minZ = std::min(minZ, inLS.z);
+                    maxZ = std::max(maxZ, inLS.z);
+                }
+
+                // 3. near / far
+                double nearDist = 0.1;
+                double farDist  = (-minZ) + padZ;
+
+                distantLight->setProjectionMatrix(
+                    minX - padXY, maxX + padXY,
+                    minY - padXY, maxY + padXY,
+                    nearDist, farDist
+                    );
+
+                /*
+                double nearPlane = minZ - padZ;   //  najbardziej UJEMNY punkt  (za światłem)
+                double farPlane  = maxZ + padZ;   //  najbardziej DODATNI punkt (przed światłem)/  dalsze punkty (te najbardziej ujemne)
+
+                distantLight->setProjectionMatrix(minX - padXY , maxX + padXY,minY - padXY,  maxY + padXY, nearPlane,farPlane);
+                */
                 Matrix4 lightProjection = distantLight->getProjectionMatrix();
+                if(debugMode == DEBUG_SHADOWMAP){
+                    Matrix4 ligthtViewProjection = lightProjection * lightView;
+
+                    std::cout << "Ortho projection:\n" << lightProjection << std::endl;
+
+                    std::cout<<"bbox in lightviewproj: "<<std::endl;
+                    for(Vector3& v : cameraFrustum){
+                        Vector4 v4 = Vectors::vector3to4(v);
+                        Vector4 proj = lightProjection * lightView * v4;
+                        Vector3 ndc = Vector3(proj.x / proj.w, proj.y / proj.w, proj.z / proj.w);
+                        std::cout << "NDC: " << ndc << std::endl;
+                    }
+
+                }
                 shadowMapDepthPass((*distantLight), lightView, lightProjection);
                 //depth pass - filling shadow map of current light source
 

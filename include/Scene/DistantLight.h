@@ -52,7 +52,8 @@ public:
                              double orthoTop,
                              double orthoNear,
                              double orthoFar){
-        projectionMatrix = LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, std::max(orthoNear,0.1), orthoFar);
+
+        projectionMatrix = LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
     }
 
     Matrix4 getProjectionMatrix(){

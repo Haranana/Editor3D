@@ -33,6 +33,7 @@ public:
     bool operator==(const Matrix4& otherMatrix) const;
 
     friend std::ostream& operator<<(std::ostream& os, const Matrix4& matrix);
+    friend QDebug& operator<<(QDebug& dg, const Matrix4& matrix);
 
 private: //to chyba jest bledne
     std::array<std::array<double,4>,4> matrix = {{

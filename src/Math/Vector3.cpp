@@ -81,3 +81,10 @@ std::ostream& operator<<(std::ostream& os, const Vector3& vector3) {
     os << "(" << vector3.x << "," << vector3.y << "," << vector3.z << ")";
     return os;
 }
+
+QDebug& operator<<(QDebug& qd, const Vector3& vector){
+    qd << "(" << vector.x << "," << vector.y << "," << vector.z << ")";
+    return qd;
+}
+
+

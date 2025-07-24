@@ -118,16 +118,17 @@ Matrix3 Matrix4To3(const Matrix4& m){
 namespace LightMatrices{
 Matrix4 lightView(const Vector3& eye , const Vector3& target, const Vector3& up){
     Vector3 f = (target - eye).normalize();
-    Vector3 r = up.crossProduct(f).normalize();
-    Vector3 u = f.crossProduct(r);
+    Vector3 r = f.crossProduct(up).normalize();
+    Vector3 u = r.crossProduct(f);
 
     return Matrix4({{
-        { r.x,  u.x, -f.x, 0 },
-        { r.y,  u.y, -f.y, 0 },
-        { r.z,  u.z, -f.z, 0 },
-        { -1.0*r.dotProduct(eye), -1.0*u.dotProduct(eye), f.dotProduct(eye), 1}
+        {  r.x,   r.y,   r.z,  -r.dotProduct(eye) },
+        {  u.x,   u.y,   u.z,  -u.dotProduct(eye) },
+        { -f.x,  -f.y,  -f.z,   f.dotProduct(eye) },
+        {    0,     0,     0,               1      }
     }});
 }
+
 Matrix4 orthogonalLightProjection(double left, double right, double bottom, double top, double near, double far){
     return Matrix4({{
         { 2/(right-left), 0,        0,          -(right+left)/(right-left) },
