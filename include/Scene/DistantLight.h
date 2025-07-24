@@ -3,6 +3,7 @@
 
 #include "Light.h"
 #include "limits.h"
+#include <QImage>
 //despite having position because of inheritance DistantLight<-Light<-Object3D
 //its position should never be accessed due to definiton of distant light only its direction should ever be used
 //in any calculatins
@@ -22,6 +23,19 @@ public:
         direction(direction.normalize()) ,
         shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
     {}
+
+    void printShadowMatrix(){
+        QImage img(shadowMap.getCols(), shadowMap.getRows(), QImage::Format_Grayscale8);
+        for (int y = 0; y < shadowMap.getRows(); ++y) {
+            for (int x = 0; x < shadowMap.getCols(); ++x) {
+                float d = shadowMap[y][x];
+                // 0 = close, 1 = far, inf = empty
+                int v = (d == std::numeric_limits<float>::infinity()) ? 0 : int(255 * (1.0 - d));
+                img.setPixel(x, y, qRgb(v, v, v));
+            }
+        }
+        img.save("shadowmap.png");
+    }
 
     void setViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
         if(up.isParallel(direction)) up = secondChoiceUp;

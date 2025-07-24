@@ -58,6 +58,9 @@ private:
         NONE
     };
 
+    static constexpr double transUpLimit = 500;
+    static constexpr double transDownLimit = -500;
+
 
     void setupUI();
     void setupMenuBar();
@@ -70,27 +73,20 @@ private:
 
     void setupScene();
     void refreshScene();
-
-    static constexpr double transUpLimit = 500;
-    static constexpr double transDownLimit = -500;
+    void loadTestScene();
 
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
-    //std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Renderer> renderer;
     std::shared_ptr<ObjectLoader> objectLoader;
     std::shared_ptr<ObjectSaver> objectSaver;
-
     std::shared_ptr<Object3D> currentObject = nullptr;
 
     QWidget* centralWidgetContainer = nullptr;
     QListWidget* objectsList = nullptr;
     ImageLabel* sceneDisplay = nullptr;
-
     ColorPicker* colorPicker = nullptr;
-
     QTreeWidget* objectParametersPropertyTree = nullptr;
-
     QComboBox* objectDisplayModeComboBox = nullptr;
     QColorDialog* objectDisplayColor = nullptr;
 
@@ -122,6 +118,7 @@ private:
 
 
 private slots:
+
     void onAddCubeClicked();
     void onObjectSelected();
 

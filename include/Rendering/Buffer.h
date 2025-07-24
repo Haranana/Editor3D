@@ -19,7 +19,9 @@ public:
 
     std::size_t getRows() const;
     std::size_t getCols() const;
-    std::size_t size() const;
+    std::size_t size() const; //returns number of elements both default and non-default
+    std::size_t nonEmptyElements() const; //returns nubmer of elements that are different than default v alue
+    bool isEmpty() const;
     void clear();
 
 private:
@@ -60,6 +62,23 @@ std::size_t Buffer<T>::getCols() const {
 template<typename T>
 std::size_t Buffer<T>::size() const {
     return rows * cols;
+}
+
+template<typename T>
+std::size_t Buffer<T>::nonEmptyElements() const{
+    std::size_t result = 0;
+    for(const T& it : data){
+        if(data!=defaultValue) result++;
+    }
+    return result;
+}
+
+template<typename T>
+bool Buffer<T>::isEmpty() const{
+    for(const T& it : data){
+        if(data!=defaultValue) return false;
+    }
+    return true;
 }
 
 template<typename T>

@@ -46,7 +46,6 @@ public:
     };
 
     Renderer(
-        //std::shared_ptr<RenderingSurface> renderingSurface,
         std::shared_ptr<QImage> img,
         std::shared_ptr<Scene> scene,
         std::shared_ptr<Camera> camera);
@@ -84,7 +83,6 @@ public:
 
     std::shared_ptr<Scene> getScene();
     std::shared_ptr<RenderingSurface> getRenderingSurface();
-    //std::shared_ptr<std::vector<std::vector<float>>>getZBuffer();
 
     std::shared_ptr<PixelPainter> pixelPainter;
     std::shared_ptr<LinePainter> linePainter;
@@ -93,15 +91,8 @@ public:
     std::shared_ptr<ShadingManager> shadingManager;
     void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
     void updateShadowMaps();
-    //std::shared_ptr<HitDetectionManager> hitDetectionManager;
-    //std::shared_ptr<std::vector<std::vector<IdBufferElement>>>idBuffer;
 
 private:
-
-    //reset every value inside zBuffer to infinity - moved to separate classes
-    //void resetZBuffer();
-    //void resetIdBuffer();
-
     void renderObject( RenderableObject3D& obj, int objId);
 
     Matrix4 viewProjectionMatrix;
@@ -110,10 +101,6 @@ private:
 
     void renderSceneObjects();
     void highlightObjectsSelectedElements();
-
-    //can't find any instance where it's used, probably safe to delete
-    const int zOffsetDefaultValue = -200;
-    int zOffset = zOffsetDefaultValue;
 
     std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Scene> scene;
