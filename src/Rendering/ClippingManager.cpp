@@ -15,10 +15,10 @@ double ClippingManager::planeValue(ClippingManager::PlaneType planeType, const V
         return v.y + v.w;
         break;
     case NEAR:
-        return v.w - v.z;
+        return v.w + v.z;
         break;
     case FAR:
-        return v.z + v.w;
+        return v.w - v.z;
         break;
     }
 }

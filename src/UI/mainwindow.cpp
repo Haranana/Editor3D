@@ -493,14 +493,6 @@ void MainWindow::refreshScene()
 
 void MainWindow::loadTestScene(){
     /*
-    auto floor = std::make_shared<Cube>();
-    scene->addObject(floor);
-    QString itemTextFloor = QString("floor");
-    objectsList->addItem(itemTextFloor);
-    floor->transform.setScales(Vector3(1.0,0.1,1.0));
-    floor->transform.setPositionY(-30);
-    floor->viewportDisplay.color = Colors::Green;
-
     auto floor2 = std::make_shared<Cube>();
     scene->addObject(floor2);
     QString itemTextFloor2 = QString("floor2");
@@ -509,17 +501,25 @@ void MainWindow::loadTestScene(){
     floor2->transform.setPosition({-30, 50 , 20});
     floor2->transform.setAngleX(1.57);
     floor2->viewportDisplay.color = Colors::Purple;
-    */
+         */
+    auto floor = std::make_shared<Cube>();
+    scene->addObject(floor);
+    QString itemTextFloor = QString("floor");
+    objectsList->addItem(itemTextFloor);
+    floor->transform.setScales(Vector3(0.1,0.1,0.1));
+    floor->transform.setPositionX(-30);
+    floor->viewportDisplay.color = Colors::Green;
+
 
     auto cube = std::make_shared<Cube>();
     scene->addObject(cube);
     QString itemTextCube = QString("Cube");
     objectsList->addItem(itemTextCube);
-    cube->transform.setScales(Vector3(0.2,0.2,0.2));
+    cube->transform.setScales(Vector3(0.1,0.1,0.1));
     cube->viewportDisplay.color = Colors::Blue;
 
     //Vector3 lightDirection(0.0 , 1.0 , 1.0);
-    Vector3 lightDirection(0.0 , 1.0 , 1.0);
+    Vector3 lightDirection(1.0 , 0.0 , 0.0);
     std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
     light->color = Colors::White;
     light->intensity = 2.0;

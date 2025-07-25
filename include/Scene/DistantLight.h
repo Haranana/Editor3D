@@ -13,7 +13,7 @@ public:
 
     static constexpr Vector3 defaultUp = Vector3(0,0,1);
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
-    static constexpr size_t defaultShadowMapSize = 2048; //in pixels
+    static constexpr size_t defaultShadowMapSize = 1024; //in pixels
 
     //probably should be kept normalized
     Vector3 direction;
