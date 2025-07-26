@@ -68,7 +68,7 @@ template<typename T>
 std::size_t Buffer<T>::nonEmptyElements() const{
     std::size_t result = 0;
     for(const T& it : data){
-        if(data!=defaultValue) result++;
+        if(it!=defaultValue) result++;
     }
     return result;
 }
@@ -76,7 +76,7 @@ std::size_t Buffer<T>::nonEmptyElements() const{
 template<typename T>
 bool Buffer<T>::isEmpty() const{
     for(const T& it : data){
-        if(data!=defaultValue) return false;
+        if(it!=defaultValue) return false;
     }
     return true;
 }

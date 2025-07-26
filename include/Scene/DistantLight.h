@@ -39,7 +39,7 @@ public:
 
     void setViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
         if(up.isParallel(direction)) up = secondChoiceUp;
-        viewMatrix = LightMatrices::lightView(bboxCenter, bboxCenter+direction, up);
+        viewMatrix = LightMatrices::lightView(bboxCenter+direction,bboxCenter, up);
     }
 
     Matrix4 getViewMatrix(){

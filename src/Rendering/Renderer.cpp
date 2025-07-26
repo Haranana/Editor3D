@@ -32,7 +32,7 @@ void Renderer::renderScene(){
     viewProjectionMatrix = ProjectionMatrix * viewMatrix;
     updateShadowMaps();
     renderSceneObjects();
-    highlightObjectsSelectedElements();
+    //highlightObjectsSelectedElements();
 }
 
 Vector4 Renderer::modelToClip(const Vector3& v, const Matrix4& modelMatrix){
@@ -855,6 +855,7 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
 
     if(debugMode == DEBUG_SHADOWMAP){
         lightSource.printShadowMatrix();
+        std::cout<<"ShadowMap non-empty elements: "<<lightSource.shadowMap.nonEmptyElements()<<"//"<<lightSource.shadowMap.size()<<std::endl;
     }
 }
 
