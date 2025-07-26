@@ -1,7 +1,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 #include <vector>
-
+#include <iostream>
 
 /*
  * Data structure similiar in usage to list of lists but
@@ -22,6 +22,7 @@ public:
     std::size_t size() const; //returns number of elements both default and non-default
     std::size_t nonEmptyElements() const; //returns nubmer of elements that are different than default v alue
     bool isEmpty() const;
+    void logNonEmptyElements() const;
     void clear();
 
 private:
@@ -84,6 +85,15 @@ bool Buffer<T>::isEmpty() const{
 template<typename T>
 void Buffer<T>::clear(){
     std::fill(data.begin(), data.end(), defaultValue);
+}
+
+template<typename T>
+void Buffer<T>::logNonEmptyElements() const{
+    for(std::size_t row=0; row<rows; row++){
+        for(std::size_t col=0; col<cols; col++){
+            if(data[row*cols+col]!=defaultValue) std::cout<<"row|col|val:  "<<row<<":"<<col<<":"<<data[row*cols+col]<<std::endl;
+        }
+    }
 }
 
 #endif // BUFFER_H

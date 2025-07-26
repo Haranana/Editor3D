@@ -591,7 +591,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
 
                             //shade check
-                            double lightMultiplier = 1.0;
+                            const double SHADOW_INTENSITY = 0.2;
+                            double lightMultiplier = 1;
                             if(debugMode == DEBUG_SHADOWMAP){
                                 std::cout<<std::endl<<"Debug pixel [screen space]: "<<x<<":"<<y<<std::endl;
                             }
@@ -642,7 +643,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   distantLight->direction, interpolatedWorldSpaceFaceNormal, distantLight->intensity
                                                                   );
+                                             //finalColor = Colors::White; //white - light
                                         }else{
+                                            //finalColor = Colors::Red; //red - shadow
+                                            lightMultiplier = SHADOW_INTENSITY;
                                             if (debugMode == DEBUG_SHADOWMAP){
                                                 std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
                                             }
@@ -726,13 +730,22 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
             Matrix4 MVP = lightProjection * lightView * curObject->transform.getTransMatrix();
 
             //clipping preprocess
-            std::vector<Vector4> clipVertices;
+            std::vector<ClippingManager::ClippedVertex> clipVertices;
             for(size_t i = 0; i < curObject->vertices.size(); i++){
                 const Vector3& localSpaceVertex = curObject->vertices[i];
 
+
                 Vector4 clipSpaceVertex = MVP * Vectors::vector3to4(localSpaceVertex);
+                Vector3 worldSpaceVertex = modelToWorld(localSpaceVertex, curObject->transform.getTransMatrix());
+                double invertedW = 1.0/clipSpaceVertex.w;
                 clipVertices.push_back(
-                    clipSpaceVertex
+                    {
+                    clipSpaceVertex,
+                    invertedW,
+                    worldSpaceVertex * invertedW,
+                     Vector3(),
+                     Vector3()
+                    }
                 );
             }
 
@@ -740,19 +753,19 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
             {
 
                 //original vertices in clip-space
-                Vector4 cv0 = clipVertices[curObject->faceVertexIndices[face    ]];
-                Vector4 cv1 = clipVertices[curObject->faceVertexIndices[face + 1]];
-                Vector4 cv2 = clipVertices[curObject->faceVertexIndices[face + 2]];
+                ClippingManager::ClippedVertex cv0 = clipVertices[curObject->faceVertexIndices[face    ]];
+                ClippingManager::ClippedVertex cv1 = clipVertices[curObject->faceVertexIndices[face + 1]];
+                ClippingManager::ClippedVertex cv2 = clipVertices[curObject->faceVertexIndices[face + 2]];
 
                 //clipping triangle
-                std::vector<Vector4> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
+                std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
                 if (clippedPoly.size() < 3) continue;
 
                 // clip -> ndc -> screen - > screen with normalized depth
                 std::vector<Vector3> screenVerticesWithDepth;
                 screenVerticesWithDepth.reserve(clippedPoly.size());
-                for (Vector4& cv : clippedPoly){
-                    Vector3 normalizedClipVertex = clipToNdc(cv);
+                for (ClippingManager::ClippedVertex& cv : clippedPoly){
+                    Vector3 normalizedClipVertex = clipToNdc(cv.clip);
                     if(debugMode == DEBUG_SHADOWMAP){
                         if (std::abs(normalizedClipVertex.x) > 1.001 ||
                             std::abs(normalizedClipVertex.y) > 1.001 ||
@@ -767,7 +780,7 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
                     normalizedClipVertex.y = std::clamp(normalizedClipVertex.y, -1.0, 1.0);
                     Vector2 screenSpaceVertex = Vector2(int(std::round( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMap.getCols()-1) ) ) ,
                                                         std::round(int( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMap.getRows()-1) )));
-                    screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.z/cv.w)+1.0)*0.5));
+                    screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.clip.z/cv.clip.w)+1.0)*0.5));
 
                     if(debugMode == DEBUG_SHADOWMAP){
                         if (screenSpaceVertex.x < 0 || screenSpaceVertex.x >= lightSource.shadowMap.getCols() ||
@@ -797,9 +810,9 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
                     Vector3& B = screenVerticesWithDepth[k];
                     Vector3& C = screenVerticesWithDepth[k+1];
 
-                    Vector4 v0 = clippedPoly[0];
-                    Vector4 v1 = clippedPoly[k];
-                    Vector4 v2 = clippedPoly[k+1];
+                    ClippingManager::ClippedVertex v0 = clippedPoly[0];
+                    ClippingManager::ClippedVertex v1 = clippedPoly[k];
+                    ClippingManager::ClippedVertex v2 = clippedPoly[k+1];
 
                     // bounding box for rasterization
                     // beyond this rectangle there's no need to make further checks
@@ -828,10 +841,14 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
                                 double w2 = 1.0 - w0 - w1;
                                 if (w0<0 || w1<0 || w2<0) continue;
 
+                                double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+                                Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
 
-                                double invW0 = 1.0 / v0.w;
-                                double invW1 = 1.0 / v1.w;
-                                double invW2 = 1.0 / v2.w;
+                                /*
+                                double invW0 = 1.0 / v0.clip.w;
+                                double invW1 = 1.0 / v1.clip.w;
+                                double invW2 = 1.0 / v2.clip.w;
+
 
                                 double denom = w0*invW0      + w1*invW1      + w2*invW2;
                                 double ndcZ  = (w0*v0.z*invW0 + w1*v1.z*invW1 + w2*v2.z*invW2) / denom;
@@ -841,9 +858,17 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
                                 double depth = ndcZ * 0.5 + 0.5;     // ndcZ normalized to  0 … 1
                                 //int sx = int((ndcX*0.5+0.5)*(lightSource.shadowMap.getCols()-1)); //ndcX to shadowMap pixel
                                 //int sy = int((1-(ndcY*0.5+0.5))*(lightSource.shadowMap.getRows()-1)); //ndcY to shadowMap pixel
+                                */
 
-                                if (depth < lightSource.shadowMap[y][x])
-                                    lightSource.shadowMap[y][x] = depth;
+                                Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                                float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (lightSource.shadowMap.getCols() - 1)));
+                                int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (lightSource.shadowMap.getRows() - 1)));
+
+
+                                if (depthInLightView < lightSource.shadowMap[y][x])
+                                    lightSource.shadowMap[y][x] = depthInLightView;
                         }
                     }
 
@@ -856,6 +881,7 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
     if(debugMode == DEBUG_SHADOWMAP){
         lightSource.printShadowMatrix();
         std::cout<<"ShadowMap non-empty elements: "<<lightSource.shadowMap.nonEmptyElements()<<"//"<<lightSource.shadowMap.size()<<std::endl;
+        lightSource.shadowMap.logNonEmptyElements();
     }
 }
 

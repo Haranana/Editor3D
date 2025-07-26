@@ -49,7 +49,7 @@ public:
         DEBUG_SHADOWMAP,
         NONE
     };
-    constexpr static DebugMode debugMode = DEBUG_SHADOWMAP;
+    constexpr static DebugMode debugMode = NONE;
 
     Renderer(
         std::shared_ptr<QImage> img,

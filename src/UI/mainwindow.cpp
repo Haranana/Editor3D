@@ -502,12 +502,14 @@ void MainWindow::loadTestScene(){
     floor2->transform.setAngleX(1.57);
     floor2->viewportDisplay.color = Colors::Purple;
          */
+
+    /*
     auto floor = std::make_shared<Cube>();
     scene->addObject(floor);
     QString itemTextFloor = QString("floor");
     objectsList->addItem(itemTextFloor);
     floor->transform.setScales(Vector3(0.5,0.5,0.5));
-    floor->transform.setPositionX(-100);
+    floor->transform.setPositionX(-50);
     floor->viewportDisplay.color = Colors::Green;
 
     auto cube2 = std::make_shared<Cube>();
@@ -515,7 +517,7 @@ void MainWindow::loadTestScene(){
     QString itemTextCube2 = QString("Cube2");
     objectsList->addItem(itemTextCube2);
     cube2->transform.setScales(Vector3(0.1,0.1,0.1));
-    cube2->transform.setPositionX(-200);
+    cube2->transform.setPositionX(-150);
     cube2->viewportDisplay.color = Colors::Blue;
 
     auto cube = std::make_shared<Cube>();
@@ -524,7 +526,37 @@ void MainWindow::loadTestScene(){
     objectsList->addItem(itemTextCube);
     cube->transform.setScales(Vector3(0.1,0.1,0.1));
     cube->transform.setAngleX(0.7);
+    cube->transform.setPositionX(50);
     cube->viewportDisplay.color = Colors::Blue;
+    */
+
+    /*
+    auto cube = std::make_shared<Cube>();
+    scene->addObject(cube);
+    QString itemTextCube = QString("Cube");
+    objectsList->addItem(itemTextCube);
+    cube->transform.setScales(Vector3(0.5,0.5,0.5));
+    cube->transform.setPositionX(-50);
+    cube->viewportDisplay.color = Colors::Purple;
+
+    */
+
+    auto cube = std::make_shared<Cube>();
+    scene->addObject(cube);
+    QString itemTextCube = QString("Cube");
+    objectsList->addItem(itemTextCube);
+    cube->transform.setScales(Vector3(0.01,0.5,0.5));
+    cube->transform.setPositionX(-50);
+    cube->viewportDisplay.color = Colors::Purple;
+
+
+    auto cube2 = std::make_shared<Cube>();
+    scene->addObject(cube2);
+    QString itemTextCube2 = QString("Cube2");
+    objectsList->addItem(itemTextCube2);
+    cube2->transform.setScales(Vector3(0.01,0.5,0.5));
+    cube2->transform.setPositionX(0);
+    cube2->viewportDisplay.color = Colors::Blue;
 
     //Vector3 lightDirection(0.0 , 1.0 , 1.0);
     Vector3 lightDirection(1.0 , 0.0 , 0.0);
