@@ -651,23 +651,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                 std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
                                             }
                                         }
-
-                                        /*
-                                        if(debugMode == DEBUG_SHADOWMAP){
-                                            if(isInShadow){
-                                                finalColor = Colors::Purple;
-                                            }else{
-                                                finalColor = Colors::Orange;
-                                            }
-                                        }*/
                                     }
                                 }
                             }
-                            /*
-                            finalColor = shadingManager.get()->shadeColorFR(
-                                getCamera()->transform.getPosition(),
-                                interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
-                            */
+
 
                             finalColor = baseColor * lightMultiplier;
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
@@ -678,7 +665,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             finalColor = Vectors::vector3ToColor(interpolatedColor);
                         }
 
-                        //if(finalColor!=Colors::Black && finalColor!=Colors::Gray) qDebug() << finalColor.B << " " << finalColor.G << " " << finalColor.R<< " "<< finalColor.A;
                         if (drawPixel(x, y, depth, finalColor)) {
                             Renderer::IdBufferElement fillEl;
                             fillEl.objectId     = objId;
@@ -725,8 +711,6 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
 
-
-            // Vector4 result = camera->getProjectionMatrix() * camera->getViewMatrix() * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
             Matrix4 MVP = lightProjection * lightView * curObject->transform.getTransMatrix();
 
             //clipping preprocess
@@ -844,28 +828,9 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
                                 double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
                                 Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
 
-                                /*
-                                double invW0 = 1.0 / v0.clip.w;
-                                double invW1 = 1.0 / v1.clip.w;
-                                double invW2 = 1.0 / v2.clip.w;
-
-
-                                double denom = w0*invW0      + w1*invW1      + w2*invW2;
-                                double ndcZ  = (w0*v0.z*invW0 + w1*v1.z*invW1 + w2*v2.z*invW2) / denom;
-                                //double ndcX = (w0*v0.x*invW0 + w1*v1.x*invW1 + w2*v2.x*invW2)/denom;
-                                //double ndcY = (w0*v0.y*invW0 + w1*v1.y*invW1 + w2*v2.y*invW2)/denom;
-
-                                double depth = ndcZ * 0.5 + 0.5;     // ndcZ normalized to  0 … 1
-                                //int sx = int((ndcX*0.5+0.5)*(lightSource.shadowMap.getCols()-1)); //ndcX to shadowMap pixel
-                                //int sy = int((1-(ndcY*0.5+0.5))*(lightSource.shadowMap.getRows()-1)); //ndcY to shadowMap pixel
-                                */
-
                                 Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
                                 Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
                                 float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-                                int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (lightSource.shadowMap.getCols() - 1)));
-                                int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (lightSource.shadowMap.getRows() - 1)));
-
 
                                 if (depthInLightView < lightSource.shadowMap[y][x])
                                     lightSource.shadowMap[y][x] = depthInLightView;
@@ -886,23 +851,8 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
 }
 
 void Renderer::updateShadowMaps(){
-    //frustum to world
-    std::vector<Vector3> cameraFrustum = camera->getFrustum();
-    /*
-    std::vector<Vector3> worldSpaceCameraFrustum;
 
-    for(Vector3& v : cameraFrustum){
-        worldSpaceCameraFrustum.push_back(modelToWorld(v , camera->transform.getTransMatrix()));
-    }*/
-    /*
-    if(debugMode == DEBUG_SHADOWMAP){
-        for(const Vector3& v : cameraFrustum){
-            qDebug()<<"camera Frustum: "<<v;
-        }
-        for(Vector3& v : worldSpaceCameraFrustum){
-            qDebug()<<"worldSpaceCameraFrustum: "<<v;
-        }
-    }*/
+    std::vector<Vector3> cameraFrustum = camera->getFrustum();
 
     //filling shadow maps of light sources
     for(std::shared_ptr<Light>lightSource : scene->lightSources){
@@ -944,19 +894,19 @@ void Renderer::updateShadowMaps(){
                 const double padXY = 0.05 * std::max(maxX - minX, maxY - minY);
                 const double padZ  = 0.05 * (maxZ - minZ);
 
-                // 1. back-off światła
-                double shift = maxZ + padZ;                     // punkt najbardziej z przodu
+                // light backoff
+                double shift = maxZ + padZ;                     // point closest to camera
                 Matrix4 backOff = Matrices4::translation(0,0,-shift);
                 lightView = backOff * lightView;
 
-                // 2. przelicz bbox Z po cofnięciu
+                // calculate bbox Z after backOff
                 for (auto& v : cameraFrustum) {
                     Vector3 inLS = Vectors::vector4to3(lightView * Vectors::vector3to4(v));
                     minZ = std::min(minZ, inLS.z);
                     maxZ = std::max(maxZ, inLS.z);
                 }
 
-                // 3. near / far
+                // calculate near and far and set proj matrix
                 double nearDist = 0.1;
                 double farDist  = (-minZ) + padZ;
 
@@ -966,16 +916,9 @@ void Renderer::updateShadowMaps(){
                     nearDist, farDist
                     );
 
-                /*
-                double nearPlane = minZ - padZ;   //  najbardziej UJEMNY punkt  (za światłem)
-                double farPlane  = maxZ + padZ;   //  najbardziej DODATNI punkt (przed światłem)/  dalsze punkty (te najbardziej ujemne)
 
-                distantLight->setProjectionMatrix(minX - padXY , maxX + padXY,minY - padXY,  maxY + padXY, nearPlane,farPlane);
-                */
                 Matrix4 lightProjection = distantLight->getProjectionMatrix();
                 if(debugMode == DEBUG_SHADOWMAP){
-                    Matrix4 ligthtViewProjection = lightProjection * lightView;
-
                     std::cout << "Ortho projection:\n" << lightProjection << std::endl;
 
                     std::cout<<"bbox in lightviewproj: "<<std::endl;
@@ -985,7 +928,6 @@ void Renderer::updateShadowMaps(){
                         Vector3 ndc = Vector3(proj.x / proj.w, proj.y / proj.w, proj.z / proj.w);
                         std::cout << "NDC: " << ndc << std::endl;
                     }
-
                 }
                 shadowMapDepthPass((*distantLight), lightView, lightProjection);
                 //depth pass - filling shadow map of current light source
