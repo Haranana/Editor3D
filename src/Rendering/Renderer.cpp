@@ -933,7 +933,15 @@ void Renderer::updateShadowMaps(){
                 //depth pass - filling shadow map of current light source
 
             }
-        }
+        }else if(lightSource->lightType == Light::LightType::POINT){
+            if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
+                //get light view matrices
+
+            }
+        }else if(lightSource->lightType == Light::LightType::SPOT){
+            if(auto pointLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+
+            }
     }
 }
 
