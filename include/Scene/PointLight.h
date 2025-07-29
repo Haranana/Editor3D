@@ -13,7 +13,7 @@ public:
     static constexpr double ASPECT = 1.0;
     static constexpr int defaultShadowMapSize = 512;
 
-    double range = 100.0;
+    double range = 200.0;
     double attenuationConstant = 1.0f;
     double attenuationLinear = 0.09f;
     double attenuationQuadratic = 0.032f;
@@ -33,7 +33,8 @@ public:
     }
 
     double getAttenuation(double distance){
-        return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
+        //return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
+        return 1.0;
     }
 
     void setViewMatrices(){

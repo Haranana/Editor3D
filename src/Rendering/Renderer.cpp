@@ -693,7 +693,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                            // float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
                                             float depthInLightView = (interpolatedWorldSpaceCoords - lightSource->transform.getPosition()).length();
-                                            int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
+
+                                           int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
 
                                             if (debugMode == DEBUG_SHADOWMAP) {/*
@@ -719,11 +720,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             Vector3 lightDirection = (interpolatedWorldSpaceCoords - pointLight->transform.getPosition());
                                             double lightToPixelDistance = lightDirection.length();
                                             double lightAttenuation = pointLight->getAttenuation(lightToPixelDistance);
-                                            Vector3 normalizedLightDirection = lightDirection.normalize();
-                                           // if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
+                                            Vector3 normalizedLightDirection = lightDirection.normalize()*(-1.0);
+                                            //if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   normalizedLightDirection, interpolatedWorldSpaceFaceNormal, pointLight->intensity
-                                                                  ) * lightAttenuation;
+                                                                  ) ;
+                                            std::cout<<"Light mult: "<<lightMultiplier<<std::endl;
+                                            lightMultiplier*=lightAttenuation;
+                                            std::cout<<"Light mult, after att: "<<lightMultiplier<<std::endl;
+                                            if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated, lightMult: "<< lightMultiplier<<std::endl;
                                             //finalColor = Colors::White; //white - light
                                         }else{
                                             //finalColor = Colors::Red; //red - shadow
@@ -1200,12 +1205,14 @@ void Renderer::shadowMapDepthPass(PointLight& lightSource){
                                 double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
                                 Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
 
-                                Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix(shadowCubeFace) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
-                                Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-                                float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-
-                                if (depthInLightView < (*lightSource.shadowMaps[shadowCubeFace])[y][x])
+                                //Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix(shadowCubeFace) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                //Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                                //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                float depthInLightView = (interpolatedWorldSpaceCoords - lightSource.transform.getPosition()).length();
+                                if (depthInLightView < (*lightSource.shadowMaps[shadowCubeFace])[y][x]){
                                     (*lightSource.shadowMaps[shadowCubeFace])[y][x] = depthInLightView;
+                                    (*lightSource.shadowMaps[shadowCubeFace])[y][x] = std::min(lightSource.range, (*lightSource.shadowMaps[shadowCubeFace])[y][x]);
+                                }
                             }
                         }
 
