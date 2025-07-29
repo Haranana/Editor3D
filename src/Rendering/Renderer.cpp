@@ -593,9 +593,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             //shade check
                             const double SHADOW_INTENSITY = 0.2;
                             double lightMultiplier = 1;
+                            /*
                             if(debugMode == DEBUG_SHADOWMAP){
                                 std::cout<<std::endl<<"Debug pixel [screen space]: "<<x<<":"<<y<<std::endl;
-                            }
+                            }*/
                             for(std::shared_ptr<Light>lightSource : scene->lightSources){
                                 //cast Light to its proper subclass
                                 if(lightSource->lightType == Light::LightType::DISTANT){
@@ -620,26 +621,26 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
 
                                             if (debugMode == DEBUG_SHADOWMAP) {
-                                                std::cout << "u: " << u << " v: " << v << " sx: " << sx << " sy: " << sy
-                                                          << " depthInLightView: " << depthInLightView
-                                                          << " sm: " << distantLight->shadowMap[sy][sx] << std::endl;
-                                            }
+                                              //  std::cout << "u: " << u << " v: " << v << " sx: " << sx << " sy: " << sy
+                                               //           << " depthInLightView: " << depthInLightView
+                                                       //   << " sm: " << distantLight->shadowMap[sy][sx] << std::endl;
+                                            }//
 
                                             if (depthInLightView <= distantLight->shadowMap[sy][sx]){
                                                 if (debugMode == DEBUG_SHADOWMAP) {
-                                                    std::cout << "pixel not in shadow, because of depth check"<<std::endl;
+                                                  //  std::cout << "pixel not in shadow, because of depth check"<<std::endl;
                                                 }
                                                 isInShadow = false;
                                             }
                                         }else{
                                             if (debugMode == DEBUG_SHADOWMAP) {
-                                                std::cout << "pixel outside of shadowMap"<<std::endl;
+                                               // std::cout << "pixel outside of shadowMap"<<std::endl;
                                             }
                                             isInShadow = false;
                                         }
 
                                         if(!isInShadow){
-                                             if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
+                                            // if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   distantLight->direction, interpolatedWorldSpaceFaceNormal, distantLight->intensity
                                                                   );
@@ -648,14 +649,92 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             //finalColor = Colors::Red; //red - shadow
                                             lightMultiplier = SHADOW_INTENSITY;
                                             if (debugMode == DEBUG_SHADOWMAP){
-                                                std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
+                                                //std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
+                                            }
+                                        }
+                                    }
+                                }else if(lightSource->lightType == Light::LightType::POINT){
+                                    if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
+
+                                        //checking which face should be checked for shadows
+                                        Vector3 lightVector = interpolatedWorldSpaceCoords - pointLight->transform.getPosition();
+                                        double absX = std::fabs(lightVector.x), absY = std::fabs(lightVector.y), absZ = std::fabs(lightVector.z);
+                                        int face = 0;
+                                        if(absX >= absY && absX >= absZ){
+                                            if(lightVector.x >= 0){
+                                                face = 0;
+                                            }else{
+                                                face = 1;
+                                            }
+                                        }else if(absY >= absX && absY >= absZ){
+                                            if(lightVector.y >= 0){
+                                                face = 2;
+                                            }else{
+                                                face = 3;
+                                            }
+                                        }else if(absZ >= absX && absZ >= absY){
+                                            if(lightVector.z >= 0){
+                                                face = 4;
+                                            }else{
+                                                face = 5;
+                                            }
+                                        }
+
+                                        bool isInShadow = true;
+                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
+                                            //check if we are not trying to get element from outside the buffer
+                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+
+                                            //if something is outside shadowMap then it's definitely not in shadow
+                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+
+                                           // float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            float depthInLightView = (interpolatedWorldSpaceCoords - lightSource->transform.getPosition()).length();
+                                            int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
+                                            int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
+
+                                            if (debugMode == DEBUG_SHADOWMAP) {/*
+                                                std::cout << "u: " << u << " v: " << v << " sx: " << sx << " sy: " << sy
+                                                            << " depthInLightView: " << depthInLightView
+                                                          << " sm: " << (*pointLight->shadowMaps[face])[sy][sx] << std::endl;
+                                                */}
+
+                                            if (depthInLightView <= (*pointLight->shadowMaps[face])[sy][sx]){
+                                                if (debugMode == DEBUG_SHADOWMAP) {
+                                                   // std::cout << "pixel not in shadow, because of depth check"<<std::endl;
+                                                }
+                                                isInShadow = false;
+                                            }
+                                        }else{
+                                            if (debugMode == DEBUG_SHADOWMAP) {
+                                               // std::cout << "pixel outside of shadowMap"<<std::endl;
+                                            }
+                                            isInShadow = false;
+                                        }
+
+                                        if(!isInShadow){
+                                            Vector3 lightDirection = (interpolatedWorldSpaceCoords - pointLight->transform.getPosition());
+                                            double lightToPixelDistance = lightDirection.length();
+                                            double lightAttenuation = pointLight->getAttenuation(lightToPixelDistance);
+                                            Vector3 normalizedLightDirection = lightDirection.normalize();
+                                           // if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
+                                            lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
+                                                                  normalizedLightDirection, interpolatedWorldSpaceFaceNormal, pointLight->intensity
+                                                                  ) * lightAttenuation;
+                                            //finalColor = Colors::White; //white - light
+                                        }else{
+                                            //finalColor = Colors::Red; //red - shadow
+                                            lightMultiplier = SHADOW_INTENSITY;
+                                            if (debugMode == DEBUG_SHADOWMAP){
+                                              //  std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
                                             }
                                         }
                                     }
                                 }
                             }
-
-
                             finalColor = baseColor * lightMultiplier;
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                                    obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
@@ -698,6 +777,141 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                            edgeEl,
                            obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color);
             }
+        }
+    }
+}
+
+void Renderer::updateShadowMaps(){
+    if(debugMode == DEBUG_SHADOWMAP){
+        std::cout << "started updateShadowMaps, number of light sources on the scene: "<<scene->lightSources.size()<<std::endl;
+    }
+
+    std::vector<Vector3> cameraFrustum = camera->getFrustum();
+
+    //filling shadow maps of light sources
+    for(std::shared_ptr<Light>lightSource : scene->lightSources){
+        if(debugMode == DEBUG_SHADOWMAP){
+         //   std::cout << "if start" <<std::endl;
+        }
+        //cast Light to its proper subclass
+        if(lightSource->lightType == Light::LightType::DISTANT){
+            if(debugMode == DEBUG_SHADOWMAP){
+                std::cout << "Found distant light source"<<std::endl;
+            }
+            if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+
+
+                //get lightview Matrix
+                Vector3 bboxCenter = distantLight->getBBoxCenter(cameraFrustum);
+                distantLight->setViewMatrix(bboxCenter);
+                Matrix4 lightView = distantLight->getViewMatrix();
+
+                if(debugMode == DEBUG_SHADOWMAP){
+                    std::cout<<"Eye: "<<bboxCenter<<std::endl;
+                    std::cout<<"light View: \n"<<lightView<<"\n"<<std::endl;
+                }
+
+                std::vector<Vector3> lightSpaceCameraFrustum;
+                for(Vector3& v : cameraFrustum){
+                    lightSpaceCameraFrustum.push_back(Vectors::vector4to3(lightView * Vectors::vector3to4(v)));
+                }
+
+                //calculating bounding box in light space
+                double minX = lightSpaceCameraFrustum[0].x, maxX = lightSpaceCameraFrustum[0].x,
+                    minY = lightSpaceCameraFrustum[0].y, maxY = lightSpaceCameraFrustum[0].y,
+                    minZ = lightSpaceCameraFrustum[0].z, maxZ = lightSpaceCameraFrustum[0].z;
+
+
+
+                for(Vector3& v : lightSpaceCameraFrustum){
+                    if(v.x > maxX) maxX = v.x;
+                    else if(v.x < minX ) minX = v.x;
+                    if(v.y > maxY) maxY = v.y;
+                    else if(v.y < minY ) minY = v.y;
+                    if(v.z > maxZ) maxZ = v.z;
+                    else if(v.z < minZ ) minZ = v.z;
+                }
+
+                const double padXY = 0.05 * std::max(maxX - minX, maxY - minY);
+                const double padZ  = 0.05 * (maxZ - minZ);
+
+                // light backoff
+                double shift = maxZ + padZ;                     // point closest to camera
+                Matrix4 backOff = Matrices4::translation(0,0,-shift);
+                lightView = backOff * lightView;
+
+                // calculate bbox Z after backOff
+                for (auto& v : cameraFrustum) {
+                    Vector3 inLS = Vectors::vector4to3(lightView * Vectors::vector3to4(v));
+                    minZ = std::min(minZ, inLS.z);
+                    maxZ = std::max(maxZ, inLS.z);
+                }
+
+                // calculate near and far and set proj matrix
+                double nearDist = 0.1;
+                double farDist  = (-minZ) + padZ;
+
+                distantLight->setProjectionMatrix(
+                    minX - padXY, maxX + padXY,
+                    minY - padXY, maxY + padXY,
+                    nearDist, farDist
+                    );
+
+
+                Matrix4 lightProjection = distantLight->getProjectionMatrix();
+                if(debugMode == DEBUG_SHADOWMAP){
+                    std::cout << "Ortho projection:\n" << lightProjection << std::endl;
+
+                    std::cout<<"bbox in lightviewproj: "<<std::endl;
+                    for(Vector3& v : cameraFrustum){
+                        Vector4 v4 = Vectors::vector3to4(v);
+                        Vector4 proj = lightProjection * lightView * v4;
+                        Vector3 ndc = Vector3(proj.x / proj.w, proj.y / proj.w, proj.z / proj.w);
+                        std::cout << "NDC: " << ndc << std::endl;
+                    }
+                }
+                shadowMapDepthPass((*distantLight), lightView, lightProjection);
+                //depth pass - filling shadow map of current light source
+
+            }
+        }else if(lightSource->lightType == Light::LightType::POINT){
+            if(debugMode == DEBUG_SHADOWMAP){
+                std::cout << "Found point light source"<<std::endl;
+            }
+            if(std::shared_ptr<PointLight> pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
+
+
+                //get light view matrices
+                pointLight->setViewMatrices();
+
+                double near = 0.1;
+                double far = pointLight->range;
+
+                pointLight->setProjectionMatrix(near, far);
+                if(debugMode == DEBUG_SHADOWMAP){
+                    std::cout << "perspective projection:\n" << pointLight->getProjectionMatrix() << std::endl;
+                }
+
+                shadowMapDepthPass((*pointLight));
+
+
+            }
+
+        }else if(lightSource->lightType == Light::LightType::SPOT){
+            if(debugMode == DEBUG_SHADOWMAP){
+                std::cout << "somehow found spot light source"<<std::endl;
+            }
+            if(auto pointLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+
+
+            }
+        }else{
+            if(debugMode == DEBUG_SHADOWMAP){
+                std::cout << "found inidentified light source"<<std::endl;
+            }
+        }
+        if(debugMode == DEBUG_SHADOWMAP){
+           // std::cout << "if end" <<std::endl;
         }
     }
 }
@@ -850,98 +1064,168 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
     }
 }
 
-void Renderer::updateShadowMaps(){
+void Renderer::shadowMapDepthPass(PointLight& lightSource){
 
-    std::vector<Vector3> cameraFrustum = camera->getFrustum();
+    //clear shadowMaps
+    for(auto map: lightSource.shadowMaps){
+        map->clear();
+    }
 
-    //filling shadow maps of light sources
-    for(std::shared_ptr<Light>lightSource : scene->lightSources){
-        //cast Light to its proper subclass
-        if(lightSource->lightType == Light::LightType::DISTANT){
-            if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+    //std::vector<Matrix4> MVP(6 , Matrices4::identity());
+    if(debugMode == DEBUG_SHADOWMAP){
+       // std::cout<<"starting shadowMap depth pass"<<std::endl;
+    }
+    for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
+        std::shared_ptr<Object3D> object = scene->getObject(objIt);
+        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+            if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
+            //std::cout<<"1"<<std::endl;
+            for(int shadowCubeFace = 0; shadowCubeFace < 6; shadowCubeFace++){
+                Matrix4 MVP = lightSource.getProjectionMatrix() * lightSource.getViewMatrix(shadowCubeFace) * curObject->transform.getTransMatrix();
 
-                //get lightview Matrix
-                Vector3 bboxCenter = distantLight->getBBoxCenter(cameraFrustum);
-                distantLight->setViewMatrix(bboxCenter);
-                Matrix4 lightView = distantLight->getViewMatrix();
+                //std::cout<<"2"<<std::endl;
+                //clipping preprocess
+                std::vector<ClippingManager::ClippedVertex> clipVertices;
+                for(size_t i = 0; i < curObject->vertices.size(); i++){
+                    const Vector3& localSpaceVertex = curObject->vertices[i];
 
-                if(debugMode == DEBUG_SHADOWMAP){
-                    std::cout<<"Eye: "<<bboxCenter<<std::endl;
-                    std::cout<<"light View: \n"<<lightView<<"\n"<<std::endl;
+
+                    Vector4 clipSpaceVertex = MVP * Vectors::vector3to4(localSpaceVertex);
+                    Vector3 worldSpaceVertex = modelToWorld(localSpaceVertex, curObject->transform.getTransMatrix());
+                    double invertedW = 1.0/clipSpaceVertex.w;
+                    clipVertices.push_back(
+                        {
+                            clipSpaceVertex,
+                            invertedW,
+                            worldSpaceVertex * invertedW,
+                            Vector3(),
+                            Vector3()
+                        }
+                        );
                 }
+                for (size_t face = 0; face < curObject->faceVertexIndices.size(); face += 3)
+                {
+                    //original vertices in clip-space
+                    ClippingManager::ClippedVertex cv0 = clipVertices[curObject->faceVertexIndices[face    ]];
+                    ClippingManager::ClippedVertex cv1 = clipVertices[curObject->faceVertexIndices[face + 1]];
+                    ClippingManager::ClippedVertex cv2 = clipVertices[curObject->faceVertexIndices[face + 2]];
 
-                std::vector<Vector3> lightSpaceCameraFrustum;
-                for(Vector3& v : cameraFrustum){
-                    lightSpaceCameraFrustum.push_back(Vectors::vector4to3(lightView * Vectors::vector3to4(v)));
-                }
+                    //clipping triangle
+                    std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
+                    if (clippedPoly.size() < 3) continue;
 
-                //calculating bounding box in light space
-                double minX = lightSpaceCameraFrustum[0].x, maxX = lightSpaceCameraFrustum[0].x,
-                    minY = lightSpaceCameraFrustum[0].y, maxY = lightSpaceCameraFrustum[0].y,
-                    minZ = lightSpaceCameraFrustum[0].z, maxZ = lightSpaceCameraFrustum[0].z;
-
-
-
-                for(Vector3& v : lightSpaceCameraFrustum){
-                    if(v.x > maxX) maxX = v.x;
-                    else if(v.x < minX ) minX = v.x;
-                    if(v.y > maxY) maxY = v.y;
-                    else if(v.y < minY ) minY = v.y;
-                    if(v.z > maxZ) maxZ = v.z;
-                    else if(v.z < minZ ) minZ = v.z;
-                }
-
-                const double padXY = 0.05 * std::max(maxX - minX, maxY - minY);
-                const double padZ  = 0.05 * (maxZ - minZ);
-
-                // light backoff
-                double shift = maxZ + padZ;                     // point closest to camera
-                Matrix4 backOff = Matrices4::translation(0,0,-shift);
-                lightView = backOff * lightView;
-
-                // calculate bbox Z after backOff
-                for (auto& v : cameraFrustum) {
-                    Vector3 inLS = Vectors::vector4to3(lightView * Vectors::vector3to4(v));
-                    minZ = std::min(minZ, inLS.z);
-                    maxZ = std::max(maxZ, inLS.z);
-                }
-
-                // calculate near and far and set proj matrix
-                double nearDist = 0.1;
-                double farDist  = (-minZ) + padZ;
-
-                distantLight->setProjectionMatrix(
-                    minX - padXY, maxX + padXY,
-                    minY - padXY, maxY + padXY,
-                    nearDist, farDist
-                    );
+                    // clip -> ndc -> screen - > screen with normalized depth
+                    std::vector<Vector3> screenVerticesWithDepth;
+                    screenVerticesWithDepth.reserve(clippedPoly.size());
+                    for (ClippingManager::ClippedVertex& cv : clippedPoly){
+                        Vector3 normalizedClipVertex = clipToNdc(cv.clip);
+                        if(debugMode == DEBUG_SHADOWMAP){
+                            if (std::abs(normalizedClipVertex.x) > 1.001 ||
+                                std::abs(normalizedClipVertex.y) > 1.001 ||
+                                std::abs(normalizedClipVertex.z) > 1.001) {
+                                std::cerr << "[WARN] Out of NDC: "
+                                          << normalizedClipVertex.x << ", "
+                                          << normalizedClipVertex.y << ", "
+                                          << normalizedClipVertex.z << " (before clamp)\n";
+                            }
+                        }
+                        normalizedClipVertex.x = std::clamp(normalizedClipVertex.x, -1.0, 1.0);
+                        normalizedClipVertex.y = std::clamp(normalizedClipVertex.y, -1.0, 1.0);
 
 
-                Matrix4 lightProjection = distantLight->getProjectionMatrix();
-                if(debugMode == DEBUG_SHADOWMAP){
-                    std::cout << "Ortho projection:\n" << lightProjection << std::endl;
+                        Vector2 screenSpaceVertex = Vector2(int(std::round( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMaps[shadowCubeFace]->getCols()-1) ) ) ,
+                                                            std::round(int( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMaps[shadowCubeFace]->getRows()-1) )));
 
-                    std::cout<<"bbox in lightviewproj: "<<std::endl;
-                    for(Vector3& v : cameraFrustum){
-                        Vector4 v4 = Vectors::vector3to4(v);
-                        Vector4 proj = lightProjection * lightView * v4;
-                        Vector3 ndc = Vector3(proj.x / proj.w, proj.y / proj.w, proj.z / proj.w);
-                        std::cout << "NDC: " << ndc << std::endl;
+                        screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.clip.z/cv.clip.w)+1.0)*0.5));
+
+                        if(debugMode == DEBUG_SHADOWMAP){
+                            if (screenSpaceVertex.x < 0 || screenSpaceVertex.x >= lightSource.shadowMaps[shadowCubeFace]->getCols() ||
+                                screenSpaceVertex.y < 0 || screenSpaceVertex.y >= lightSource.shadowMaps[shadowCubeFace]->getRows()) {
+                                std::cerr << "[WARN] Out of SM: ("
+                                          << screenSpaceVertex.x << ", "
+                                          << screenSpaceVertex.y << ") of "
+                                          << lightSource.shadowMaps[shadowCubeFace]->getCols() << "x"
+                                          << lightSource.shadowMaps[shadowCubeFace]->getRows() << "\n";
+
+                            }
+                            float depth = screenVerticesWithDepth.front().z;
+                            if (depth < -0.001 || depth > 1.001) {
+                                std::cerr << "[WARN] Bad depth: " << depth << "\n";
+                            }
+                            //std::cout<<"vertex in Screen: "<<screenVerticesWithDepth.front()<<std::endl;
+                        }
+                    }
+
+
+
+                    //Fill-pass
+                    for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
+                    {
+                        // Fan-triangulation
+                        Vector3& A = screenVerticesWithDepth[0];
+                        Vector3& B = screenVerticesWithDepth[k];
+                        Vector3& C = screenVerticesWithDepth[k+1];
+
+                        ClippingManager::ClippedVertex v0 = clippedPoly[0];
+                        ClippingManager::ClippedVertex v1 = clippedPoly[k];
+                        ClippingManager::ClippedVertex v2 = clippedPoly[k+1];
+
+                        // bounding box for rasterization
+                        // beyond this rectangle there's no need to make further checks
+                        int minX = std::max(0, int(std::floor(std::min({A.x,B.x,C.x}))));
+                        int maxX = std::min((int)lightSource.shadowMaps[shadowCubeFace]->getCols()-1, int(std::ceil(std::max({A.x,B.x,C.x}))));
+                        int minY = std::max(0, int(std::floor(std::min({A.y,B.y,C.y}))));
+                        int maxY = std::min((int)lightSource.shadowMaps[shadowCubeFace]->getRows()-1, int(std::ceil(std::max({A.y,B.y,C.y}))));
+
+                        //calculating area of triangle
+                        //if triangle's area = 0, nothing to raster
+                        //inv area will be used in further calculations
+                        double area = (B.x - A.x)*(C.y - A.y)
+                                      - (B.y - A.y)*(C.x - A.x);
+                        if (std::abs(area) < 1e-8) continue;
+                        double invArea = 1.0 / area;
+
+
+                        for (int y = minY; y <= maxY; y++) {
+                            for (int x = minX; x <= maxX; x++) {
+
+                                double px = x + 0.5, py = y + 0.5; //middle of current pixel
+
+                                //checking if pixel is withing triangle using baricentric coordinates
+                                double w0 = ((B.x-px)*(C.y-py) - (B.y-py)*(C.x-px)) * invArea;
+                                double w1 = ((C.x-px)*(A.y-py) - (C.y-py)*(A.x-px)) * invArea;
+                                double w2 = 1.0 - w0 - w1;
+                                if (w0<0 || w1<0 || w2<0) continue;
+
+                                double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+                                Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
+
+                                Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix(shadowCubeFace) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                                float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+
+                                if (depthInLightView < (*lightSource.shadowMaps[shadowCubeFace])[y][x])
+                                    (*lightSource.shadowMaps[shadowCubeFace])[y][x] = depthInLightView;
+                            }
+                        }
+
                     }
                 }
-                shadowMapDepthPass((*distantLight), lightView, lightProjection);
-                //depth pass - filling shadow map of current light source
-
             }
-        }else if(lightSource->lightType == Light::LightType::POINT){
-            if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
-                //get light view matrices
 
-            }
-        }else if(lightSource->lightType == Light::LightType::SPOT){
-            if(auto pointLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+        }
+    }
 
-            }
+    if(debugMode == DEBUG_SHADOWMAP){
+
+        lightSource.printShadowMaps();
+        for(int face = 0; face<6; face++){
+            std::cout<<"ShadowMap "<<face<<" non-empty elements: "<<lightSource.shadowMaps[face]->nonEmptyElements()<<"//"<<lightSource.shadowMaps[face]->size()<<std::endl;
+            std::cout<<"lightView matrix "<<face<<" :\n"<<lightSource.getViewMatrix(face)<<std::endl;
+        }
+        //lightSource.shadowMap.logNonEmptyElements();
+
     }
 }
+
 

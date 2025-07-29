@@ -19,6 +19,9 @@
 #include <limits>
 #include "Math/Matrices.h"
 #include "Scene/DistantLight.h"
+#include "Scene/PointLight.h"
+#include "Scene/SpotLight.h"
+
 
 /* Draws Scene Objects on Rendering Surface according to object Hierarchy
  * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here
@@ -49,7 +52,7 @@ public:
         DEBUG_SHADOWMAP,
         NONE
     };
-    constexpr static DebugMode debugMode = NONE;
+    constexpr static DebugMode debugMode = DEBUG_SHADOWMAP;
 
     Renderer(
         std::shared_ptr<QImage> img,
@@ -95,8 +98,10 @@ public:
 
     std::shared_ptr<ClippingManager> clippingManager;
     std::shared_ptr<ShadingManager> shadingManager;
-    void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
+
     void updateShadowMaps();
+    void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
+    void shadowMapDepthPass(PointLight& lightSource);
 
 private:
     void renderObject( RenderableObject3D& obj, int objId);

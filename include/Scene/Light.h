@@ -18,7 +18,7 @@ public:
     double bias = 0.001;
     double intensity = 1.0;
     bool castsShadow = true;
-    LightType lightType = LightType::DISTANT;
+    LightType lightType;// = LightType::DISTANT;
 
 };
 

@@ -22,7 +22,7 @@ public:
     DistantLight(Vector3 direction) :
         direction(direction.normalize()) ,
         shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
-    {}
+    {lightType = LightType::DISTANT;}
 
     void printShadowMatrix(){
         QImage img(shadowMap.getCols(), shadowMap.getRows(), QImage::Format_Grayscale8);

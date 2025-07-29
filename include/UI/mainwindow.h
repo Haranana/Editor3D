@@ -75,6 +75,9 @@ private:
     void refreshScene();
     void loadTestScene();
 
+    void distantLightTestScene();
+    void pointLightTestScene();
+
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
     std::shared_ptr<Renderer> renderer;
