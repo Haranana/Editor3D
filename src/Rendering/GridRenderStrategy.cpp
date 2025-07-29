@@ -11,6 +11,7 @@
 
 void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, int objId)
 {
+    /*
     bool even = true;
 
 
@@ -77,5 +78,5 @@ void GridRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, 
         if(even) renderer.drawLine3D(screenVertexWithZ3, screenVertexWithZ1, object.viewportDisplay.color);
         even = even? false : true;
         */
-    }
+    //}
 }

@@ -48,7 +48,7 @@ public:
     //tekstura calego obiektu, byc moze w przyszlosci zostanie to zamienione na tekstury scian
     std::shared_ptr<Texture> texture;
 
-    std::unique_ptr<RenderStrategy> renderStrategy;
+    //std::unique_ptr<RenderStrategy> renderStrategy;
 
 };
 

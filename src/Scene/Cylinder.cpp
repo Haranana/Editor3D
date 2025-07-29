@@ -51,6 +51,6 @@ Cylinder::Cylinder(int radious, int height, int verticesInCircle) : height(heigh
     }
 
     transformedVertices = vertices;
-    renderStrategy = std::make_unique<RasterRenderStrategy>();
+    //renderStrategy = std::make_unique<RasterRenderStrategy>();
 
 }

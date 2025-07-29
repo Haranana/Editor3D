@@ -9,6 +9,7 @@
 #include "Rendering/Renderer.h"
 #include "Scene/RenderableObject3D.h"
 
+/*
 void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer, int objId)
 {
 
@@ -56,7 +57,7 @@ void BasicRenderStrategy::render(RenderableObject3D& object, Renderer& renderer,
 
 }
 
-
+*/
 
 
 

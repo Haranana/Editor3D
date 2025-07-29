@@ -30,11 +30,11 @@ SOURCES += \
     src/Rendering/BasicRenderStrategy.cpp \
     src/Rendering/ClippingManager.cpp \
     src/Rendering/Color.cpp \
-    src/Rendering/Colors.cpp \
     src/Rendering/FrontOnlyRenderStrategy.cpp \
     src/Rendering/GridRenderStrategy.cpp \
     src/Rendering/HitDetectionManager.cpp \
     src/Rendering/LinePainter.cpp \
+    src/Rendering/PaintTool.cpp \
     src/Rendering/PixelPainter.cpp \
     src/Rendering/RasterRenderStrategy.cpp \
     src/Rendering/Renderer.cpp \
@@ -77,7 +77,9 @@ HEADERS += \
     include/Rendering/FrontOnlyRenderStrategy.h \
     include/Rendering/GridRenderStrategy.h \
     include/Rendering/HitDetectionManager.h \
+    include/Rendering/IdBufferElement.h \
     include/Rendering/LinePainter.h \
+    include/Rendering/PaintTool.h \
     include/Rendering/PixelPainter.h \
     include/Rendering/RasterRenderStrategy.h \
     include/Rendering/RenderMethod.h \

@@ -956,7 +956,7 @@ void MainWindow::onSelectMenuChangeSelectMode(SelectMode newSelectMode){
 
 void MainWindow::onSceneDisplayClicked(int x, int y){
 
-    Renderer::IdBufferElement el = (*renderer->idBuffer)[y][x];
+    IdBufferElement el = (*renderer->getIdBuffer())[y][x];
 
     std::cout<<"X: "<<x<<"  :  Y: "<<y;
     std::cout<<"    | vertexID: "<<el.vertexId<<" | edge: "<<el.edgeVertices.first<<" : "<<el.edgeVertices.second

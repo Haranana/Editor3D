@@ -96,7 +96,7 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
 
     //renderStrategy = std::make_unique<BasicRenderStrategy>();
    // renderStrategy = std::make_unique<FrontOnlyRenderStrategy>();
-    renderStrategy = std::make_unique<BasicRenderStrategy>();
+   // renderStrategy = std::make_unique<BasicRenderStrategy>();
     displaySettings = std::make_unique<DisplaySettings>();
 
     textureCoords.resize(vertices.size() , Vector2(0.0,0.0));

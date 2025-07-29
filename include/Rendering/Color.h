@@ -19,9 +19,10 @@
 */
 class Color{
 public:
-    Color(int B, int G, int R, int A = 255);
-    Color(const Color& otherColor);
-    Color();
+    constexpr Color(int B, int G, int R, int A = 255) : B(B), G(G), R(R), A(A){}
+    constexpr Color() {};
+    constexpr Color(const Color& color): B(color.B), G(color.G), R(color.R), A(color.A) {}
+
 
     void set(int B, int G, int R, int A = 255);
 

@@ -21,38 +21,16 @@
 #include "Scene/DistantLight.h"
 #include "Scene/PointLight.h"
 #include "Scene/SpotLight.h"
+#include "IdBufferElement.h"
+#include "PaintTool.h"
 
-
-/* Draws Scene Objects on Rendering Surface according to object Hierarchy
- * Since the program is in very primitve stages and Objects consist only of lines, all logic will be happening here
- * the output of Renderer is then shown to the user
- * in the future, Renderer will also be probably used to rendering some UI elements such as selection arrows or grids
- */
-
-/* As for 09/07:
- * - Przechowuje id oraz z buffery
- * - przechowuje renderingSurface, scene i kamere
- * - przechowuje narzedzia do rysowania
- * - renderuje scene: wywoluje render() na kazdym aplikowalnym obiekcie
- * - przenoszeni vectory miedzy przestrzeniami
-*/
 class Renderer{
 public:
-
-    struct IdBufferElement{
-        bool isEmpty = true;
-        bool mock = false;
-        int objectId = -1;
-        int faceId = -1;
-        int vertexId = -1;
-        std::pair<int, int> edgeVertices = {-1,-1};
-    };
 
     enum DebugMode{
         DEBUG_SHADOWMAP,
         NONE
     };
-    constexpr static DebugMode debugMode = DEBUG_SHADOWMAP;
 
     Renderer(
         std::shared_ptr<QImage> img,
@@ -60,11 +38,23 @@ public:
         std::shared_ptr<Camera> camera);
 
     void renderScene();
+    void clearRenderingSurface();
 
     void setRenderingSurface(std::shared_ptr<RenderingSurface> newRenderingSurface);
-    void clearRenderingSurface();
     void setScene(std::shared_ptr<Scene> newScene);
     void setCamera(std::shared_ptr<Camera> newCamera);
+    std::shared_ptr<Camera> getCamera();
+    std::shared_ptr<Scene> getScene();
+    std::shared_ptr<RenderingSurface> getRenderingSurface();
+    std::shared_ptr<Buffer<IdBufferElement>> getIdBuffer();
+
+private:
+
+    void renderSceneObjects();
+    void renderObject( RenderableObject3D& obj, int objId);
+    void updateShadowMaps();
+    void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
+    void shadowMapDepthPass(PointLight& lightSource);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);
@@ -72,53 +62,28 @@ public:
     Vector3 worldToCamera(const Vector3& v);
     Vector3 clipToNdc(const Vector4& v);
     Vector2 ndcToScreen(const Vector3& v);
-
     Vector3 getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool inverse = false);
-    Vector3 faceNormalToWorld( Transform3D objTransform, const Vector3& normal);
+    Vector3 normalToWorld( Transform3D objTransform, const Vector3& normal);
 
-    //do poprawienia na perspective correct (1/z) Chyba juz jest idk
-    //probably should create different class, some Painter3D for those but eh
-    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, IdBufferElement& idBufferElement, const Color& color = Color(255,255,255,255));
-    void drawCircle3D(const Vector3& v, IdBufferElement& idBufferElement,int radius, const Color& color = Color(255,255,255,255));
-    void drawLine3D(const Vector3& vec1,  const Vector3& vec2, const Color& color = Color(255,255,255,255));
-    void drawCircle3D(const Vector3& v,int radius, const Color& color = Color(255,255,255,255));
-    void drawSquare3D(const Vector3& v,int radius, const Color& color = Color(255,255,255,255));
-    //Probuje pokolorowac dany pixel z uwzglednieniem zBuffora, zwraca informacje czy pixel zostal pokolorowany
-    bool drawPixel(int x, int y, double z, const Color& c);
+    void clearBuffers();
+    void updateCommonMatrices();
 
-    std::shared_ptr<Buffer<IdBufferElement>> idBuffer; //pewnie powinno byc prywatne
-    std::shared_ptr<Buffer<double>>zBuffer; //rowniez pewnie powinno byc prywatne
-    std::shared_ptr<Camera> getCamera();
-
-    std::shared_ptr<Scene> getScene();
-    std::shared_ptr<RenderingSurface> getRenderingSurface();
-
-    std::shared_ptr<PixelPainter> pixelPainter;
-    std::shared_ptr<LinePainter> linePainter;
-
-    std::shared_ptr<ClippingManager> clippingManager;
-    std::shared_ptr<ShadingManager> shadingManager;
-
-    void updateShadowMaps();
-    void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
-    void shadowMapDepthPass(PointLight& lightSource);
-
-private:
-    void renderObject( RenderableObject3D& obj, int objId);
-
-    Matrix4 viewProjectionMatrix;
-    Matrix4 viewMatrix;
-    Matrix4 ProjectionMatrix;
-
-    void renderSceneObjects();
-    void highlightObjectsSelectedElements();
+    constexpr static DebugMode debugMode = NONE;
 
     std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
-    //std::shared_ptr<std::vector<std::vector<float>>>zBuffer;
+    std::shared_ptr<Buffer<double>>zBuffer;
+    std::shared_ptr<Buffer<IdBufferElement>> idBuffer;
+    std::shared_ptr<PixelPainter> pixelPainter;
+    std::shared_ptr<LinePainter> linePainter;
+    std::shared_ptr<ClippingManager> clippingManager;
+    std::shared_ptr<ShadingManager> shadingManager;
 
-
+    PaintTool paintTool;
+    Matrix4 viewProjectionMatrix;
+    Matrix4 viewMatrix;
+    Matrix4 ProjectionMatrix;
 
 };
 

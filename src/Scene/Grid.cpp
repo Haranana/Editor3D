@@ -68,7 +68,7 @@ Grid::Grid(Grid::Orientation orientation, int linesInterval, int size) :orientat
             break;
     }
 
-    renderStrategy = std::make_unique<GridRenderStrategy>();
+    //renderStrategy = std::make_unique<GridRenderStrategy>();
     transformedVertices = vertices;
 
 
