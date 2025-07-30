@@ -23,6 +23,8 @@
 #include "Scene/SpotLight.h"
 #include "IdBufferElement.h"
 #include "PaintTool.h"
+#include "Math/Triangle.h"
+#include "Math/Triangle3.h"
 
 class Renderer{
 public:
@@ -69,6 +71,7 @@ private:
     void updateCommonMatrices();
 
     constexpr static DebugMode debugMode = NONE;
+    constexpr static double doubleBias = 1e-4;
 
     std::shared_ptr<RenderingSurface> renderingSurface;
     std::shared_ptr<Scene> scene;

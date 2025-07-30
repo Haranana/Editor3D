@@ -23,6 +23,7 @@ SOURCES += \
     src/Math/Matrix3.cpp \
     src/Math/Matrix4.cpp \
     src/Math/Transform3D.cpp \
+    src/Math/Triangle3.cpp \
     src/Math/Vector2.cpp \
     src/Math/Vector3.cpp \
     src/Math/Vector4.cpp \
@@ -63,6 +64,8 @@ HEADERS += \
     include/Math/Matrix3.h \
     include/Math/Matrix4.h \
     include/Math/Transform3D.h \
+    include/Math/Triangle.h \
+    include/Math/Triangle3.h \
     include/Math/UVProjector.h \
     include/Math/Vector2.h \
     include/Math/Vector3.h \

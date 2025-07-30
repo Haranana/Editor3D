@@ -49,6 +49,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     if(obj.displaySettings.get()->renderMode == DisplaySettings::RenderMode::NONE){
         return;
     }
+
     if(debugMode == DEBUG_SHADOWMAP){
         std::cout<<"\n\n\n===============================NEW FRAME========================\n\n"<<std::endl;
     }
@@ -61,17 +62,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const Color baseColor = obj.viewportDisplay.color;
     Color finalColor = baseColor;
 
-
-    //calculating object uv
-    /*
-    std::vector<Vector2> uv;
-    for (auto& v : obj.vertices){
-        uv.push_back(obj.textureCoords[ &v - &obj.vertices[0] ]);
-    }*/
-
-    //building clip-space for all vertices
+    //building clip-space for all vertices and depending on shading, getting color on vertices
     std::vector<ClippingManager::ClippedVertex> clipVertices;
-    std::vector<Vector2> uv;
     for(size_t i = 0; i < obj.vertices.size(); i++){
 
         const Vector3& localSpaceVertex = obj.vertices[i];
@@ -112,12 +104,14 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     {
 
         //original vertices in clip-space
-        ClippingManager::ClippedVertex cv0 = clipVertices[obj.faceVertexIndices[face    ]];
-        ClippingManager::ClippedVertex cv1 = clipVertices[obj.faceVertexIndices[face + 1]];
-        ClippingManager::ClippedVertex cv2 = clipVertices[obj.faceVertexIndices[face + 2]];
+        Triangle<ClippingManager::ClippedVertex> clipSpaceTriangle(clipVertices[obj.faceVertexIndices[face    ]],
+                                                               clipVertices[obj.faceVertexIndices[face + 1]],
+                                                               clipVertices[obj.faceVertexIndices[face + 2]]);
 
         //clipping triangle
-        std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
+        std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({clipSpaceTriangle.v1,
+                                                                                                 clipSpaceTriangle.v2,
+                                                                                                 clipSpaceTriangle.v3});
         if (clippedPoly.size() < 3) continue;
 
         // clip -> ndc -> screen - > screen with normalized depth
@@ -133,40 +127,49 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
         for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
         {
             // Fan-triangulation
-            Vector3& A = screenVerticesWithDepth[0];
-            Vector3& B = screenVerticesWithDepth[k];
-            Vector3& C = screenVerticesWithDepth[k+1];
+            Triangle3 fanTriangleScreenSpace(screenVerticesWithDepth[0],
+                                      screenVerticesWithDepth[k],
+                                      screenVerticesWithDepth[k+1]);
 
-            ClippingManager::ClippedVertex v0 = clippedPoly[0];
-            ClippingManager::ClippedVertex v1 = clippedPoly[k];
-            ClippingManager::ClippedVertex v2 = clippedPoly[k+1];
+            Triangle<ClippingManager::ClippedVertex> fanTriangleClipped(clippedPoly[0],
+                                                                        clippedPoly[k],
+                                                                        clippedPoly[k+1]);
 
             // bounding box for rasterization
             // beyond this rectangle there's no need to make further checks
-            int minX = std::max(0, int(std::floor(std::min({A.x,B.x,C.x}))));
-            int maxX = std::min(width-1, int(std::ceil(std::max({A.x,B.x,C.x}))));
-            int minY = std::max(0, int(std::floor(std::min({A.y,B.y,C.y}))));
-            int maxY = std::min(height-1, int(std::ceil(std::max({A.y,B.y,C.y}))));
+            auto [minX, maxX] = fanTriangleScreenSpace.getBorderX(0 , width);
+            auto [minY, maxY] = fanTriangleScreenSpace.getBorderY(0 , height);
 
             //calculating area of triangle
             //if triangle's area = 0, nothing to raster
             //inv area will be used in further calculations
-            double area = (B.x - A.x)*(C.y - A.y)
-                          - (B.y - A.y)*(C.x - A.x);
-            if (area == 0.0) continue;
+            double area = fanTriangleScreenSpace.area();
+            if(area <= doubleBias) continue;
             double invArea = 1.0 / area;
 
             //if flat shading is used we calculateColor once using normal at middle of triangle
             if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                 obj.displaySettings->shadingMode == DisplaySettings::Shading::FLAT){
+
                 int middleX = minX + (maxX - minX)/2;
                 int middleY = minY + (maxY - minY)/2;
-                double w0 = ((B.x-middleX)*(C.y-middleY) - (B.y-middleY)*(C.x-middleX)) * invArea;
-                double w1 = ((C.x-middleX)*(A.y-middleY) - (C.y-middleY)*(A.x-middleX)) * invArea;
-                double w2 = 1.0 - w0 - w1;
-                double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
-                Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
-                Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
+
+                //interpolate middle of the triangle for color
+                Triangle<double> baricentricFactor = fanTriangleScreenSpace.baricentricCoords(Vector2(middleX, middleY));
+                double invDenom = baricentricFactor.v1 * fanTriangleClipped.v1.invW
+                                  + baricentricFactor.v2 * fanTriangleClipped.v2.invW
+                                  + baricentricFactor.v3 * fanTriangleClipped.v3.invW;
+
+                Vector3 interpolatedWorldSpaceCoords = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
+                                                        + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
+                                                        + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
+
+                Vector3 interpolatedWorldSpaceFaceNormal = ((fanTriangleClipped.v1.worldSpaceNormalOverW*baricentricFactor.v1
+                                                             + fanTriangleClipped.v2.worldSpaceNormalOverW*baricentricFactor.v2
+                                                             + fanTriangleClipped.v3.worldSpaceNormalOverW*baricentricFactor.v3)
+                                                            /invDenom).normalize();
+
+
                 finalColor = shadingManager.get()->shadeColorFR(
                     getCamera()->transform.getPosition(),
                     interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
@@ -178,23 +181,34 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                     for (int x = minX; x <= maxX; x++) {
 
                         double px = x + 0.5, py = y + 0.5; //middle of current pixel
+                         Triangle<double> baricentricFactor = fanTriangleScreenSpace.baricentricCoords(Vector2(px, py));
 
                         //checking if pixel is withing triangle using baricentric coordinates
-                        double w0 = ((B.x-px)*(C.y-py) - (B.y-py)*(C.x-px)) * invArea;
-                        double w1 = ((C.x-px)*(A.y-py) - (C.y-py)*(A.x-px)) * invArea;
-                        double w2 = 1.0 - w0 - w1;
-                        if (w0<0 || w1<0 || w2<0) continue;
+                        if(!fanTriangleScreenSpace.isInTriangle2D(Vector2(px,py))) continue;
 
-
-                        double depth = (w0*v0.clip.z/v0.clip.w + w1*v1.clip.z/v1.clip.w + w2*v2.clip.z/v2.clip.w) / (w0/v0.clip.w + w1/v1.clip.w + w2/v2.clip.w);
+                        double depth = (baricentricFactor.v1*fanTriangleClipped.v1.clip.z/fanTriangleClipped.v1.clip.w
+                                        + baricentricFactor.v2*fanTriangleClipped.v2.clip.z/fanTriangleClipped.v2.clip.w
+                                        + baricentricFactor.v3*fanTriangleClipped.v3.clip.z/fanTriangleClipped.v3.clip.w)
+                                       /
+                                       (baricentricFactor.v1/fanTriangleClipped.v1.clip.w
+                                          + baricentricFactor.v2/fanTriangleClipped.v2.clip.w
+                                          + baricentricFactor.v3/fanTriangleClipped.v3.clip.w);
                         depth = depth*0.5 + 0.5;
 
                         if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                             obj.displaySettings->shadingMode == DisplaySettings::Shading::PHONG){
-                            double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+                            double invDenom = baricentricFactor.v1 * fanTriangleClipped.v1.invW
+                                              + baricentricFactor.v2 * fanTriangleClipped.v2.invW
+                                              + baricentricFactor.v3 * fanTriangleClipped.v3.invW;
 
-                            Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
-                            Vector3 interpolatedWorldSpaceFaceNormal = ((v0.worldSpaceNormalOverW*w0 + v1.worldSpaceNormalOverW*w1 + v2.worldSpaceNormalOverW*w2)/invDenom).normalize();
+                            Vector3 interpolatedWorldSpaceCoords = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
+                                                                    + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
+                                                                    + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
+
+                            Vector3 interpolatedWorldSpaceFaceNormal = ((fanTriangleClipped.v1.worldSpaceNormalOverW*baricentricFactor.v1
+                                                                         + fanTriangleClipped.v2.worldSpaceNormalOverW*baricentricFactor.v2
+                                                                         + fanTriangleClipped.v3.worldSpaceNormalOverW*baricentricFactor.v3)
+                                                                        /invDenom).normalize();
 
                             //shade check
                             const double SHADOW_INTENSITY = 0.2;
@@ -350,8 +364,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                                    obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
 
-                            double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
-                            Vector3 interpolatedColor = (v0.colorOverW*w0 + v1.colorOverW*w1 + v2.colorOverW*w2)/invDenom;
+                            double invDenom = baricentricFactor.v1 * fanTriangleClipped.v1.invW
+                                              + baricentricFactor.v2 * fanTriangleClipped.v2.invW
+                                              + baricentricFactor.v3 * fanTriangleClipped.v3.invW;
+                            Vector3 interpolatedColor = (fanTriangleClipped.v1.colorOverW*baricentricFactor.v1
+                                                         + fanTriangleClipped.v2.colorOverW*baricentricFactor.v2
+                                                         + fanTriangleClipped.v3.colorOverW*baricentricFactor.v3)/invDenom;
                             finalColor = Vectors::vector3ToColor(interpolatedColor);
                         }
 
@@ -365,27 +383,28 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 }
             }
         }
+
+        //pass wireframe - drawing edges of rasterizatied triangle
         if(obj.displaySettings->colorWireframes || obj.displaySettings->renderMode == DisplaySettings::RenderMode::WIREFRAME){
-            //pass wireframe - drawing edges of rasterizatied triangle
+
             IdBufferElement edgeEl;
             edgeEl.objectId = objId;
             edgeEl.faceId   = int(face/3);
-            size_t N = screenVerticesWithDepth.size();
-            for (size_t i = 0; i < N; i++) {
-                Vector3 A = screenVerticesWithDepth[i];
-                Vector3 B = screenVerticesWithDepth[(i+1)%N];
+            size_t facePolysAmount = screenVerticesWithDepth.size();
 
-                A.z = std::max(0.0, A.z - 1e-4);
-                B.z = std::max(0.0, B.z - 1e-4);
+            for (size_t i = 0; i < facePolysAmount; i++) {
+                Vector3 edgeVertex1 = screenVerticesWithDepth[i];
+                Vector3 edgeVertex2 = screenVerticesWithDepth[(i+1)%facePolysAmount];
+
+                edgeVertex1.z = std::max(0.0, edgeVertex1.z - doubleBias);
+                edgeVertex2.z = std::max(0.0, edgeVertex2.z - doubleBias);
 
                 int idxA = (i   < 3 ? obj.faceVertexIndices[face+i  ] : -1);
                 int idxB = (i+1 < 3 ? obj.faceVertexIndices[face+i+1] : -1);
                 if (i == 2) idxB = obj.faceVertexIndices[face];
 
                 edgeEl.edgeVertices = { idxA, idxB };
-                paintTool.drawLine3D(A,
-                                     B,
-                                     edgeEl,
+                paintTool.drawLine3D(edgeVertex1, edgeVertex2, edgeEl,
                                      obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color);
             }
         }
