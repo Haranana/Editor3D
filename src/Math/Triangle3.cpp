@@ -2,12 +2,16 @@
 
 bool Triangle3::isInTriangle2D(const Vector3& v){
     Triangle<double> barCoords = baricentricCoords(v);
-    return barCoords.v1 >= 0 && barCoords.v2 >= 0 && barCoords.v3 >= 0;
+    constexpr double eps = 1e-7;
+    return barCoords.v1 >= -eps && barCoords.v2 >= -eps && barCoords.v3 >= -eps;
+
 }
 
 bool Triangle3::isInTriangle2D(const Vector2& v){
     Triangle<double> barCoords = baricentricCoords(v);
-    return barCoords.v1 >= 0 && barCoords.v2 >= 0 && barCoords.v3 >= 0;
+    constexpr double eps = 1e-7;
+    return barCoords.v1 >= -eps && barCoords.v2 >= -eps && barCoords.v3 >= -eps;
+
 }
 
 
