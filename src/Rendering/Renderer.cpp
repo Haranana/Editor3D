@@ -144,7 +144,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             //if triangle's area = 0, nothing to raster
             //inv area will be used in further calculations
             double area = fanTriangleScreenSpace.area();
-            if(area <= doubleBias) continue;
+            if(area == 0.0) continue;
             double invArea = 1.0 / area;
 
             //if flat shading is used we calculateColor once using normal at middle of triangle
