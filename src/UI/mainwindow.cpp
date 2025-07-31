@@ -73,15 +73,16 @@ void MainWindow::setupUI()
     mainLayout->addWidget(centerPanel, 3);
 
     // --- Prawy panel: drzewko właściwości ---
-    QWidget* rightPanel = new QWidget(this);
-    QVBoxLayout* rightLayout = new QVBoxLayout(rightPanel);
-
-    setupUIPropertyTree(rightPanel , rightLayout);
-
-    objectParametersPropertyTree->expandAll();
-    rightLayout->addWidget(objectParametersPropertyTree);
+    rightPanel = new QWidget(this);
+    rightLayout = new QVBoxLayout(rightPanel);
     rightPanel->setLayout(rightLayout);
     mainLayout->addWidget(rightPanel, 2);
+
+    //setupUIPropertyTree(rightPanel , rightLayout);
+
+    //objectParametersPropertyTree->expandAll();
+    //rightLayout->addWidget(objectParametersPropertyTree);
+
 
     // --- Łączenie sygnałów/slotów ---
     connect(addCubeButton, &QPushButton::clicked, this, &MainWindow::onAddCubeClicked);
@@ -618,6 +619,29 @@ void MainWindow::onObjectSelected()
     currentObject = scene->getObject(objectId);
     if (!currentObject) return;
 
+    if (currentPropertiesWidget) {
+        std::cout<<"deleting current prop widget"<<std::endl;
+        rightLayout->removeWidget(currentPropertiesWidget);
+        delete currentPropertiesWidget;
+        currentPropertiesWidget = nullptr;
+    }
+
+    if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
+        std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
+        currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
+    }
+
+    if (currentPropertiesWidget) {
+        std::cout<<"Setting parameters on prop widget"<<std::endl;
+        currentPropertiesWidget->setObject(currentObject);
+        std::cout<<"After set object"<<std::endl;
+        rightLayout->addWidget(currentPropertiesWidget);
+        connect(currentPropertiesWidget, &ObjectPropertiesWidget::objectChanged,
+                this, &MainWindow::refreshScene);
+    }
+
+    /*
+
     Vector3 pos = currentObject->transform.getPosition();
     Vector3 rot = currentObject->transform.getAngles();
     Vector3 scale = currentObject->transform.getScales();
@@ -655,6 +679,7 @@ void MainWindow::onObjectSelected()
 
     //std::cout<<"After changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
     //to fill
+        */
 
 }
 

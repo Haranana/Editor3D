@@ -37,6 +37,8 @@
 #include "UI/ColorPicker.h"
 #include "Scene/ObjectLoader.h"
 #include "Scene/ObjectSaver.h"
+#include "ObjectPropertiesWidget.h"
+#include "RenderableObjectPropertiesWidget.h"
 
 
 class MainWindow : public QMainWindow
@@ -71,6 +73,7 @@ private:
                 void setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCategory);
             void setupUIPropertyTreeViewportDisplay();
 
+
     void setupScene();
     void refreshScene();
     void loadTestScene();
@@ -78,12 +81,17 @@ private:
     void distantLightTestScene();
     void pointLightTestScene();
 
+    QVBoxLayout* rightLayout;
+    QWidget* rightPanel;
+
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;
     std::shared_ptr<Renderer> renderer;
     std::shared_ptr<ObjectLoader> objectLoader;
     std::shared_ptr<ObjectSaver> objectSaver;
     std::shared_ptr<Object3D> currentObject = nullptr;
+
+    ObjectPropertiesWidget* currentPropertiesWidget = nullptr;
 
     QWidget* centralWidgetContainer = nullptr;
     QListWidget* objectsList = nullptr;

@@ -345,9 +345,9 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   normalizedLightDirection, interpolatedWorldSpaceFaceNormal, pointLight->intensity
                                                                   ) ;
-                                            std::cout<<"Light mult: "<<lightMultiplier<<std::endl;
+                                            //std::cout<<"Light mult: "<<lightMultiplier<<std::endl;
                                             lightMultiplier*=lightAttenuation;
-                                            std::cout<<"Light mult, after att: "<<lightMultiplier<<std::endl;
+                                            //std::cout<<"Light mult, after att: "<<lightMultiplier<<std::endl;
                                             if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated, lightMult: "<< lightMultiplier<<std::endl;
                                             //finalColor = Colors::White; //white - light
                                         }else{

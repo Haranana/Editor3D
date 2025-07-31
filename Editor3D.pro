@@ -54,6 +54,7 @@ SOURCES += \
     src/UI/ColorPreview.cpp \
     src/UI/ImageLabel.cpp \
     src/UI/RenderWidget.cpp \
+    src/UI/RenderableObjectPropertiesWidget.cpp \
     src/UI/mainwindow.cpp \
     src/main.cpp
 
@@ -108,7 +109,9 @@ HEADERS += \
     include/UI/ColorPicker.h \
     include/UI/ColorPreview.h \
     include/UI/ImageLabel.h \
+    include/UI/ObjectPropertiesWidget.h \
     include/UI/RenderWidget.h \
+    include/UI/RenderableObjectPropertiesWidget.h \
     include/UI/mainwindow.h
 
 ######################################################################
