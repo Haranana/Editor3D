@@ -571,9 +571,9 @@ void MainWindow::pointLightTestScene(){
     cube4->transform.setPositionY(50);
     cube4->viewportDisplay.color = Colors::Purple;
 
-    std::cout<<"Before calling light constructor"<<std::endl;
+    //std::cout<<"Before calling light constructor"<<std::endl;
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
-    std::cout<<"After calling light constructor"<<std::endl;
+    //std::cout<<"After calling light constructor"<<std::endl;
     light->color = Colors::White;
     light->intensity = 2.0;
     light->bias = 0.003;
@@ -581,9 +581,13 @@ void MainWindow::pointLightTestScene(){
     scene->addObject(light);
     QString itemTextLight = QString("light");
     objectsList->addItem(itemTextLight);
+
+
+
 }
 
 void MainWindow::simpleTestScene(){
+    /*
     auto cube = std::make_shared<Cube>();
     scene->addObject(cube);
     QString itemTextCube = QString("Purple Cube");
@@ -599,7 +603,24 @@ void MainWindow::simpleTestScene(){
     cube2->transform.setPositionX(100);
     cube2->transform.setPositionY(100);
     cube2->transform.setScales(Vector3(0.3,0.3,0.3));
-    cube2->viewportDisplay.color = Colors::Red;
+    cube2->viewportDisplay.color = Colors::Red;*/
+
+    auto cube = std::make_shared<Cube>();
+    scene->addObject(cube);
+    QString itemTextCube = QString("Purple Cube");
+    objectsList->addItem(itemTextCube);
+    cube->transform.setPositionX(-100);
+    cube->viewportDisplay.color = Colors::Purple;
+
+    Vector3 lightDirection(0.2 , -0.45 , -0.35);
+    std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
+    light->color = Colors::White;
+    light->intensity = 3.0;
+    light->bias = 0.0015;
+    light->castsShadow = true;
+    scene->addObject(light);
+    QString itemTextLight = QString("light");
+    objectsList->addItem(itemTextLight);
 }
 
 void MainWindow::onAddCubeClicked()
@@ -629,7 +650,7 @@ void MainWindow::onObjectSelected()
 
 
     int objectId = objectsList->currentRow();
-    std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
+    //std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
         currentObject = nullptr;
         return;
@@ -639,28 +660,28 @@ void MainWindow::onObjectSelected()
     if (!currentObject) return;
 
     if (currentPropertiesWidget) {
-        std::cout<<"deleting current prop widget"<<std::endl;
+        //std::cout<<"deleting current prop widget"<<std::endl;
         rightLayout->removeWidget(currentPropertiesWidget);
         delete currentPropertiesWidget;
         currentPropertiesWidget = nullptr;
     }
 
     if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
-        std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
+       // std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
         currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
     }else if(dynamic_cast<DistantLight*>(currentObject.get())){
         currentPropertiesWidget = new DistantLightPropertiesWidget(rightPanel);
     }
 
     if (currentPropertiesWidget) {
-        std::cout<<"Setting parameters on prop widget"<<std::endl;
+        //std::cout<<"Setting parameters on prop widget"<<std::endl;
         currentPropertiesWidget->setObject(currentObject);
-        std::cout<<"After set object"<<std::endl;
+        //std::cout<<"After set object"<<std::endl;
         rightLayout->addWidget(currentPropertiesWidget);
         connect(currentPropertiesWidget, &ObjectPropertiesWidget::objectChanged,
                 this, &MainWindow::refreshScene);
     }
-    std::cout<<"after onObjectSelected()"<<std::endl;
+    //std::cout<<"after onObjectSelected()"<<std::endl;
     /*
 
     Vector3 pos = currentObject->transform.getPosition();
@@ -930,7 +951,7 @@ void MainWindow::onDisplayModeCurIndexChanged(){
 }
 
 void MainWindow::onDisplayColorPickerValueChanged(const Color& color){
-    std::cout<<"changed color Value to: "<<color<<std::endl;
+    //std::cout<<"changed color Value to: "<<color<<std::endl;
     currentObject->viewportDisplay.color = color;
 }
 

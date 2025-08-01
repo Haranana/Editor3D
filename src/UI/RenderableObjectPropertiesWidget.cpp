@@ -293,7 +293,6 @@ void RenderableObjectPropertiesWidget::setObject(std::shared_ptr<Object3D> objec
     scaleZ->setValue(scale.z);
 
     Vector3 rot = obj->transform.getAngles();
-    std::cout<<rot<<std::endl;
     rotX->setValue(rot.x);
     rotY->setValue(rot.y);
     rotZ->setValue(rot.z);
@@ -423,14 +422,14 @@ void RenderableObjectPropertiesWidget::onShadingChanged(){
         obj->displaySettings->shadingMode = DisplaySettings::Shading::PHONG;
         break;
     default:
-        obj->displaySettings->shadingMode = DisplaySettings::Shading::PHONG;
+        obj->displaySettings->shadingMode = DisplaySettings::Shading::NONE;
         break;
     }
     emit objectChanged();
 }
 
 void RenderableObjectPropertiesWidget::onlightingModelChanged(){
-    switch (objectShadingComboBox->currentIndex()) {
+    switch (objectLightingModelComboBox->currentIndex()) {
     case 0:
         obj->displaySettings->lightingMode = DisplaySettings::LightingModel::NONE;
         break;
@@ -441,7 +440,7 @@ void RenderableObjectPropertiesWidget::onlightingModelChanged(){
         obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
         break;
     default:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
+        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::NONE;
         break;
     }
     emit objectChanged();

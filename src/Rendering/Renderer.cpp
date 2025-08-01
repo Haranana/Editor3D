@@ -44,6 +44,9 @@ void Renderer::renderSceneObjects(){
 /* --+-- Lasciate ogni speranza, voi ch'entrate --+-- */
 void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
+    std::cout<<"Obj id: "<<objId<<std::endl;
+    obj.displaySettings->print();
+    std::cout<<std::endl<<"\n\n\n"<<std::endl;
 
     //object is hidden => return
     if(obj.displaySettings.get()->renderMode == DisplaySettings::RenderMode::NONE){
@@ -195,8 +198,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                           + baricentricFactor.v3/fanTriangleClipped.v3.clip.w);
                         depth = depth*0.5 + 0.5;
 
-                        if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
-                            obj.displaySettings->shadingMode == DisplaySettings::Shading::PHONG){
+                        if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::LAMBERT &&
+                            obj.displaySettings->shadingMode == DisplaySettings::Shading::NONE){
                             double invDenom = baricentricFactor.v1 * fanTriangleClipped.v1.invW
                                               + baricentricFactor.v2 * fanTriangleClipped.v2.invW
                                               + baricentricFactor.v3 * fanTriangleClipped.v3.invW;
