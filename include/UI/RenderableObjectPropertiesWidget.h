@@ -24,6 +24,7 @@ private slots:
     void onShadingChanged();
     void onlightingModelChanged();
     void onColorChanged(const Color& color);
+    void onColorWireframesChanged();
 
 private:
 
@@ -63,12 +64,13 @@ private:
     QSlider* rotYSlider;
     QSlider* rotZSlider;
 
-    ColorPicker* colorPicker;
     QComboBox* objectRenderModeComboBox;
     QComboBox* objectRasterModeComboBox;
     QComboBox* objectShadingComboBox;
     QComboBox* objectLightingModelComboBox;
 
+    ColorPicker* colorPicker;
+    QCheckBox* colorWireframesCheckBox;
 };
 
 #endif // RENDERABLEOBJECTPROPERTIESWIDGET_H

@@ -30,7 +30,7 @@ public:
 
     bool hideUnseenWireframes = false; //not implemented!
     bool colorWireframes = false;
-    RenderMode renderMode = RenderMode::WIREFRAME;
+    RenderMode renderMode = RenderMode::RASTER;
     RasterMode rasterMode = RasterMode::COLOR ;
     Shading shadingMode = Shading::PHONG;
     LightingModel lightingMode = LightingModel::FACE_RATIO;

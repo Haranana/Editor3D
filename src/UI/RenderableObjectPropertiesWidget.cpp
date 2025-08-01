@@ -252,7 +252,6 @@ RenderableObjectPropertiesWidget::RenderableObjectPropertiesWidget(QWidget* pare
     layout->addRow("Raster mode",objectRasterModeComboBox);
     connect(objectRasterModeComboBox, &QComboBox::currentIndexChanged, this, &RenderableObjectPropertiesWidget::onRasterModeChanged);
 
-
     objectShadingComboBox = new QComboBox(this);
     objectShadingComboBox->addItem(QString("None"));
     objectShadingComboBox->addItem(QString("Flat"));
@@ -265,13 +264,18 @@ RenderableObjectPropertiesWidget::RenderableObjectPropertiesWidget(QWidget* pare
     objectLightingModelComboBox->addItem(QString("None"));
     objectLightingModelComboBox->addItem(QString("Face ratio"));
     objectLightingModelComboBox->addItem(QString("Lambert"));
-    layout->addRow("Lighting model",objectRasterModeComboBox);
+    layout->addRow("Lighting model",objectLightingModelComboBox);
     connect(objectLightingModelComboBox, &QComboBox::currentIndexChanged, this, &RenderableObjectPropertiesWidget::onlightingModelChanged);
 
     colorPicker = new ColorPicker(this);
 
     layout->addRow("Color", colorPicker);
     connect(colorPicker, &ColorPicker::colorChanged, this, &RenderableObjectPropertiesWidget::onColorChanged);
+
+    colorWireframesCheckBox = new QCheckBox(this);
+    connect(colorWireframesCheckBox, &QCheckBox::checkStateChanged, this,
+            &RenderableObjectPropertiesWidget::onColorWireframesChanged);
+    layout->addRow("Color wireframe", colorWireframesCheckBox);
 
     setLayout(layout);
 }
@@ -346,6 +350,8 @@ void RenderableObjectPropertiesWidget::setObject(std::shared_ptr<Object3D> objec
     }
 
     colorPicker->setColor(obj->viewportDisplay.color);
+
+    colorWireframesCheckBox->setChecked(obj->displaySettings->colorWireframes);
 }
 
 void RenderableObjectPropertiesWidget::onPosChanged(){
@@ -442,5 +448,11 @@ void RenderableObjectPropertiesWidget::onlightingModelChanged(){
 }
 
 void RenderableObjectPropertiesWidget::onColorChanged(const Color& color){
+    obj->viewportDisplay.color = color;
+    emit objectChanged();
+}
+
+void RenderableObjectPropertiesWidget::onColorWireframesChanged(){
+    obj->displaySettings->colorWireframes = colorWireframesCheckBox->isChecked();
     emit objectChanged();
 }

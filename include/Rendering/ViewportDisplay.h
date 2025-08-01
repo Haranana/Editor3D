@@ -82,7 +82,7 @@ public:
 
     DisplayMode displayMode = WIREFRAME;
     Color color = Colors::Gray;
-    Color wireframeColor = Color(200,110,170);
+    Color wireframeColor = Color(255,255,255);
     Color selectColor = Colors::Orange;
     SelectMode selectedPart = NONE;
 

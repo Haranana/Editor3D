@@ -174,7 +174,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                     getCamera()->transform.getPosition(),
                     interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
             }
-            std::cout<<"Before raster fill"<<std::endl;
+
             // raster fill
             if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
                 for (int y = minY; y <= maxY; y++) {
@@ -209,7 +209,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                                          + fanTriangleClipped.v2.worldSpaceNormalOverW*baricentricFactor.v2
                                                                          + fanTriangleClipped.v3.worldSpaceNormalOverW*baricentricFactor.v3)
                                                                         /invDenom).normalize();
-                            std::cout<<"Before shade check fill"<<std::endl;
+
                             //shade check
                             const double SHADOW_INTENSITY = 0.2;
                             double lightMultiplier = 1;
@@ -383,10 +383,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 }
             }
         }
-        std::cout<<"before wireframe pass"<<std::endl;
         //pass wireframe - drawing edges of rasterizatied triangle
         if(obj.displaySettings->colorWireframes || obj.displaySettings->renderMode == DisplaySettings::RenderMode::WIREFRAME){
-            std::cout<<"after start of wireframe pass"<<std::endl;
             //IdBufferElement edgeEl;
             //edgeEl.objectId = objId;
             //edgeEl.faceId   = int(face/3);
@@ -405,13 +403,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 //if (i == 2) idxB = obj.faceVertexIndices[face];
 
                 //edgeEl.edgeVertices = { idxA, idxB };
-                std::cout<<"Middle of the road"<<std::endl;
+
 
                 paintTool.drawLine3D(edgeVertex1, edgeVertex2,
                                      obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color);
             }
 
-            std::cout<<"after wireframe pass"<<std::endl;
         }
     }
 }
