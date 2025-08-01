@@ -39,7 +39,7 @@
 #include "Scene/ObjectSaver.h"
 #include "ObjectPropertiesWidget.h"
 #include "RenderableObjectPropertiesWidget.h"
-
+#include "DistantLightPropertiesWidget.h"
 
 class MainWindow : public QMainWindow
 {

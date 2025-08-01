@@ -52,6 +52,7 @@ SOURCES += \
     src/Scene/Scene.cpp \
     src/UI/ColorPicker.cpp \
     src/UI/ColorPreview.cpp \
+    src/UI/DistantLightPropertiesWidget.cpp \
     src/UI/ImageLabel.cpp \
     src/UI/RenderWidget.cpp \
     src/UI/RenderableObjectPropertiesWidget.cpp \
@@ -109,6 +110,7 @@ HEADERS += \
     include/Scene/SpotLight.h \
     include/UI/ColorPicker.h \
     include/UI/ColorPreview.h \
+    include/UI/DistantLightPropertiesWidget.h \
     include/UI/ImageLabel.h \
     include/UI/ObjectPropertiesWidget.h \
     include/UI/RenderWidget.h \

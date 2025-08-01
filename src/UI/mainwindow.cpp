@@ -648,6 +648,8 @@ void MainWindow::onObjectSelected()
     if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
         std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
         currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
+    }else if(dynamic_cast<DistantLight*>(currentObject.get())){
+        currentPropertiesWidget = new DistantLightPropertiesWidget(rightPanel);
     }
 
     if (currentPropertiesWidget) {
