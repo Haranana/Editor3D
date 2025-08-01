@@ -493,8 +493,8 @@ void MainWindow::refreshScene()
 }
 
 void MainWindow::loadTestScene(){
-    pointLightTestScene();
-
+    //    pointLightTestScene();
+    simpleTestScene();
     refreshScene();
 }
 
@@ -583,6 +583,25 @@ void MainWindow::pointLightTestScene(){
     objectsList->addItem(itemTextLight);
 }
 
+void MainWindow::simpleTestScene(){
+    auto cube = std::make_shared<Cube>();
+    scene->addObject(cube);
+    QString itemTextCube = QString("Purple Cube");
+    objectsList->addItem(itemTextCube);
+    cube->transform.setScales(Vector3(0.3,0.3,0.3));
+    cube->viewportDisplay.color = Colors::Purple;
+
+
+    auto cube2 = std::make_shared<Cube>();
+    scene->addObject(cube2);
+    QString itemTextCube2 = QString("Red Cube");
+    objectsList->addItem(itemTextCube2);
+    cube2->transform.setPositionX(100);
+    cube2->transform.setPositionY(100);
+    cube2->transform.setScales(Vector3(0.3,0.3,0.3));
+    cube2->viewportDisplay.color = Colors::Red;
+}
+
 void MainWindow::onAddCubeClicked()
 {
 
@@ -639,7 +658,7 @@ void MainWindow::onObjectSelected()
         connect(currentPropertiesWidget, &ObjectPropertiesWidget::objectChanged,
                 this, &MainWindow::refreshScene);
     }
-
+    std::cout<<"after onObjectSelected()"<<std::endl;
     /*
 
     Vector3 pos = currentObject->transform.getPosition();

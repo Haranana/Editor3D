@@ -68,6 +68,7 @@ HEADERS += \
     include/Math/Triangle.h \
     include/Math/Triangle3.h \
     include/Math/UVProjector.h \
+    include/Math/Utility.h \
     include/Math/Vector2.h \
     include/Math/Vector3.h \
     include/Math/Vector4.h \

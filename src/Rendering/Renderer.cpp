@@ -174,7 +174,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                     getCamera()->transform.getPosition(),
                     interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
             }
-
+            std::cout<<"Before raster fill"<<std::endl;
             // raster fill
             if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
                 for (int y = minY; y <= maxY; y++) {
@@ -209,7 +209,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                                          + fanTriangleClipped.v2.worldSpaceNormalOverW*baricentricFactor.v2
                                                                          + fanTriangleClipped.v3.worldSpaceNormalOverW*baricentricFactor.v3)
                                                                         /invDenom).normalize();
-
+                            std::cout<<"Before shade check fill"<<std::endl;
                             //shade check
                             const double SHADOW_INTENSITY = 0.2;
                             double lightMultiplier = 1;
@@ -383,14 +383,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 }
             }
         }
-
+        std::cout<<"before wireframe pass"<<std::endl;
         //pass wireframe - drawing edges of rasterizatied triangle
         if(obj.displaySettings->colorWireframes || obj.displaySettings->renderMode == DisplaySettings::RenderMode::WIREFRAME){
-
-            IdBufferElement edgeEl;
-            edgeEl.objectId = objId;
-            edgeEl.faceId   = int(face/3);
+            std::cout<<"after start of wireframe pass"<<std::endl;
+            //IdBufferElement edgeEl;
+            //edgeEl.objectId = objId;
+            //edgeEl.faceId   = int(face/3);
             size_t facePolysAmount = screenVerticesWithDepth.size();
+
 
             for (size_t i = 0; i < facePolysAmount; i++) {
                 Vector3 edgeVertex1 = screenVerticesWithDepth[i];
@@ -399,14 +400,18 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 edgeVertex1.z = std::max(0.0, edgeVertex1.z - doubleBias);
                 edgeVertex2.z = std::max(0.0, edgeVertex2.z - doubleBias);
 
-                int idxA = (i   < 3 ? obj.faceVertexIndices[face+i  ] : -1);
-                int idxB = (i+1 < 3 ? obj.faceVertexIndices[face+i+1] : -1);
-                if (i == 2) idxB = obj.faceVertexIndices[face];
+                //int idxA = (i   < 3 ? obj.faceVertexIndices[face+i  ] : -1);
+                //int idxB = (i+1 < 3 ? obj.faceVertexIndices[face+i+1] : -1);
+                //if (i == 2) idxB = obj.faceVertexIndices[face];
 
-                edgeEl.edgeVertices = { idxA, idxB };
-                paintTool.drawLine3D(edgeVertex1, edgeVertex2, edgeEl,
+                //edgeEl.edgeVertices = { idxA, idxB };
+                std::cout<<"Middle of the road"<<std::endl;
+
+                paintTool.drawLine3D(edgeVertex1, edgeVertex2,
                                      obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color);
             }
+
+            std::cout<<"after wireframe pass"<<std::endl;
         }
     }
 }

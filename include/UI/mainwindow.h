@@ -80,6 +80,7 @@ private:
 
     void distantLightTestScene();
     void pointLightTestScene();
+    void simpleTestScene(); //single cube with no lighting
 
     QVBoxLayout* rightLayout;
     QWidget* rightPanel;
