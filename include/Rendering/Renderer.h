@@ -58,6 +58,7 @@ private:
     void updateShadowMaps();
     void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
     void shadowMapDepthPass(PointLight& lightSource);
+    bool shouldCullBackFace(const Triangle3& face);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

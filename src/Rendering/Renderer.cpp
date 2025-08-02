@@ -111,6 +111,9 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                                clipVertices[obj.faceVertexIndices[face + 1]],
                                                                clipVertices[obj.faceVertexIndices[face + 2]]);
 
+        if(obj.displaySettings->backFaceCulling && shouldCullBackFace( Triangle3(modelToWorld(obj.vertices[obj.faceVertexIndices[face]],M),
+                                                                                modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]],M),
+                                                                                modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]],M) ))) continue;
         //clipping triangle
         std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({clipSpaceTriangle.v1,
                                                                                                  clipSpaceTriangle.v2,
@@ -866,6 +869,10 @@ void Renderer::shadowMapDepthPass(PointLight& lightSource){
     }
 }
 
+bool Renderer::shouldCullBackFace(const Triangle3& face){
+    Vector3 cameraPointVector = camera->transform.getPosition() - face.v1;
+    return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
+}
 
 void Renderer::clearRenderingSurface(){
     pixelPainter->fillImage(Colors::Black);

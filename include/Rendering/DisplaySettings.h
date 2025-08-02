@@ -31,6 +31,7 @@ public:
 
     bool hideUnseenWireframes = false; //not implemented!
     bool colorWireframes = false;
+    bool backFaceCulling = true;
     RenderMode renderMode = RenderMode::RASTER;
     RasterMode rasterMode = RasterMode::COLOR ;
     Shading shadingMode = Shading::NONE;
