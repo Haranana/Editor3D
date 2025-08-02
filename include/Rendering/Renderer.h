@@ -25,6 +25,7 @@
 #include "PaintTool.h"
 #include "Math/Triangle.h"
 #include "Math/Triangle3.h"
+#include "Math/Utility.h"
 
 class Renderer{
 public:
