@@ -874,6 +874,38 @@ bool Renderer::shouldCullBackFace(const Triangle3& face){
     return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
 }
 
+double Renderer::pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
+   // Vector2 centralTexel(std::floor(shadowMapUV.x) , std::floor(shadowMapUV.y));
+    int shadowedTexels = 0;
+   int texelsInRange = 0;
+    for(int shadowMapX = std::max(0.0, std::floor(shadowMapUV.x)-1) ; shadowMapX <= shadowMapUV.x+1; shadowMapX++){
+        for(int shadowMapY = std::max(0.0, std::floor(shadowMapUV.y)-1) ; shadowMapY <= std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapUV.y)+1); shadowMapY++){
+            texelsInRange++;
+            if(shadowMap[shadowMapX][shadowMapY] + bias < distance) shadowedTexels++;
+        }
+    }
+    return 1.0*shadowedTexels/(1.0*texelsInRange);
+}
+
+bool Renderer::bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
+
+    int shadowMapLastRow = shadowMap.getRows()-1;
+    int shadowMapLastCol = shadowMap.getCols()-1;
+    Vector2 leftUpTexel = Vector2(std::max(0.0, std::floor(shadowMapUV.x)) , std::max(0.0, std::floor(shadowMapUV.y)) );
+    Vector2 rightUpTexel = Vector2(std::min(shadowMapLastCol, (int)std::ceil(shadowMapUV.x)) , std::max(0.0, std::floor(shadowMapUV.y)) );
+    Vector2 leftDownTexel = Vector2(std::max(0.0, std::floor(shadowMapUV.x)) , std::min(shadowMapLastCol, (int)std::ceil(shadowMapUV.y)) );
+    Vector2 rightDownTexel = Vector2(std::max(shadowMapLastCol, (int)std::ceil(shadowMapUV.x)) ,std::max(shadowMapLastRow, (int)std::ceil(shadowMapUV.y)) );
+
+    const double u = shadowMapUV.x - std::floor(shadowMapUV.x);
+    const double v = shadowMapUV.y - std::floor(shadowMapUV.y);
+    double interpolatedUVDepthValue = (1-u)*(1-v)*shadowMap[(int)leftUpTexel.x][(int)leftUpTexel.y]
+                                    + u*(1-v)*shadowMap[(int)rightUpTexel.x][(int)rightUpTexel.y]
+                                    + u*v*shadowMap[(int)rightDownTexel.x][(int)rightDownTexel.y]
+                                    + (1-u)*v*shadowMap[(int)leftDownTexel.x][(int)leftDownTexel.y];
+
+    return (interpolatedUVDepthValue + bias < distance);
+}
+
 void Renderer::clearRenderingSurface(){
     pixelPainter->fillImage(Colors::Black);
 }

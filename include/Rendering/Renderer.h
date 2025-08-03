@@ -59,6 +59,8 @@ private:
     void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
     void shadowMapDepthPass(PointLight& lightSource);
     bool shouldCullBackFace(const Triangle3& face);
+    double pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
+    bool bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);
