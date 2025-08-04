@@ -874,11 +874,12 @@ bool Renderer::shouldCullBackFace(const Triangle3& face){
     return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
 }
 
+//POPRAWIC NA WIERSZ | KOLUMNA [Y|X] KURWA!!!!!!!!
 double Renderer::pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
    // Vector2 centralTexel(std::floor(shadowMapUV.x) , std::floor(shadowMapUV.y));
     int shadowedTexels = 0;
    int texelsInRange = 0;
-    for(int shadowMapX = std::max(0.0, std::floor(shadowMapUV.x)-1) ; shadowMapX <= shadowMapUV.x+1; shadowMapX++){
+    for(int shadowMapX = std::max(0.0, std::floor(shadowMapUV.x)-1) ; shadowMapX <= std::floor(shadowMapUV.x)+1; shadowMapX++){
         for(int shadowMapY = std::max(0.0, std::floor(shadowMapUV.y)-1) ; shadowMapY <= std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapUV.y)+1); shadowMapY++){
             texelsInRange++;
             if(shadowMap[shadowMapX][shadowMapY] + bias < distance) shadowedTexels++;

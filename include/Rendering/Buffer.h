@@ -22,6 +22,7 @@ public:
     std::size_t size() const; //returns number of elements both default and non-default
     std::size_t nonEmptyElements() const; //returns nubmer of elements that are different than default v alue
     bool isEmpty() const;
+    bool exists(size_t row, size_t col) const; //checks whether given row and col are not out of bounds
     void logNonEmptyElements() const;
     void clear();
 
@@ -80,6 +81,11 @@ bool Buffer<T>::isEmpty() const{
         if(it!=defaultValue) return false;
     }
     return true;
+}
+
+template<typename T>
+bool Buffer<T>::exists(size_t row, size_t col) const{
+    return row >= 0 && row < getRows() && col >= 0 && col < getCols();
 }
 
 template<typename T>

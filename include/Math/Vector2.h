@@ -6,9 +6,9 @@
 class Vector2{
 
 public:
-    Vector2();
-    Vector2(double x, double y);
-    Vector2(const Vector2& otherVector2);
+    constexpr Vector2() {}
+    constexpr Vector2(double x, double y) : x(x) , y(y) {}
+    constexpr Vector2(const Vector2& otherVector) : x(otherVector.x) , y(otherVector.y) {}
 
     double x = 0.0;
     double y = 0.0;

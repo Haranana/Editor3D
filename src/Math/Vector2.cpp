@@ -1,11 +1,5 @@
 #include "Math/Vector2.h"
 
-Vector2::Vector2() {}
-
-
-Vector2::Vector2(double x, double y) : x(x) , y(y) {}
-
-Vector2::Vector2(const Vector2& otherVector) : x(otherVector.x) , y(otherVector.y) {}
 
 Vector2& Vector2::operator=(const Vector2& otherVector){
     if(this != &otherVector){
