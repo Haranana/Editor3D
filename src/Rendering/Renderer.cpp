@@ -879,13 +879,13 @@ double Renderer::pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMap
    // Vector2 centralTexel(std::floor(shadowMapUV.x) , std::floor(shadowMapUV.y));
     int shadowedTexels = 0;
    int texelsInRange = 0;
-    for(int shadowMapX = std::max(0.0, std::floor(shadowMapUV.x)-1) ; shadowMapX <= std::floor(shadowMapUV.x)+1; shadowMapX++){
-        for(int shadowMapY = std::max(0.0, std::floor(shadowMapUV.y)-1) ; shadowMapY <= std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapUV.y)+1); shadowMapY++){
+    for(int shadowMapY = std::max(0.0, std::floor(shadowMapUV.y)-1) ; shadowMapY <= std::floor(shadowMapUV.y)+1; shadowMapY++){
+        for(int shadowMapX = std::max(0.0, std::floor(shadowMapUV.x)-1) ; shadowMapX <= std::min((int)shadowMap.getCols()-1 ,(int)std::floor(shadowMapUV.x)+1); shadowMapX++){
             texelsInRange++;
-            if(shadowMap[shadowMapX][shadowMapY] + bias < distance) shadowedTexels++;
+            if(shadowMap[shadowMapY][shadowMapX] + bias < distance) shadowedTexels++;
         }
     }
-    return 1.0*shadowedTexels/(1.0*texelsInRange);
+    return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
 }
 
 bool Renderer::bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
@@ -899,12 +899,45 @@ bool Renderer::bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& 
 
     const double u = shadowMapUV.x - std::floor(shadowMapUV.x);
     const double v = shadowMapUV.y - std::floor(shadowMapUV.y);
-    double interpolatedUVDepthValue = (1-u)*(1-v)*shadowMap[(int)leftUpTexel.x][(int)leftUpTexel.y]
-                                    + u*(1-v)*shadowMap[(int)rightUpTexel.x][(int)rightUpTexel.y]
-                                    + u*v*shadowMap[(int)rightDownTexel.x][(int)rightDownTexel.y]
-                                    + (1-u)*v*shadowMap[(int)leftDownTexel.x][(int)leftDownTexel.y];
+    double interpolatedUVDepthValue = (1-u)*(1-v)*shadowMap[(int)leftUpTexel.y][(int)leftUpTexel.x]
+                                    + u*(1-v)*shadowMap[(int)rightUpTexel.y][(int)rightUpTexel.x]
+                                    + u*v*shadowMap[(int)rightDownTexel.y][(int)rightDownTexel.x]
+                                    + (1-u)*v*shadowMap[(int)leftDownTexel.y][(int)leftDownTexel.x];
 
     return (interpolatedUVDepthValue + bias < distance);
+}
+
+double Renderer::pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias, int offsetSize, double texelSize, double kernelRadius){
+    std::vector<Vector2> offset;
+    if(offsetSize<=8){
+        offset = NoiseManager::getPoissonOffset8();
+    }else if(offsetSize<=12){
+        offset = NoiseManager::getPoissonOffset12();
+    }else{
+        offset = NoiseManager::getPoissonOffset16();
+    }
+
+    int shadowedTexels = 0;
+    int texelsInRange = 0;
+    for(size_t i = 0; i < offset.size(); i++){
+        Vector2 testUV = Vector2(offset[i].x * texelSize * kernelRadius,
+                                 offset[i].y * texelSize * kernelRadius);
+
+        double u = ((testUV.x + shadowMapUV.x)+1.0)/2.0;
+        double v = ((testUV.y + shadowMapUV.y)+1.0)/2.0;
+
+        int shadowMapCoordX = u * shadowMap.getCols();
+        int shadowMapCoordY = v * shadowMap.getRows();
+        if(shadowMap.exists(shadowMapCoordY,shadowMapCoordX)){
+            texelsInRange++;
+            if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
+                shadowedTexels++;
+            }
+        }
+    }
+
+    return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
+
 }
 
 void Renderer::clearRenderingSurface(){

@@ -26,6 +26,7 @@
 #include "Math/Triangle.h"
 #include "Math/Triangle3.h"
 #include "Math/Utility.h"
+#include "Math/NoiseManager.h"
 
 class Renderer{
 public:
@@ -61,6 +62,7 @@ private:
     bool shouldCullBackFace(const Triangle3& face);
     double pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
     bool bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
+    double pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias, int offsetSize = 8, double texelSize = 1.0/2048.0, double kernelRadiu = 1.5);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

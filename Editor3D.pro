@@ -22,6 +22,7 @@ SOURCES += \
     src/Math/Matrices.cpp \
     src/Math/Matrix3.cpp \
     src/Math/Matrix4.cpp \
+    src/Math/NoiseManager.cpp \
     src/Math/Transform3D.cpp \
     src/Math/Triangle3.cpp \
     src/Math/Vector2.cpp \
@@ -65,6 +66,7 @@ HEADERS += \
     include/Math/Matrices.h \
     include/Math/Matrix3.h \
     include/Math/Matrix4.h \
+    include/Math/NoiseManager.h \
     include/Math/Transform3D.h \
     include/Math/Triangle.h \
     include/Math/Triangle3.h \

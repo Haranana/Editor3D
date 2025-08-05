@@ -2,6 +2,7 @@
 #define BUFFER_H
 #include <vector>
 #include <iostream>
+#include "Math/Vector2.h"
 
 /*
  * Data structure similiar in usage to list of lists but
@@ -13,7 +14,6 @@ class Buffer{
 public:
     Buffer(std::size_t rows, std::size_t cols, T defaultValue);
 
-
     T* operator[](std::size_t it);
     const T* operator[](std::size_t it) const;
 
@@ -22,7 +22,7 @@ public:
     std::size_t size() const; //returns number of elements both default and non-default
     std::size_t nonEmptyElements() const; //returns nubmer of elements that are different than default v alue
     bool isEmpty() const;
-    bool exists(size_t row, size_t col) const; //checks whether given row and col are not out of bounds
+    bool exists(int row, int col) const; //checks whether given row and col are not out of bounds
     void logNonEmptyElements() const;
     void clear();
 
@@ -84,7 +84,7 @@ bool Buffer<T>::isEmpty() const{
 }
 
 template<typename T>
-bool Buffer<T>::exists(size_t row, size_t col) const{
+bool Buffer<T>::exists(int row, int col) const{
     return row >= 0 && row < getRows() && col >= 0 && col < getCols();
 }
 
