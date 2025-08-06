@@ -1,11 +1,16 @@
 #include "Math/NoiseManager.h"
+#include "Math/Utility.h"
+
+std::vector<Vector2> NoiseManager::poissonOffset8;
+std::vector<Vector2> NoiseManager::poissonOffset12;
+std::vector<Vector2> NoiseManager::poissonOffset16;
 
 std::vector<Vector2> NoiseManager::getPoissonOffset8(){
     if(poissonOffset8.empty()){
         std::vector<Vector2> offsets = generatePoissonDisk( defaultSmallMinDistance, defaultMaxTries);
         if (offsets.size() > 8)
             offsets.resize(8);
-        poissonOffset8 = std::move(offsets);
+        NoiseManager::poissonOffset8 = std::move(offsets);
     }
     return poissonOffset8;
 }
@@ -15,7 +20,7 @@ std::vector<Vector2> NoiseManager::getPoissonOffset12(){
         std::vector<Vector2> offsets = generatePoissonDisk( defaultSmallMinDistance, defaultMaxTries);
         if (offsets.size() > 12)
             offsets.resize(12);
-        poissonOffset12 = std::move(offsets);
+       NoiseManager::poissonOffset12 = std::move(offsets);
     }
     return poissonOffset12;
 }
@@ -24,7 +29,7 @@ std::vector<Vector2> NoiseManager::getPoissonOffset16(){
         std::vector<Vector2> offsets = generatePoissonDisk( defaultSmallMinDistance, defaultMaxTries);
         if (offsets.size() > 16)
             offsets.resize(16);
-        poissonOffset16 = std::move(offsets);
+        NoiseManager::poissonOffset16 = std::move(offsets);
     }
     return poissonOffset16;
 }

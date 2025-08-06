@@ -493,8 +493,9 @@ void MainWindow::refreshScene()
 }
 
 void MainWindow::loadTestScene(){
-    //    pointLightTestScene();
-    simpleTestScene();
+     //   pointLightTestScene();
+    pointLightRoomTestScene();
+    //simpleTestScene();
     refreshScene();
 }
 
@@ -621,6 +622,80 @@ void MainWindow::simpleTestScene(){
     scene->addObject(light);
     QString itemTextLight = QString("light");
     objectsList->addItem(itemTextLight);
+}
+
+void MainWindow::pointLightRoomTestScene(){
+
+    auto cube1 = std::make_shared<Cube>();
+    scene->addObject(cube1);
+    QString itemTextCube1 = QString("Cube1");
+    objectsList->addItem(itemTextCube1);
+    cube1->transform.setScales(Vector3(0.1,0.1,0.1));
+    cube1->transform.setPositionX(-100);
+    cube1->transform.setScales(Vector3(0.1, 3.0, 3.0));
+    cube1->viewportDisplay.color = Colors::Blue;
+
+    auto cube2 = std::make_shared<Cube>();
+    scene->addObject(cube2);
+    QString itemTextCube2 = QString("Cube2");
+    objectsList->addItem(itemTextCube2);
+    cube2->transform.setScales(Vector3(0.1,0.1,0.1));
+    cube2->transform.setPositionY(-100);
+    cube2->transform.setScales(Vector3(3.0, 0.1, 3.0));
+    cube2->viewportDisplay.color = Colors::Green;
+
+    auto cube3 = std::make_shared<Cube>();
+    scene->addObject(cube3);
+    QString itemTextCube3 = QString("Cub3");
+    objectsList->addItem(itemTextCube3);
+    cube3->transform.setScales(Vector3(0.1,0.1,0.1));
+    cube3->transform.setPositionX(100);
+    cube3->transform.setScales(Vector3(0.1, 3.0, 3.0));
+    cube3->viewportDisplay.color = Colors::Red;
+
+    auto cube4 = std::make_shared<Cube>();
+    scene->addObject(cube4);
+    QString itemTextCube4 = QString("Cube4");
+    objectsList->addItem(itemTextCube4);
+    cube4->transform.setScales(Vector3(0.1,0.1,0.1));
+    cube4->transform.setPositionY(100);
+    cube4->transform.setScales(Vector3(3.0, 0.1, 3.0));
+    cube4->viewportDisplay.color = Colors::Purple;
+
+    auto backwall = std::make_shared<Cube>();
+    scene->addObject(backwall);
+    QString itemTextBackwall = QString("backwall");
+    objectsList->addItem(itemTextBackwall);
+    backwall->transform.setScales(Vector3(0.1,0.1,0.1));
+    backwall->transform.setPositionZ(-100);
+    backwall->transform.setScales(Vector3(3.0, 3.0, 0.1));
+    backwall->viewportDisplay.color = Colors::Orange;
+
+    //std::cout<<"Before calling light constructor"<<std::endl;
+
+
+    std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
+    //std::cout<<"After calling light constructor"<<std::endl;
+    light->color = Colors::White;
+    light->intensity = 2.0;
+    light->bias = 0.003;
+    light->castsShadow = true;
+    scene->addObject(light);
+    QString itemTextLight = QString("light");
+    objectsList->addItem(itemTextLight);
+
+
+    /*
+    Vector3 lightDirection(0.0, 0.0, 1.0);
+    std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
+    light->color = Colors::White;
+    light->intensity = 3.0;
+    light->bias = 0.0015;
+    light->castsShadow = true;
+    scene->addObject(light);
+    QString itemTextLight = QString("light");
+    objectsList->addItem(itemTextLight);
+    */
 }
 
 void MainWindow::onAddCubeClicked()

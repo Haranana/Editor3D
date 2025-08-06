@@ -1,7 +1,7 @@
 #ifndef NOISEMANAGER_H
 #define NOISEMANAGER_H
 #include <vector>
-#include "Math/Utility.h"
+
 #include "Math/Vector2.h"
 //no need for different seeds, in future remake to only do offset16, and use part of it for faster versions
 class NoiseManager{
