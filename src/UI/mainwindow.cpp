@@ -113,6 +113,8 @@ void MainWindow::setupMenuBar(){
     QAction *selectEdges = new QAction("&Edges");
     QAction *selectVertices = new QAction("&Vertices");
     QAction *createDistantLight = new QAction("&Distant");
+    QAction *createPointLight = new QAction("&Point");
+    QAction *createSpotLight = new QAction("&Spot");
 
     selectActionGroup->setExclusive(true);
     selectObjects->setCheckable(true);
@@ -138,6 +140,8 @@ void MainWindow::setupMenuBar(){
     createObjectsMenu->addAction(createObjectCube);
     createObjectsMenu->addAction(createObjectCylinder);
     createObjectsLightMenu->addAction(createDistantLight);
+    createObjectsLightMenu->addAction(createPointLight);
+    createObjectsLightMenu->addAction(createSpotLight);
     //createObjectsMenu->addMenu(createObjectCylinder);
     selectedObjectMenu->addAction(deleteSelectedObject);
     selectedObjectMenu->addAction(assignTectureToObject);
@@ -148,6 +152,14 @@ void MainWindow::setupMenuBar(){
 
     QObject::connect(createDistantLight , &QAction::triggered , [&](){
         onObjectMenuCreateDistantLight();
+    });
+
+    QObject::connect(createPointLight , &QAction::triggered , [&](){
+        onObjectMenuCreatePointLight();
+    });
+
+    QObject::connect(createSpotLight , &QAction::triggered , [&](){
+        onObjectMenuCreateSpotLight();
     });
 
     QObject::connect(saveObjectAction, &QAction::triggered, [&](){
@@ -1194,16 +1206,44 @@ void MainWindow::onSceneMenuAssignTectureToObject(){
     refreshScene();
 }
 
-
 void MainWindow::onObjectMenuCreateDistantLight(){
-    std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( Vector3(0.6, -1.0, 0.4).normalize());
+    std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>(Vector3(1,0,0));
     light->color = Colors::White;
     light->intensity = 3.0;
     light->bias = 0.0015;
     light->castsShadow = true;
 
     scene->addObject(light);
-    QString itemText = QString("light");
+    QString itemText = QString("Point Light");
+    objectsList->addItem(itemText);
+
+    refreshScene();
+}
+
+
+void MainWindow::onObjectMenuCreatePointLight(){
+    std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
+    light->color = Colors::White;
+    light->intensity = 3.0;
+    light->bias = 0.0015;
+    light->castsShadow = true;
+
+    scene->addObject(light);
+    QString itemText = QString("Point Light");
+    objectsList->addItem(itemText);
+
+    refreshScene();
+}
+
+void MainWindow::onObjectMenuCreateSpotLight(){
+    std::shared_ptr<SpotLight> light = std::make_shared<SpotLight>( );
+    light->color = Colors::White;
+    light->intensity = 3.0;
+    light->bias = 0.0015;
+    light->castsShadow = true;
+
+    scene->addObject(light);
+    QString itemText = QString("Spot Light");
     objectsList->addItem(itemText);
 
     refreshScene();

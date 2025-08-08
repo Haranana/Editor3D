@@ -154,6 +154,8 @@ private slots:
     void onObjectMenuCreateCube();
     void onObjectMenuCreateCylinder();
     void onObjectMenuCreateDistantLight();
+    void onObjectMenuCreateSpotLight();
+    void onObjectMenuCreatePointLight();
 
     void onSceneMenuDeleteSelectedObject();
     void onSceneMenuAssignTectureToObject();
