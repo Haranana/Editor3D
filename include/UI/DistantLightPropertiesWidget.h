@@ -3,7 +3,7 @@
 
 #include "UI/ObjectPropertiesWidget.h"
 #include "Scene/DistantLight.h"
-#include "ColorPicker.h"
+#include "UI/LightPropertiesWidget.h"
 #include <QFormLayout>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
@@ -19,39 +19,22 @@ public:
     void setObject(std::shared_ptr<Object3D> object) override;
 
 private slots:
-    void onIntensityChanged(double v);
-    void onColorChanged(const Color& color);
-    void onBiasChanged(double v);
+
     void onDirectionChanged();
-    void onCastShadowChanged(int state);
 
 private:
-
-    static constexpr double intensityMin = 0.0;
-    static constexpr double intensityMax = 10.0;
-    static constexpr double intensityStep = 0.01;
-
-    static constexpr double biasMin = 0.00001;
-    static constexpr double biasMax = 0.01;
-    static constexpr double biasStep = 0.00001;
 
     static constexpr double dirMin = -1.0;
     static constexpr double dirMax = 1.0;
     static constexpr double dirStep = 0.01;
 
-    std::shared_ptr<DistantLight> light;
+    LightPropertiesWidget* lightPropertiesWidget;
 
-    QDoubleSpinBox* intensitySpin;
-    QDoubleSpinBox* biasSpin;
-    ColorPicker* colorPicker;
-    QCheckBox* castShadowCheck;
+    std::shared_ptr<DistantLight> light;
 
     QDoubleSpinBox* dirXSpin;
     QDoubleSpinBox* dirYSpin;
     QDoubleSpinBox* dirZSpin;
-
-    QSlider* intensitySlider;
-    QSlider* biasSlider;
 
     QSlider* dirXSlider;
     QSlider* dirYSlider;

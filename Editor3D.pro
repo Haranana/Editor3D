@@ -57,6 +57,7 @@ SOURCES += \
     src/UI/DisplaySettingsPropertiesWidget.cpp \
     src/UI/DistantLightPropertiesWidget.cpp \
     src/UI/ImageLabel.cpp \
+    src/UI/LightPropertiesWidget.cpp \
     src/UI/RenderWidget.cpp \
     src/UI/RenderableObjectPropertiesWidget.cpp \
     src/UI/Transform3DPropertiesWidget.cpp \
