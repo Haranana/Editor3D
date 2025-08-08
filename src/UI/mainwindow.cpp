@@ -785,7 +785,6 @@ void MainWindow::onAddCubeClicked()
 void MainWindow::onObjectSelected()
 {
 
-
     int objectId = objectsList->currentRow();
     //std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
