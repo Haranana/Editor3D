@@ -59,6 +59,7 @@ private:
     void updateShadowMaps();
     void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
     void shadowMapDepthPass(PointLight& lightSource);
+    void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
     double pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
     bool bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);

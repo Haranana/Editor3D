@@ -372,6 +372,74 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             }
                                         }
                                     }
+                                }else if(lightSource->lightType == Light::LightType::SPOT){
+                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+
+
+
+                                        bool isInShadow = true;
+                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
+                                        //check if we are not trying to get element from outside the buffer
+                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+
+                                        //if something is outside shadowMap then it's definitely not in shadow
+                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+
+                                                // float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            float depthInLightView = (interpolatedWorldSpaceCoords - lightSource->transform.getPosition()).length();
+
+                                            //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
+                                            //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
+
+                                            int sx = int(((lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1)));
+                                            int sy = int(((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1)));
+
+
+                                            if (debugMode == DEBUG_SHADOWMAP) {/*
+                                                std::cout << "u: " << u << " v: " << v << " sx: " << sx << " sy: " << sy
+                                                            << " depthInLightView: " << depthInLightView
+                                                          << " sm: " << (*pointLight->shadowMaps[face])[sy][sx] << std::endl;
+                                                */}
+                                            //std::cout<<"depth: "<<depthInLightView<<std::endl;
+                                            if (depthInLightView <= spotLight->shadowMap[sy][sx] + 2){
+                                                if (debugMode == DEBUG_SHADOWMAP) {
+                                                    // std::cout << "pixel not in shadow, because of depth check"<<std::endl;
+                                                }
+                                                isInShadow = false;
+                                            }
+                                        }else{
+                                            if (debugMode == DEBUG_SHADOWMAP) {
+                                                // std::cout << "pixel outside of shadowMap"<<std::endl;
+                                            }
+                                            isInShadow = false;
+                                        }
+
+                                        if(!isInShadow){
+                                            Vector3 lightDirection = (interpolatedWorldSpaceCoords - spotLight->transform.getPosition());
+                                            double lightToPixelDistance = lightDirection.length();
+                                            double lightAttenuation = spotLight->getDistanceAttenuation(lightToPixelDistance);
+                                            Vector3 normalizedLightDirection = lightDirection.normalize()*(-1.0);
+                                            //if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
+                                            lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
+                                                                  normalizedLightDirection, interpolatedWorldSpaceFaceNormal, spotLight->intensity
+                                                                  ) ;
+                                            //std::cout<<"Light mult: "<<lightMultiplier<<std::endl;
+                                            lightMultiplier*=lightAttenuation;
+                                            lightMultiplier = std::max(lightMultiplier , SHADOW_INTENSITY);
+                                            //std::cout<<"Light mult, after att: "<<lightMultiplier<<std::endl;
+                                            if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated, lightMult: "<< lightMultiplier<<std::endl;
+                                            //finalColor = Colors::White; //white - light
+                                        }else{
+                                            //finalColor = Colors::Red; //red - shadow
+                                            lightMultiplier = SHADOW_INTENSITY;
+                                            if (debugMode == DEBUG_SHADOWMAP){
+                                                //  std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             finalColor = baseColor * lightMultiplier;
@@ -548,9 +616,19 @@ void Renderer::updateShadowMaps(){
             if(debugMode == DEBUG_SHADOWMAP){
                 std::cout << "somehow found spot light source"<<std::endl;
             }
-            if(auto pointLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+            if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
 
+                spotLight->setViewMatrix();
 
+                double near = 0.1;
+                double far = spotLight->range;
+
+                spotLight->setProjectionMatrix(near, far);
+                if(debugMode == DEBUG_SHADOWMAP){
+                    std::cout << "perspective projection:\n" << spotLight->getProjectionMatrix() << std::endl;
+                }
+
+                shadowMapDepthPass((*spotLight));
             }
         }else{
             if(debugMode == DEBUG_SHADOWMAP){
@@ -876,6 +954,156 @@ void Renderer::shadowMapDepthPass(PointLight& lightSource){
             std::cout<<"lightView matrix "<<face<<" :\n"<<lightSource.getViewMatrix(face)<<std::endl;
         }
         //lightSource.shadowMap.logNonEmptyElements();
+
+    }
+}
+
+void Renderer::shadowMapDepthPass(SpotLight& lightSource){
+
+    lightSource.shadowMap.clear();
+
+    for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
+        std::shared_ptr<Object3D> object = scene->getObject(objIt);
+        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+            if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
+            //std::cout<<"1"<<std::endl;
+
+                Matrix4 MVP = lightSource.getProjectionMatrix() * lightSource.getViewMatrix() * curObject->transform.getTransMatrix();
+
+                //std::cout<<"2"<<std::endl;
+                //clipping preprocess
+                std::vector<ClippingManager::ClippedVertex> clipVertices;
+                for(size_t i = 0; i < curObject->vertices.size(); i++){
+                    const Vector3& localSpaceVertex = curObject->vertices[i];
+
+
+                    Vector4 clipSpaceVertex = MVP * Vectors::vector3to4(localSpaceVertex);
+                    Vector3 worldSpaceVertex = modelToWorld(localSpaceVertex, curObject->transform.getTransMatrix());
+                    double invertedW = 1.0/clipSpaceVertex.w;
+                    clipVertices.push_back(
+                        {
+                            clipSpaceVertex,
+                            invertedW,
+                            worldSpaceVertex * invertedW,
+                            Vector3(),
+                            Vector3()
+                        }
+                        );
+                }
+                for (size_t face = 0; face < curObject->faceVertexIndices.size(); face += 3)
+                {
+                    //original vertices in clip-space
+                    ClippingManager::ClippedVertex cv0 = clipVertices[curObject->faceVertexIndices[face    ]];
+                    ClippingManager::ClippedVertex cv1 = clipVertices[curObject->faceVertexIndices[face + 1]];
+                    ClippingManager::ClippedVertex cv2 = clipVertices[curObject->faceVertexIndices[face + 2]];
+
+                    //clipping triangle
+                    std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({cv0, cv1, cv2});
+                    if (clippedPoly.size() < 3) continue;
+
+                    // clip -> ndc -> screen - > screen with normalized depth
+                    std::vector<Vector3> screenVerticesWithDepth;
+                    screenVerticesWithDepth.reserve(clippedPoly.size());
+                    for (ClippingManager::ClippedVertex& cv : clippedPoly){
+                        Vector3 normalizedClipVertex = clipToNdc(cv.clip);
+                        if(debugMode == DEBUG_SHADOWMAP){
+                            if (std::abs(normalizedClipVertex.x) > 1.001 ||
+                                std::abs(normalizedClipVertex.y) > 1.001 ||
+                                std::abs(normalizedClipVertex.z) > 1.001) {
+                                std::cerr << "[WARN] Out of NDC: "
+                                          << normalizedClipVertex.x << ", "
+                                          << normalizedClipVertex.y << ", "
+                                          << normalizedClipVertex.z << " (before clamp)\n";
+                            }
+                        }
+                        normalizedClipVertex.x = std::clamp(normalizedClipVertex.x, -1.0, 1.0);
+                        normalizedClipVertex.y = std::clamp(normalizedClipVertex.y, -1.0, 1.0);
+
+
+                        //Vector2 screenSpaceVertex = Vector2(int(std::round( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMaps[shadowCubeFace]->getCols()-1) ) ) ,
+                        //                                  std::round(int( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMaps[shadowCubeFace]->getRows()-1) )));
+
+                        Vector2 screenSpaceVertex = Vector2((( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMap.getCols()-1) ) ) ,
+                                                            (( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMap.getRows()-1) )));
+
+                        screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.clip.z/cv.clip.w)+1.0)*0.5));
+
+                        if(debugMode == DEBUG_SHADOWMAP){
+                            if (screenSpaceVertex.x < 0 || screenSpaceVertex.x >= lightSource.shadowMap.getCols() ||
+                                screenSpaceVertex.y < 0 || screenSpaceVertex.y >= lightSource.shadowMap.getRows()) {
+                                std::cerr << "[WARN] Out of SM: ("
+                                          << screenSpaceVertex.x << ", "
+                                          << screenSpaceVertex.y << ") of "
+                                          << lightSource.shadowMap.getCols() << "x"
+                                          << lightSource.shadowMap.getRows() << "\n";
+
+                            }
+                            float depth = screenVerticesWithDepth.front().z;
+                            if (depth < -0.001 || depth > 1.001) {
+                                std::cerr << "[WARN] Bad depth: " << depth << "\n";
+                            }
+                            //std::cout<<"vertex in Screen: "<<screenVerticesWithDepth.front()<<std::endl;
+                        }
+                    }
+
+
+
+                    //Fill-pass
+                    for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
+                    {
+                        // Fan-triangulation
+                        Vector3& A = screenVerticesWithDepth[0];
+                        Vector3& B = screenVerticesWithDepth[k];
+                        Vector3& C = screenVerticesWithDepth[k+1];
+
+                        ClippingManager::ClippedVertex v0 = clippedPoly[0];
+                        ClippingManager::ClippedVertex v1 = clippedPoly[k];
+                        ClippingManager::ClippedVertex v2 = clippedPoly[k+1];
+
+                        // bounding box for rasterization
+                        // beyond this rectangle there's no need to make further checks
+                        int minX = std::max(0, int(std::floor(std::min({A.x,B.x,C.x}))));
+                        int maxX = std::min((int)lightSource.shadowMap.getCols()-1, int(std::ceil(std::max({A.x,B.x,C.x}))));
+                        int minY = std::max(0, int(std::floor(std::min({A.y,B.y,C.y}))));
+                        int maxY = std::min((int)lightSource.shadowMap.getRows()-1, int(std::ceil(std::max({A.y,B.y,C.y}))));
+
+                        //calculating area of triangle
+                        //if triangle's area = 0, nothing to raster
+                        //inv area will be used in further calculations
+                        double area = (B.x - A.x)*(C.y - A.y)
+                                      - (B.y - A.y)*(C.x - A.x);
+                        if (std::abs(area) < 1e-8) continue;
+                        double invArea = 1.0 / area;
+
+
+                        for (int y = minY; y <= maxY; y++) {
+                            for (int x = minX; x <= maxX; x++) {
+
+                                double px = x + 0.5, py = y + 0.5; //middle of current pixel
+
+                                //checking if pixel is withing triangle using baricentric coordinates
+                                double w0 = ((B.x-px)*(C.y-py) - (B.y-py)*(C.x-px)) * invArea;
+                                double w1 = ((C.x-px)*(A.y-py) - (C.y-py)*(A.x-px)) * invArea;
+                                double w2 = 1.0 - w0 - w1;
+                                if (w0<0 || w1<0 || w2<0) continue;
+
+                                double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
+                                Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
+
+                                //Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix(shadowCubeFace) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                //Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                                //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                float depthInLightView = (interpolatedWorldSpaceCoords - lightSource.transform.getPosition()).length();
+                                if (depthInLightView < lightSource.shadowMap[y][x]){
+                                    lightSource.shadowMap[y][x] = depthInLightView;
+                                    lightSource.shadowMap[y][x] = std::min(lightSource.range, lightSource.shadowMap[y][x]);
+                                }
+                            }
+                        }
+
+                }
+            }
+        }
 
     }
 }

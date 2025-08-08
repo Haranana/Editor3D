@@ -494,8 +494,9 @@ void MainWindow::refreshScene()
 
 void MainWindow::loadTestScene(){
      //   pointLightTestScene();
-    pointLightRoomTestScene();
+   // pointLightShadowTestScene();
     //simpleTestScene();
+     distantLightTestScene();
     refreshScene();
 }
 
@@ -696,6 +697,55 @@ void MainWindow::pointLightRoomTestScene(){
     QString itemTextLight = QString("light");
     objectsList->addItem(itemTextLight);
     */
+}
+
+void MainWindow::pointLightShadowTestScene(){
+
+    auto cube1 = std::make_shared<Cube>();
+    scene->addObject(cube1);
+    QString itemTextCube1 = QString("Cube1");
+    objectsList->addItem(itemTextCube1);
+    cube1->transform.setPositionX(-150);
+    cube1->transform.setScales(Vector3(0.1, 3.0, 3.0));
+    cube1->viewportDisplay.color = Colors::Blue;
+
+    auto cube2 = std::make_shared<Cube>();
+    scene->addObject(cube2);
+    QString itemTextCube2 = QString("Cube2");
+    objectsList->addItem(itemTextCube2);
+    cube2->transform.setPositionX(-50);
+    cube2->transform.setScales(Vector3(0.2, 0.2, 0.2));
+    cube2->viewportDisplay.color = Colors::Green;
+
+    auto cube3 = std::make_shared<Cube>();
+    scene->addObject(cube3);
+    QString itemTextCube3 = QString("Cub3");
+    objectsList->addItem(itemTextCube3);
+    cube3->transform.setPositionX(150);
+    cube3->transform.setPositionY(150);
+    cube3->transform.setAngleZ(0.7);
+    cube3->transform.setAngleY(0.7);
+    cube3->transform.setScales(Vector3(0.1, 3.0, 3.0));
+    cube3->viewportDisplay.color = Colors::Red;
+
+    auto cube4 = std::make_shared<Cube>();
+    scene->addObject(cube4);
+    QString itemTextCube4 = QString("Cube4");
+    objectsList->addItem(itemTextCube4);
+    cube4->transform.setPositionX(50);
+    cube4->transform.setPositionY(50);
+    cube4->transform.setScales(Vector3(0.2, 0.2, 0.2));
+    cube4->viewportDisplay.color = Colors::Purple;
+
+    std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
+    light->color = Colors::White;
+    light->intensity = 2.0;
+    light->bias = 0.003;
+    light->castsShadow = true;
+    scene->addObject(light);
+    QString itemTextLight = QString("light");
+    objectsList->addItem(itemTextLight);
+
 }
 
 void MainWindow::onAddCubeClicked()
