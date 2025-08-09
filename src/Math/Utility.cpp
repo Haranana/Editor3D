@@ -1,6 +1,10 @@
 #include "Math/Utility.h"
 
- double MathUt::degreeToRadian(double degree){
+bool MathUt::equal(double d1, double d2, double epsilon){
+    return std::abs(d1 - d2) <= epsilon;
+}
+
+double MathUt::degreeToRadian(double degree){
     return (M_PI/180.0)*degree;
 }
 

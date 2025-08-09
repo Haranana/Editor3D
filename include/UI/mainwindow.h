@@ -40,6 +40,8 @@
 #include "ObjectPropertiesWidget.h"
 #include "RenderableObjectPropertiesWidget.h"
 #include "DistantLightPropertiesWidget.h"
+#include "PointLightPropertiesWidget.h"
+#include "SpotLightPropertiesWidget.h"
 
 class MainWindow : public QMainWindow
 {

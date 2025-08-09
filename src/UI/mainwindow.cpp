@@ -508,7 +508,7 @@ void MainWindow::loadTestScene(){
      //   pointLightTestScene();
    // pointLightShadowTestScene();
     //simpleTestScene();
-     distantLightTestScene();
+    // distantLightTestScene();
     refreshScene();
 }
 
@@ -805,59 +805,24 @@ void MainWindow::onObjectSelected()
     if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
        // std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
         currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
+       std::cout<<"Current object: Renderable"<<std::endl;
     }else if(dynamic_cast<DistantLight*>(currentObject.get())){
         currentPropertiesWidget = new DistantLightPropertiesWidget(rightPanel);
+        std::cout<<"Current object: Distant Light"<<std::endl;
+    }else if(dynamic_cast<SpotLight*>(currentObject.get())){
+        currentPropertiesWidget = new SpotLightPropertiesWidget(rightPanel);
+        std::cout<<"Current object: Spot Light"<<std::endl;
+    }else if(dynamic_cast<PointLight*>(currentObject.get())){
+        currentPropertiesWidget = new PointLightPropertiesWidget(rightPanel);
+        std::cout<<"Current object: Point Light"<<std::endl;
     }
 
     if (currentPropertiesWidget) {
-        //std::cout<<"Setting parameters on prop widget"<<std::endl;
         currentPropertiesWidget->setObject(currentObject);
-        //std::cout<<"After set object"<<std::endl;
         rightLayout->addWidget(currentPropertiesWidget);
         connect(currentPropertiesWidget, &ObjectPropertiesWidget::objectChanged,
                 this, &MainWindow::refreshScene);
     }
-    //std::cout<<"after onObjectSelected()"<<std::endl;
-    /*
-
-    Vector3 pos = currentObject->transform.getPosition();
-    Vector3 rot = currentObject->transform.getAngles();
-    Vector3 scale = currentObject->transform.getScales();
-    //std::cout<<pos<<std::endl;
-    //std::cout<<scene->objectsAmount()<<std::endl;
-
-    sceneObjectSliderPosX->setValue(pos.x);
-    sceneObjectSliderPosY->setValue(pos.y);
-    sceneObjectSliderPosZ->setValue(pos.z);
-
-    sceneObjectSpinPosX->setValue(pos.x);
-    sceneObjectSpinPosY->setValue(pos.y);
-    sceneObjectSpinPosZ->setValue(pos.z);
-
-    sceneObjectSliderRotX->setValue(rot.x);
-    sceneObjectSliderRotY->setValue(rot.y);
-    sceneObjectSliderRotZ->setValue(rot.z);
-
-    sceneObjectSpinRotX->setValue(rot.x);
-    sceneObjectSpinRotY->setValue(rot.y);
-    sceneObjectSpinRotZ->setValue(rot.z);
-
-    sceneObjectSliderScaleX->setValue(scale.x);
-    sceneObjectSliderScaleY->setValue(scale.y);
-    sceneObjectSliderScaleZ->setValue(scale.z);
-
-    sceneObjectSpinScaleX->setValue(scale.x);
-    sceneObjectSpinScaleY->setValue(scale.y);
-    sceneObjectSpinScaleZ->setValue(scale.z);
-
-    //std::cout<<"Before changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
-    if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
-        colorPicker->setColor(currentRenderableObject->viewportDisplay.color);
-    }
-
-    //std::cout<<"After changing colorPicker values object had colors: "<<currentObject->viewportDisplay.color<<std::endl;
-    //to fill
-        */
 
 }
 
