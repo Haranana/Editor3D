@@ -14,6 +14,12 @@ SpotLightPropertiesWidget::SpotLightPropertiesWidget(QWidget* parent)
         emit objectChanged();
     });
 
+    transform3DPropertiesWidget = new Transform3DPropertiesWidget(this);
+    layout->addRow(transform3DPropertiesWidget);
+    connect(transform3DPropertiesWidget, &Transform3DPropertiesWidget::objectChanged, this, [this]() {
+        emit objectChanged();
+    });
+
     auto dirXRow = new QWidget(this);
     auto dirXLayout = new QHBoxLayout(dirXRow);
     dirXSpin = new QDoubleSpinBox(this);
@@ -173,6 +179,7 @@ void SpotLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     if (!light) return;
 
     lightPropertiesWidget->setObject(object);
+    transform3DPropertiesWidget->setObject(object);
 
     dirXSpin->blockSignals(true); dirYSpin->blockSignals(true); dirZSpin->blockSignals(true);
     dirXSlider->blockSignals(true); dirYSlider->blockSignals(true); dirZSlider->blockSignals(true);

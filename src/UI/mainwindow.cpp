@@ -73,10 +73,12 @@ void MainWindow::setupUI()
     mainLayout->addWidget(centerPanel, 3);
 
     // --- Prawy panel: drzewko właściwości ---
-    rightPanel = new QWidget(this);
-    rightLayout = new QVBoxLayout(rightPanel);
-    rightPanel->setLayout(rightLayout);
-    mainLayout->addWidget(rightPanel, 2);
+    propertiesWidgetScrollArea = new QScrollArea(this);
+    propertiesWidgetScrollArea->setWidgetResizable(true);
+    propertiesWidgetScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    rightLayout = new QVBoxLayout(propertiesWidgetScrollArea);
+    //rightPanel->setLayout(rightLayout);
+    mainLayout->addWidget(propertiesWidgetScrollArea, 2);
 
     //setupUIPropertyTree(rightPanel , rightLayout);
 
@@ -785,6 +787,9 @@ void MainWindow::onAddCubeClicked()
 void MainWindow::onObjectSelected()
 {
 
+
+
+
     int objectId = objectsList->currentRow();
     //std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
@@ -804,17 +809,13 @@ void MainWindow::onObjectSelected()
 
     if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
        // std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
-        currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
-       std::cout<<"Current object: Renderable"<<std::endl;
+        currentPropertiesWidget = new RenderableObjectPropertiesWidget(propertiesWidgetScrollArea);
     }else if(dynamic_cast<DistantLight*>(currentObject.get())){
-        currentPropertiesWidget = new DistantLightPropertiesWidget(rightPanel);
-        std::cout<<"Current object: Distant Light"<<std::endl;
+        currentPropertiesWidget = new DistantLightPropertiesWidget(propertiesWidgetScrollArea);
     }else if(dynamic_cast<SpotLight*>(currentObject.get())){
-        currentPropertiesWidget = new SpotLightPropertiesWidget(rightPanel);
-        std::cout<<"Current object: Spot Light"<<std::endl;
+        currentPropertiesWidget = new SpotLightPropertiesWidget(propertiesWidgetScrollArea);
     }else if(dynamic_cast<PointLight*>(currentObject.get())){
-        currentPropertiesWidget = new PointLightPropertiesWidget(rightPanel);
-        std::cout<<"Current object: Point Light"<<std::endl;
+        currentPropertiesWidget = new PointLightPropertiesWidget(propertiesWidgetScrollArea);
     }
 
     if (currentPropertiesWidget) {

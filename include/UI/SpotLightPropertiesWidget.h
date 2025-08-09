@@ -4,6 +4,7 @@
 #include "UI/ObjectPropertiesWidget.h"
 #include "Scene/SpotLight.h"
 #include "UI/LightPropertiesWidget.h"
+#include "UI/Transform3DPropertiesWidget.h"
 #include <QFormLayout>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
@@ -32,6 +33,7 @@ private slots:
 private:
 
     LightPropertiesWidget* lightPropertiesWidget;
+    Transform3DPropertiesWidget* transform3DPropertiesWidget;
     std::shared_ptr<SpotLight> light;
 
     static constexpr double dirMin = -1.0;

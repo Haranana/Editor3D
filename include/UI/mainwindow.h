@@ -41,6 +41,7 @@
 #include "RenderableObjectPropertiesWidget.h"
 #include "DistantLightPropertiesWidget.h"
 #include "PointLightPropertiesWidget.h"
+#include <QScrollArea>
 #include "SpotLightPropertiesWidget.h"
 
 class MainWindow : public QMainWindow
@@ -97,6 +98,8 @@ private:
     std::shared_ptr<Object3D> currentObject = nullptr;
 
     ObjectPropertiesWidget* currentPropertiesWidget = nullptr;
+
+    QScrollArea* propertiesWidgetScrollArea;
 
     QWidget* centralWidgetContainer = nullptr;
     QListWidget* objectsList = nullptr;

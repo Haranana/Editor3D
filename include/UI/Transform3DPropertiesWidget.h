@@ -6,6 +6,7 @@
 #include <QFormLayout>
 #include <QComboBox>
 #include "Math/Utility.h"
+#include <QScrollArea>
 #include <QCheckBox>
 
 class Transform3DPropertiesWidget : public ObjectPropertiesWidget{
@@ -37,7 +38,9 @@ private:
     static constexpr double rotSpinStep = 1.0;
     static constexpr int rotSpinDecimals = 1;
 
-    std::shared_ptr<RenderableObject3D> obj;
+    std::shared_ptr<Object3D> obj;
+
+
 
     QDoubleSpinBox* posX;
     QDoubleSpinBox* posY;

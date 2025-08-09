@@ -3,6 +3,8 @@
 Transform3DPropertiesWidget::Transform3DPropertiesWidget(QWidget* parent) : ObjectPropertiesWidget(parent){
     auto layout = new QFormLayout(this);
 
+
+
     auto posXRow = new QWidget(this);
     auto posXLayout = new QHBoxLayout(posXRow);
     auto posYRow = new QWidget(this);
@@ -245,7 +247,7 @@ Transform3DPropertiesWidget::Transform3DPropertiesWidget(QWidget* parent) : Obje
 
 void Transform3DPropertiesWidget::setObject(std::shared_ptr<Object3D> object){
 
-    obj = std::dynamic_pointer_cast<RenderableObject3D>(object);
+    obj = object;
     Vector3 pos = obj->transform.getPosition();
     posXSlider->setValue(pos.x);
     posYSlider->setValue(pos.y);
