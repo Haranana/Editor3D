@@ -23,23 +23,18 @@ MainWindow::MainWindow(QWidget* parent)
             onSceneDisplayClicked(x,y);
     });
     timer->start(30);
-
-
 }
 
-MainWindow::~MainWindow()
-{
-
-}
+MainWindow::~MainWindow(){}
 
 void MainWindow::setupUI()
 {
-    // Główny kontener i layout
+
     centralWidgetContainer = new QWidget(this);
     setCentralWidget(centralWidgetContainer);
     QHBoxLayout* mainLayout = new QHBoxLayout(centralWidgetContainer);
 
-    // Najbardziej zewnetrzny layout dzielacy aplikacje na czesc glowna i pasek menu
+
     menuBar = new QMenuBar(this);
     QHBoxLayout* menuBarLayout = new QHBoxLayout(menuBar);
     QVBoxLayout* menuAndMainLayout = new QVBoxLayout();
@@ -49,7 +44,6 @@ void MainWindow::setupUI()
 
     setupMenuBar();
 
-    // --- Lewy panel: lista obiektów i przycisk "Add Cube" ---
     QWidget* leftPanel = new QWidget(this);
     QVBoxLayout* leftLayout = new QVBoxLayout(leftPanel);
 
@@ -61,7 +55,6 @@ void MainWindow::setupUI()
     leftPanel->setLayout(leftLayout);
     mainLayout->addWidget(leftPanel, 1);
 
-    // --- Środkowy panel: podgląd sceny ---
     sceneDisplay = new ImageLabel(this);
     sceneDisplay->setFixedSize(800,600);
     sceneDisplay->setScaledContents(false);
@@ -72,29 +65,20 @@ void MainWindow::setupUI()
     centerPanel->setLayout(centerLayout);
     mainLayout->addWidget(centerPanel, 3);
 
-    // --- Prawy panel: drzewko właściwości ---
     propertiesWidgetScrollArea = new QScrollArea(this);
     propertiesWidgetScrollArea->setWidgetResizable(true);
     propertiesWidgetScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     rightLayout = new QVBoxLayout(propertiesWidgetScrollArea);
 
-    rightPanel = new QWidget(propertiesWidgetScrollArea);   // zapamiętaj jako pole klasy
+    rightPanel = new QWidget(propertiesWidgetScrollArea);
     rightLayout = new QVBoxLayout(rightPanel);
     rightLayout->setContentsMargins(12,12,12,12);
     rightLayout->setSpacing(8);
     rightLayout->addStretch();
 
-    //rightPanel->setLayout(rightLayout);
     propertiesWidgetScrollArea->setWidget(rightPanel);
     mainLayout->addWidget(propertiesWidgetScrollArea, 2);
 
-    //setupUIPropertyTree(rightPanel , rightLayout);
-
-    //objectParametersPropertyTree->expandAll();
-    //rightLayout->addWidget(objectParametersPropertyTree);
-
-
-    // --- Łączenie sygnałów/slotów ---
     connect(addCubeButton, &QPushButton::clicked, this, &MainWindow::onAddCubeClicked);
     connect(objectsList, &QListWidget::itemSelectionChanged, this, &MainWindow::onObjectSelected);
 }
@@ -212,247 +196,6 @@ void MainWindow::setupMenuBar(){
 
 }
 
-void MainWindow::setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout){
-    objectParametersPropertyTree = new QTreeWidget(rightPanel);
-    objectParametersPropertyTree->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-
-    objectParametersPropertyTree->setColumnCount(2);
-    objectParametersPropertyTree->setHeaderHidden(true);
-
-    setupUIPropertyTreeTransform();
-    setupUIPropertyTreeViewportDisplay();
-}
-
-void MainWindow::setupUIPropertyTreeTransform(){
-
-    QTreeWidgetItem* transformCategory = new QTreeWidgetItem();
-    transformCategory->setText(0, "Transform");
-    objectParametersPropertyTree->addTopLevelItem(transformCategory);
-
-    setupUIPropertyTreeTransformPos(transformCategory);
-    setupUIPropertyTreeTransformScale(transformCategory);
-    setupUIPropertyTreeTransformRot(transformCategory);
-}
-
-void MainWindow::setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCategory){
-
-    QTreeWidgetItem* positionNode = new QTreeWidgetItem(transformCategory);
-    positionNode->setText(0, "Position");
-
-    // Position X
-    QTreeWidgetItem* posXItem = new QTreeWidgetItem(positionNode);
-    posXItem->setText(0, "Pos X");
-    QWidget* posXWidget = new QWidget();
-    QHBoxLayout* posXLayout = new QHBoxLayout(posXWidget);
-    posXLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderPosX = new QSlider(Qt::Horizontal, posXWidget);
-    sceneObjectSliderPosX->setRange(transDownLimit, transUpLimit);
-    sceneObjectSpinPosX = new QSpinBox(posXWidget);
-    sceneObjectSpinPosX->setRange(transDownLimit, transUpLimit);
-    posXLayout->addWidget(sceneObjectSliderPosX);
-    posXLayout->addWidget(sceneObjectSpinPosX);
-    posXWidget->setLayout(posXLayout);
-    objectParametersPropertyTree->setItemWidget(posXItem, 1, posXWidget);
-
-    // Position Y
-    QTreeWidgetItem* posYItem = new QTreeWidgetItem(positionNode);
-    posYItem->setText(0, "Pos Y");
-    QWidget* posYWidget = new QWidget();
-    QHBoxLayout* posYLayout = new QHBoxLayout(posYWidget);
-    posYLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderPosY = new QSlider(Qt::Horizontal, posYWidget);
-    sceneObjectSliderPosY->setRange(transDownLimit, transUpLimit);
-    sceneObjectSpinPosY = new QSpinBox(posYWidget);
-    sceneObjectSpinPosY->setRange(transDownLimit, transUpLimit);
-    posYLayout->addWidget(sceneObjectSliderPosY);
-    posYLayout->addWidget(sceneObjectSpinPosY);
-    posYWidget->setLayout(posYLayout);
-    objectParametersPropertyTree->setItemWidget(posYItem, 1, posYWidget);
-
-    // Position Z
-    QTreeWidgetItem* posZItem = new QTreeWidgetItem(positionNode);
-    posZItem->setText(0, "Pos Z");
-    QWidget* posZWidget = new QWidget();
-    QHBoxLayout* posZLayout = new QHBoxLayout(posZWidget);
-    posZLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderPosZ = new QSlider(Qt::Horizontal, posZWidget);
-    sceneObjectSliderPosZ->setRange(transDownLimit, transUpLimit);
-    sceneObjectSpinPosZ = new QSpinBox(posZWidget);
-    sceneObjectSpinPosZ->setRange(transDownLimit, transUpLimit);
-    posZLayout->addWidget(sceneObjectSliderPosZ);
-    posZLayout->addWidget(sceneObjectSpinPosZ);
-    posZWidget->setLayout(posZLayout);
-    objectParametersPropertyTree->setItemWidget(posZItem, 1, posZWidget);
-
-    // Connections
-    connect(sceneObjectSliderPosX, &QSlider::valueChanged, this, &MainWindow::onSceneObjectPosChangedSlider);
-    connect(sceneObjectSpinPosX,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSceneObjectPosChangedSpin);
-    connect(sceneObjectSliderPosY, &QSlider::valueChanged, this, &MainWindow::onSceneObjectPosChangedSlider);
-    connect(sceneObjectSpinPosY,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSceneObjectPosChangedSpin);
-    connect(sceneObjectSliderPosZ, &QSlider::valueChanged, this, &MainWindow::onSceneObjectPosChangedSlider);
-    connect(sceneObjectSpinPosZ,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSceneObjectPosChangedSpin);
-}
-
-void MainWindow::setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCategory){
-
-    QTreeWidgetItem* scaleNode = new QTreeWidgetItem(transformCategory);
-    scaleNode->setText(0, "Scale");
-
-    // Scale X
-    QTreeWidgetItem* scaleXItem = new QTreeWidgetItem(scaleNode);
-    scaleXItem->setText(0, "Scale X");
-    QWidget* scaleXWidget = new QWidget();
-    QHBoxLayout* scaleXLayout = new QHBoxLayout(scaleXWidget);
-    scaleXLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderScaleX = new QSlider(Qt::Horizontal, scaleXWidget);
-    sceneObjectSliderScaleX->setRange(10, 300);
-    sceneObjectSliderScaleX->setValue(100);
-    sceneObjectSpinScaleX = new QDoubleSpinBox(scaleXWidget);
-    sceneObjectSpinScaleX->setRange(0.1, 3.0);
-    sceneObjectSpinScaleX->setValue(1.0);
-    scaleXLayout->addWidget(sceneObjectSliderScaleX);
-    scaleXLayout->addWidget(sceneObjectSpinScaleX);
-    scaleXWidget->setLayout(scaleXLayout);
-    objectParametersPropertyTree->setItemWidget(scaleXItem, 1, scaleXWidget);
-
-    // Scale Y
-    QTreeWidgetItem* scaleYItem = new QTreeWidgetItem(scaleNode);
-    scaleYItem->setText(0, "Scale Y");
-    QWidget* scaleYWidget = new QWidget();
-    QHBoxLayout* scaleYLayout = new QHBoxLayout(scaleYWidget);
-    scaleYLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderScaleY = new QSlider(Qt::Horizontal, scaleYWidget);
-    sceneObjectSliderScaleY->setRange(10, 300);
-    sceneObjectSliderScaleY->setValue(100);
-    sceneObjectSpinScaleY = new QDoubleSpinBox(scaleYWidget);
-    sceneObjectSpinScaleY->setRange(0.1, 3.0);
-    sceneObjectSpinScaleY->setValue(1.0);
-    scaleYLayout->addWidget(sceneObjectSliderScaleY);
-    scaleYLayout->addWidget(sceneObjectSpinScaleY);
-    scaleYWidget->setLayout(scaleYLayout);
-    objectParametersPropertyTree->setItemWidget(scaleYItem, 1, scaleYWidget);
-
-    // Scale Z
-    QTreeWidgetItem* scaleZItem = new QTreeWidgetItem(scaleNode);
-    scaleZItem->setText(0, "Scale Z");
-    QWidget* scaleZWidget = new QWidget();
-    QHBoxLayout* scaleZLayout = new QHBoxLayout(scaleZWidget);
-    scaleZLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderScaleZ = new QSlider(Qt::Horizontal, scaleZWidget);
-    sceneObjectSliderScaleZ->setRange(10, 300);
-    sceneObjectSliderScaleZ->setValue(100);
-    sceneObjectSpinScaleZ = new QDoubleSpinBox(scaleZWidget);
-    sceneObjectSpinScaleZ->setRange(0.1, 3.0);
-    sceneObjectSpinScaleZ->setValue(1.0);
-    scaleZLayout->addWidget(sceneObjectSliderScaleZ);
-    scaleZLayout->addWidget(sceneObjectSpinScaleZ);
-    scaleZWidget->setLayout(scaleZLayout);
-    objectParametersPropertyTree->setItemWidget(scaleZItem, 1, scaleZWidget);
-
-    // Connections
-    connect(sceneObjectSliderScaleX, &QSlider::valueChanged, this, &MainWindow::onSceneObjectScaleChangedSlider);
-    connect(sceneObjectSpinScaleX,  QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
-    connect(sceneObjectSliderScaleY, &QSlider::valueChanged, this, &MainWindow::onSceneObjectScaleChangedSlider);
-    connect(sceneObjectSpinScaleY,  QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
-    connect(sceneObjectSliderScaleZ, &QSlider::valueChanged, this, &MainWindow::onSceneObjectScaleChangedSlider);
-    connect(sceneObjectSpinScaleZ,  QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onSceneObjectScaleChangedSpin);
-}
-
-void MainWindow::setupUIPropertyTreeTransformRot(QTreeWidgetItem* transformCategory){
-    QTreeWidgetItem* rotationNode = new QTreeWidgetItem(transformCategory);
-    rotationNode->setText(0, "Rotation");
-
-    // Rotation X
-    QTreeWidgetItem* rotXItem = new QTreeWidgetItem(rotationNode);
-    rotXItem->setText(0, "Rot X");
-    QWidget* rotXWidget = new QWidget();
-    QHBoxLayout* rotXLayout = new QHBoxLayout(rotXWidget);
-    rotXLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderRotX = new QSlider(Qt::Horizontal, rotXWidget);
-    sceneObjectSliderRotX->setRange(0, 360);
-    sceneObjectSpinRotX = new QSpinBox(rotXWidget);
-    sceneObjectSpinRotX->setRange(0, 360);
-    rotXLayout->addWidget(sceneObjectSliderRotX);
-    rotXLayout->addWidget(sceneObjectSpinRotX);
-    rotXWidget->setLayout(rotXLayout);
-    objectParametersPropertyTree->setItemWidget(rotXItem, 1, rotXWidget);
-
-    // Rotation Y
-    QTreeWidgetItem* rotYItem = new QTreeWidgetItem(rotationNode);
-    rotYItem->setText(0, "Rot Y");
-    QWidget* rotYWidget = new QWidget();
-    QHBoxLayout* rotYLayout = new QHBoxLayout(rotYWidget);
-    rotYLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderRotY = new QSlider(Qt::Horizontal, rotYWidget);
-    sceneObjectSliderRotY->setRange(0, 360);
-    sceneObjectSpinRotY = new QSpinBox(rotYWidget);
-    sceneObjectSpinRotY->setRange(0, 360);
-    rotYLayout->addWidget(sceneObjectSliderRotY);
-    rotYLayout->addWidget(sceneObjectSpinRotY);
-    rotYWidget->setLayout(rotYLayout);
-    objectParametersPropertyTree->setItemWidget(rotYItem, 1, rotYWidget);
-
-    // Rotation Z
-    QTreeWidgetItem* rotZItem = new QTreeWidgetItem(rotationNode);
-    rotZItem->setText(0, "Rot Z");
-    QWidget* rotZWidget = new QWidget();
-    QHBoxLayout* rotZLayout = new QHBoxLayout(rotZWidget);
-    rotZLayout->setContentsMargins(0, 0, 0, 0);
-    sceneObjectSliderRotZ = new QSlider(Qt::Horizontal, rotZWidget);
-    sceneObjectSliderRotZ->setRange(0, 360);
-    sceneObjectSpinRotZ = new QSpinBox(rotZWidget);
-    sceneObjectSpinRotZ->setRange(0, 360);
-    rotZLayout->addWidget(sceneObjectSliderRotZ);
-    rotZLayout->addWidget(sceneObjectSpinRotZ);
-    rotZWidget->setLayout(rotZLayout);
-    objectParametersPropertyTree->setItemWidget(rotZItem, 1, rotZWidget);
-
-    // Connections
-    connect(sceneObjectSliderRotX, &QSlider::valueChanged, this, &MainWindow::onSCeneObjectRotChangedSlider);
-    connect(sceneObjectSpinRotX,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSCeneObjectRotChangedSpin);
-    connect(sceneObjectSliderRotY, &QSlider::valueChanged, this, &MainWindow::onSCeneObjectRotChangedSlider);
-    connect(sceneObjectSpinRotY,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSCeneObjectRotChangedSpin);
-    connect(sceneObjectSliderRotZ, &QSlider::valueChanged, this, &MainWindow::onSCeneObjectRotChangedSlider);
-    connect(sceneObjectSpinRotZ,  QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::onSCeneObjectRotChangedSpin);
-
-}
-
-void MainWindow::setupUIPropertyTreeViewportDisplay(){
-
-    QTreeWidgetItem* viewportDisplayCategory = new QTreeWidgetItem();
-    viewportDisplayCategory->setText(0 , "Viewport display");
-    objectParametersPropertyTree->addTopLevelItem(viewportDisplayCategory);
-
-    QTreeWidgetItem* displayModeItem = new QTreeWidgetItem(viewportDisplayCategory);
-    displayModeItem->setText(0 , "display as");
-    objectDisplayModeComboBox = new QComboBox(this);
-    QVBoxLayout* displayModeComboBoxLayput = new QVBoxLayout(objectDisplayModeComboBox);
-    objectDisplayModeComboBox->insertItem(0 , "wireframe" , QVariant(static_cast<int>(DisplaySettings::RenderMode::WIREFRAME)));
-    objectDisplayModeComboBox->insertItem(1 , "solid" , QVariant(static_cast<int>(DisplaySettings::RenderMode::RASTER)));
-    //objectDisplayModeComboBox->insertItem(2 , "textured" , QVariant(ViewportDisplay::DisplayMode::TEXTURED));
-    objectDisplayModeComboBox->setLayout(displayModeComboBoxLayput); //Jaki jest sens dodawania widget w konstruktorze layouta jesli tutaj go znowu przydzielam?
-    objectParametersPropertyTree->setItemWidget(displayModeItem, 1, objectDisplayModeComboBox);
-
-    /*
-    QTreeWidgetItem* displayColorItem = new QTreeWidgetItem(viewportDisplayCategory);
-    displayColorItem->setText(0 , "Color");
-    objectDisplayColor = new QColorDialog(this);
-    QVBoxLayout* displayColorLayput = new QVBoxLayout(objectDisplayColor);
-    objectDisplayColor->setLayout(displayColorLayput);
-    objectParametersPropertyTree->setItemWidget(displayColorItem, 1, objectDisplayColor);
-    */
-
-    QTreeWidgetItem* displayColorItem = new QTreeWidgetItem(viewportDisplayCategory);
-    displayColorItem->setText(0 , "Color");
-    colorPicker = new ColorPicker(this);
-    QVBoxLayout* colorPickerLayout = new QVBoxLayout(colorPicker);
-    colorPicker->setLayout(colorPickerLayout);
-    objectParametersPropertyTree->setItemWidget(displayColorItem, 1, colorPicker);
-
-    connect(objectDisplayModeComboBox, &QComboBox::currentIndexChanged, this, &MainWindow::onDisplayModeCurIndexChanged);
-    connect(colorPicker, &ColorPicker::colorChanged, this, &MainWindow::onDisplayColorPickerValueChanged);
-}
-
 void MainWindow::setupScene()
 {
     scene = std::make_shared<Scene>();
@@ -461,37 +204,17 @@ void MainWindow::setupScene()
     camera = std::make_shared<Camera>();
 
     auto img = std::make_shared<QImage>(800, 800, QImage::Format_ARGB32);
-    //img->fill(Qt::black);
     PixelPainter pixelPainter = PixelPainter(img);
     pixelPainter.fillImage(Colors::Black);
 
-    //renderingSurface = std::make_shared<RenderingSurface>(img);
     renderer = std::make_shared<Renderer>(img, scene, camera);
 
     std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
     defaultCamera->transform.setPosition({ 0.0, 0.0, 0.0 });
-    //defaultCamera->setFov(200.0);
     defaultCamera->visibleInScene = false;
     scene->specialSceneObjects.defaultCamera = defaultCamera;
 
-    //add Vertical grid
-    /*
-    std::shared_ptr<Grid> verticalGrid = std::make_shared<Grid>(Grid::Orientation::VERTICAL);
-    //scene->specialSceneObjects.VerticalGrid =
-    scene->addObject(verticalGrid);
-    QListWidgetItem* vGridItem = new QListWidgetItem("Vertical Grid");
-    objectsList->addItem(vGridItem);
-    */
-
-    /*
-    std::shared_ptr<Grid> horizontalGrid = std::make_shared<Grid>(Grid::Orientation::HORIZONTAL);
-    scene->addObject(horizontalGrid);
-    QListWidgetItem* hGridItem = new QListWidgetItem("Horizontal Grid");
-    objectsList->addItem(hGridItem);
-    */
-
     camera->transform.setPosition({ 0.0, 0.0, 300 });
-    //camera->setFov(200.0);
     scene->addObject(camera);
     QListWidgetItem* item1 = new QListWidgetItem("Main Camera");
     objectsList->addItem(item1);
@@ -507,18 +230,14 @@ void MainWindow::refreshScene()
     auto imgPtr = renderer->getRenderingSurface()->getImg();
     if (!imgPtr) return;
 
-    /*
-    QPixmap pix = QPixmap::fromImage(*imgPtr);
-    sceneDisplay->setPixmap(pix);
-    */
     sceneDisplay->setImage(*imgPtr);
 }
 
 void MainWindow::loadTestScene(){
-     //   pointLightTestScene();
-   // pointLightShadowTestScene();
+    //pointLightTestScene();
+    //pointLightShadowTestScene();
     //simpleTestScene();
-    // distantLightTestScene();
+    //distantLightTestScene();
     refreshScene();
 }
 
@@ -561,6 +280,7 @@ void MainWindow::distantLightTestScene(){
 }
 
 void MainWindow::pointLightTestScene(){
+
     auto cube1 = std::make_shared<Cube>();
     scene->addObject(cube1);
     QString itemTextCube1 = QString("Cube1");
@@ -595,9 +315,7 @@ void MainWindow::pointLightTestScene(){
     cube4->transform.setPositionY(50);
     cube4->viewportDisplay.color = Colors::Purple;
 
-    //std::cout<<"Before calling light constructor"<<std::endl;
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
-    //std::cout<<"After calling light constructor"<<std::endl;
     light->color = Colors::White;
     light->intensity = 2.0;
     light->bias = 0.003;
@@ -605,29 +323,9 @@ void MainWindow::pointLightTestScene(){
     scene->addObject(light);
     QString itemTextLight = QString("light");
     objectsList->addItem(itemTextLight);
-
-
-
 }
 
 void MainWindow::simpleTestScene(){
-    /*
-    auto cube = std::make_shared<Cube>();
-    scene->addObject(cube);
-    QString itemTextCube = QString("Purple Cube");
-    objectsList->addItem(itemTextCube);
-    cube->transform.setScales(Vector3(0.3,0.3,0.3));
-    cube->viewportDisplay.color = Colors::Purple;
-
-
-    auto cube2 = std::make_shared<Cube>();
-    scene->addObject(cube2);
-    QString itemTextCube2 = QString("Red Cube");
-    objectsList->addItem(itemTextCube2);
-    cube2->transform.setPositionX(100);
-    cube2->transform.setPositionY(100);
-    cube2->transform.setScales(Vector3(0.3,0.3,0.3));
-    cube2->viewportDisplay.color = Colors::Red;*/
 
     auto cube = std::make_shared<Cube>();
     scene->addObject(cube);
@@ -694,11 +392,7 @@ void MainWindow::pointLightRoomTestScene(){
     backwall->transform.setScales(Vector3(3.0, 3.0, 0.1));
     backwall->viewportDisplay.color = Colors::Orange;
 
-    //std::cout<<"Before calling light constructor"<<std::endl;
-
-
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
-    //std::cout<<"After calling light constructor"<<std::endl;
     light->color = Colors::White;
     light->intensity = 2.0;
     light->bias = 0.003;
@@ -706,19 +400,6 @@ void MainWindow::pointLightRoomTestScene(){
     scene->addObject(light);
     QString itemTextLight = QString("light");
     objectsList->addItem(itemTextLight);
-
-
-    /*
-    Vector3 lightDirection(0.0, 0.0, 1.0);
-    std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
-    light->color = Colors::White;
-    light->intensity = 3.0;
-    light->bias = 0.0015;
-    light->castsShadow = true;
-    scene->addObject(light);
-    QString itemTextLight = QString("light");
-    objectsList->addItem(itemTextLight);
-    */
 }
 
 void MainWindow::pointLightShadowTestScene(){
@@ -777,29 +458,11 @@ void MainWindow::onAddCubeClicked()
     scene->addObject(newObj);
     QString itemText = QString("Cylinder");
     objectsList->addItem(itemText);
-    /*
-    static int cubeCount = 2;
-    auto newCube = std::make_shared<Cube>(30);
-
-    scene->addObject(newCube);
-
-    QString itemText = QString("Cube #%1 (side=30)").arg(cubeCount++);
-    objectsList->addItem(itemText);
-
-    refreshScene();
-    */
-
-
 }
 
-void MainWindow::onObjectSelected()
-{
-
-
-
+void MainWindow::onObjectSelected(){
 
     int objectId = objectsList->currentRow();
-    //std::cout<<"Object Selected: "<<objectId<<" : "<<scene->objectsAmount()<<std::endl;
     if (objectId < 0 || objectId >= scene->objectsAmount()) {
         currentObject = nullptr;
         return;
@@ -809,14 +472,12 @@ void MainWindow::onObjectSelected()
     if (!currentObject) return;
 
     if (currentPropertiesWidget) {
-        //std::cout<<"deleting current prop widget"<<std::endl;
         rightLayout->removeWidget(currentPropertiesWidget);
         delete currentPropertiesWidget;
         currentPropertiesWidget = nullptr;
     }
 
     if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
-       // std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
         currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
     }else if(dynamic_cast<DistantLight*>(currentObject.get())){
         currentPropertiesWidget = new DistantLightPropertiesWidget(rightPanel);
@@ -833,251 +494,6 @@ void MainWindow::onObjectSelected()
                 this, &MainWindow::refreshScene);
     }
 
-}
-
-void MainWindow::onSceneObjectPosChangedSpin(){
-
-    if (!currentObject) return;
-
-    double sliderValueX = sceneObjectSliderPosX->value();
-    double sliderValueY = sceneObjectSliderPosY->value();
-    double sliderValueZ = sceneObjectSliderPosZ->value();
-
-    double spinValueX = sceneObjectSpinPosX->value();
-    double spinValueY = sceneObjectSpinPosY->value();
-    double spinValueZ = sceneObjectSpinPosZ->value();
-
-    if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSliderPosX->setValue(sceneObjectSpinPosX->value());
-        sliderValueX = sceneObjectSpinPosX->value();
-    }
-
-    if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSliderPosY->setValue(sceneObjectSpinPosY->value());
-        sliderValueY = sceneObjectSpinPosY->value();
-    }
-
-    if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSliderPosZ->setValue(sceneObjectSpinPosZ->value());
-        sliderValueZ = sceneObjectSpinPosZ->value();
-    }
-
-    currentObject->transform.setPosition(Vector3(spinValueX, spinValueY, spinValueZ));
-
-    refreshScene();
-}
-
-void MainWindow::onSceneObjectPosChangedSlider(){
-
-    if (!currentObject) return;
-
-    double sliderValueX = sceneObjectSliderPosX->value();
-    double sliderValueY = sceneObjectSliderPosY->value();
-    double sliderValueZ = sceneObjectSliderPosZ->value();
-
-    double spinValueX = sceneObjectSpinPosX->value();
-    double spinValueY = sceneObjectSpinPosY->value();
-    double spinValueZ = sceneObjectSpinPosZ->value();
-
-    if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSpinPosX->setValue(sliderValueX);
-        spinValueX = sliderValueX;
-    }
-
-    if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSpinPosY->setValue(sliderValueY);
-        spinValueY = sliderValueY;
-    }
-
-    if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSpinPosZ->setValue(sliderValueZ);
-        spinValueZ = sliderValueZ;
-    }
-
-    currentObject->transform.setPosition(Vector3(spinValueX, spinValueY, spinValueZ));
-
-    refreshScene();
-}
-
-void MainWindow::onSceneObjectScaleChangedSpin()
-{
-    if (!currentObject) return;
-
-    double sliderValueX = sceneObjectSliderScaleX->value();
-    double sliderValueY = sceneObjectSliderScaleY->value();
-    double sliderValueZ = sceneObjectSliderScaleZ->value();
-
-    double spinValueX = sceneObjectSpinScaleX->value();
-    double spinValueY = sceneObjectSpinScaleY->value();
-    double spinValueZ = sceneObjectSpinScaleZ->value();
-
-    if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSliderScaleX->setValue(sceneObjectSpinScaleX->value()*100);
-        sliderValueX = sceneObjectSpinScaleX->value()*100;
-    }
-    if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSliderScaleY->setValue(sceneObjectSpinScaleY->value()*100);
-        sliderValueY = sceneObjectSpinScaleY->value()*100;
-    }
-    if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSliderScaleZ->setValue(sceneObjectSpinScaleZ->value()*100);
-        sliderValueZ = sceneObjectSpinScaleZ->value()*100;
-    }
-
-    Vector3 newScale(spinValueX, spinValueY, spinValueZ);
-
-    currentObject->transform.setScales(newScale);
-
-    refreshScene();
-}
-
-void MainWindow::onSceneObjectScaleChangedSlider()
-{
-    if (!currentObject) return;
-
-    double sliderValueX = sceneObjectSliderScaleX->value();
-    double sliderValueY = sceneObjectSliderScaleY->value();
-    double sliderValueZ = sceneObjectSliderScaleZ->value();
-
-    double spinValueX = sceneObjectSpinScaleX->value();
-    double spinValueY = sceneObjectSpinScaleY->value();
-    double spinValueZ = sceneObjectSpinScaleZ->value();
-
-    if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSpinScaleX->setValue(sliderValueX/100);
-        spinValueX = sliderValueX/100;
-    }
-
-    if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSpinScaleY->setValue(sliderValueY/100);
-        spinValueY = sliderValueY/100;
-    }
-
-    if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSpinScaleZ->setValue(sliderValueZ/100);
-        spinValueZ = sliderValueZ/100;
-    }
-
-    currentObject->transform.setScales(Vector3(spinValueX, spinValueY, spinValueZ));
-
-    refreshScene();
-}
-
-void MainWindow::onSCeneObjectRotChangedSpin()
-{
-    if (!currentObject) return;
-
-    double sliderValueX = sceneObjectSliderRotX->value();
-    double sliderValueY = sceneObjectSliderRotY->value();
-    double sliderValueZ = sceneObjectSliderRotZ->value();
-
-    double spinValueX = sceneObjectSpinRotX->value();
-    double spinValueY = sceneObjectSpinRotY->value();
-    double spinValueZ = sceneObjectSpinRotZ->value();
-
-    if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSliderRotX->setValue(sceneObjectSpinRotX->value());
-        sliderValueX = sceneObjectSpinRotX->value();
-    }
-    if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSliderRotY->setValue(sceneObjectSpinRotY->value());
-        sliderValueY = sceneObjectSpinRotY->value();
-    }
-    if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSliderRotZ->setValue(sceneObjectSpinRotZ->value());
-        sliderValueZ = sceneObjectSpinRotZ->value();
-    }
-
-    currentObject->transform.setAngles(Vector3(spinValueX, spinValueY, spinValueZ), false);
-
-    refreshScene();
-}
-
-void MainWindow::onSCeneObjectRotChangedSlider()
-{
-    if (!currentObject) return;
-
-    double sliderValueX = sceneObjectSliderRotX->value();
-    double sliderValueY = sceneObjectSliderRotY->value();
-    double sliderValueZ = sceneObjectSliderRotZ->value();
-
-    double spinValueX = sceneObjectSpinRotX->value();
-    double spinValueY = sceneObjectSpinRotY->value();
-    double spinValueZ = sceneObjectSpinRotZ->value();
-
-    if (static_cast<int>(sliderValueX) != spinValueX) {
-        sceneObjectSpinRotX->setValue(sliderValueX);
-        spinValueX = sliderValueX;
-    }
-
-    if (static_cast<int>(sliderValueY) != spinValueY) {
-        sceneObjectSpinRotY->setValue(sliderValueY);
-        spinValueY = sliderValueY;
-    }
-
-    if (static_cast<int>(sliderValueZ) != spinValueZ) {
-        sceneObjectSpinRotZ->setValue(sliderValueZ);
-        spinValueZ = sliderValueZ;
-    }
-
-    currentObject->transform.setAngles(Vector3(spinValueX, spinValueY, spinValueZ), false);
-
-    refreshScene();
-}
-
-void MainWindow::onDisplayModeCurIndexChanged(){
-    /*
-    if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
-    currentObject->viewportDisplay.displayMode = objectDisplayModeComboBox->itemData(objectDisplayModeComboBox->currentIndex()).value<ViewportDisplay::DisplayMode>();
-        switch(currentObject->viewportDisplay.displayMode){
-        case ViewportDisplay::WIREFRAME:
-            currentRenderableObject->setRenderStrategy(std::make_unique<BasicRenderStrategy>());
-            break;
-        case ViewportDisplay::SOLID:
-            currentRenderableObject->setRenderStrategy(std::make_unique<RasterRenderStrategy>());
-            break;
-        case ViewportDisplay::TEXTURED:
-            currentRenderableObject->setRenderStrategy(std::make_unique<FrontOnlyRenderStrategy>()); //TODO change to an actuall textured render
-            break;
-        }
-    }*/
-
-    if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
-        currentRenderableObject->displaySettings->renderMode =
-            static_cast<DisplaySettings::RenderMode>
-            (objectDisplayModeComboBox->itemData(objectDisplayModeComboBox->currentIndex()).toInt());
-        /*
-        switch(currentObject->viewportDisplay.displayMode){
-        case ViewportDisplay::WIREFRAME:
-            currentRenderableObject->setRenderStrategy(std::make_unique<BasicRenderStrategy>());
-            break;
-        case ViewportDisplay::SOLID:
-            currentRenderableObject->setRenderStrategy(std::make_unique<RasterRenderStrategy>());
-            break;
-        }
-    */
-    }
-
-}
-
-void MainWindow::onDisplayColorPickerValueChanged(const Color& color){
-    //std::cout<<"changed color Value to: "<<color<<std::endl;
-    currentObject->viewportDisplay.color = color;
-}
-
-void MainWindow::onFileMenuSaveObject(){
-    if(!currentObject){
-        qDebug() << "Object to save was not selected!";
-        return;
-    }
-
-    QString savePath = QFileDialog::getSaveFileName(this , tr("Save file") , "" , tr("OBJ Files (*.obj);;Text Files (*.txt);;All Files (*)"));
-    if (!savePath.isEmpty()) {
-        qDebug() << "saving:" << savePath;
-        if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
-            objectSaver->saveObject(std::make_shared<RenderableObject3D>(*currentRenderableObject) , savePath.toStdString());
-        }
-    }
 }
 
 void MainWindow::onFileMenuImportObject(){
@@ -1193,7 +609,6 @@ void MainWindow::onObjectMenuCreateDistantLight(){
     refreshScene();
 }
 
-
 void MainWindow::onObjectMenuCreatePointLight(){
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
     light->color = Colors::White;
@@ -1221,7 +636,3 @@ void MainWindow::onObjectMenuCreateSpotLight(){
 
     refreshScene();
 }
-/*
- * W comboboxie odpowiednie tree itemy powinny sie wyswietlac w zaleznosci od wybranego obiektu
- * nullptr - nic , renderableObject - viewportDisplay i transform itp...
- */

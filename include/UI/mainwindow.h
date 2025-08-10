@@ -69,12 +69,6 @@ private:
 
     void setupUI();
     void setupMenuBar();
-        void setupUIPropertyTree(QWidget *rightPanel , QVBoxLayout *rightLayout);
-            void setupUIPropertyTreeTransform();
-                void setupUIPropertyTreeTransformPos(QTreeWidgetItem* transformCategory);
-                void setupUIPropertyTreeTransformRot(QTreeWidgetItem* transformCategory);
-                void setupUIPropertyTreeTransformScale(QTreeWidgetItem* transformCategory);
-            void setupUIPropertyTreeViewportDisplay();
 
 
     void setupScene();
@@ -140,18 +134,6 @@ private slots:
 
     void onAddCubeClicked();
     void onObjectSelected();
-
-    void onSceneObjectPosChangedSpin();
-    void onSceneObjectPosChangedSlider();
-
-    void onSceneObjectScaleChangedSpin();
-    void onSceneObjectScaleChangedSlider();
-
-    void onSCeneObjectRotChangedSpin();
-    void onSCeneObjectRotChangedSlider();
-
-    void onDisplayModeCurIndexChanged();
-    void onDisplayColorPickerValueChanged(const Color& color);
 
     void onFileMenuSaveObject();
     void onFileMenuImportObject();
