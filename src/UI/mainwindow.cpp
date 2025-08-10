@@ -77,7 +77,15 @@ void MainWindow::setupUI()
     propertiesWidgetScrollArea->setWidgetResizable(true);
     propertiesWidgetScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     rightLayout = new QVBoxLayout(propertiesWidgetScrollArea);
+
+    rightPanel = new QWidget(propertiesWidgetScrollArea);   // zapamiętaj jako pole klasy
+    rightLayout = new QVBoxLayout(rightPanel);
+    rightLayout->setContentsMargins(12,12,12,12);
+    rightLayout->setSpacing(8);
+    rightLayout->addStretch();
+
     //rightPanel->setLayout(rightLayout);
+    propertiesWidgetScrollArea->setWidget(rightPanel);
     mainLayout->addWidget(propertiesWidgetScrollArea, 2);
 
     //setupUIPropertyTree(rightPanel , rightLayout);
@@ -809,13 +817,13 @@ void MainWindow::onObjectSelected()
 
     if (dynamic_cast<RenderableObject3D*>(currentObject.get())) {
        // std::cout<<"prop widget identified as Renderable object 3D"<<std::endl;
-        currentPropertiesWidget = new RenderableObjectPropertiesWidget(propertiesWidgetScrollArea);
+        currentPropertiesWidget = new RenderableObjectPropertiesWidget(rightPanel);
     }else if(dynamic_cast<DistantLight*>(currentObject.get())){
-        currentPropertiesWidget = new DistantLightPropertiesWidget(propertiesWidgetScrollArea);
+        currentPropertiesWidget = new DistantLightPropertiesWidget(rightPanel);
     }else if(dynamic_cast<SpotLight*>(currentObject.get())){
-        currentPropertiesWidget = new SpotLightPropertiesWidget(propertiesWidgetScrollArea);
+        currentPropertiesWidget = new SpotLightPropertiesWidget(rightPanel);
     }else if(dynamic_cast<PointLight*>(currentObject.get())){
-        currentPropertiesWidget = new PointLightPropertiesWidget(propertiesWidgetScrollArea);
+        currentPropertiesWidget = new PointLightPropertiesWidget(rightPanel);
     }
 
     if (currentPropertiesWidget) {

@@ -12,6 +12,10 @@ namespace MathUt{
 
 bool equal(double d1, double d2, double epsilon = 1e-6);
 
+bool safeDenom(double denom, double safe = 1e-6);
+
+bool safePositiveDenom(double denom, double safe = 1e-6);
+
 double degreeToRadian(double degree);
 
 double radianToDegree(double radian);

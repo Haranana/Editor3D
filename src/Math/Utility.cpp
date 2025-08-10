@@ -4,6 +4,14 @@ bool MathUt::equal(double d1, double d2, double epsilon){
     return std::abs(d1 - d2) <= epsilon;
 }
 
+bool MathUt::safeDenom(double denom, double safe){
+    return denom == 0? safe : denom;
+}
+
+bool MathUt::safePositiveDenom(double denom, double safe){
+    return denom <= 0? safe : denom;
+}
+
 double MathUt::degreeToRadian(double degree){
     return (M_PI/180.0)*degree;
 }

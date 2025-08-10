@@ -375,69 +375,52 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 }else if(lightSource->lightType == Light::LightType::SPOT){
                                     if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
 
-
-
                                         bool isInShadow = true;
                                         Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
 
                                         //check if we are not trying to get element from outside the buffer
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // [0, 1]
                                         float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
 
+                                        bool uvInShadowMap = (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)));
+
                                         //if something is outside shadowMap then it's definitely not in shadow
-                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+                                        if (uvInShadowMap){
 
-                                                // float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
                                             float depthInLightView = (interpolatedWorldSpaceCoords - lightSource->transform.getPosition()).length();
-
-                                            //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
-                                            //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
 
                                             int sx = int(((lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1)));
                                             int sy = int(((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1)));
 
-
-                                            if (debugMode == DEBUG_SHADOWMAP) {/*
-                                                std::cout << "u: " << u << " v: " << v << " sx: " << sx << " sy: " << sy
-                                                            << " depthInLightView: " << depthInLightView
-                                                          << " sm: " << (*pointLight->shadowMaps[face])[sy][sx] << std::endl;
-                                                */}
-                                            //std::cout<<"depth: "<<depthInLightView<<std::endl;
-                                            if (depthInLightView <= spotLight->shadowMap[sy][sx] + 2){
-                                                if (debugMode == DEBUG_SHADOWMAP) {
-                                                    // std::cout << "pixel not in shadow, because of depth check"<<std::endl;
-                                                }
+                                            if (depthInLightView <= spotLight->shadowMap[sy][sx] + spotLight->bias){
                                                 isInShadow = false;
                                             }
                                         }else{
-                                            if (debugMode == DEBUG_SHADOWMAP) {
-                                                // std::cout << "pixel outside of shadowMap"<<std::endl;
-                                            }
                                             isInShadow = false;
                                         }
 
                                         if(!isInShadow){
-                                            Vector3 lightDirection = (interpolatedWorldSpaceCoords - spotLight->transform.getPosition());
-                                            double lightToPixelDistance = lightDirection.length();
-                                            double lightAttenuation = spotLight->getDistanceAttenuation(lightToPixelDistance);
+
+                                            Vector3 lightDirection = spotLight->direction;
+                                            Vector3 lightToPixel = interpolatedWorldSpaceCoords - spotLight->transform.getPosition();
+                                            double lightToPixelDistance = lightToPixel.length();
+
+                                            double lightDistanceAttenuation = spotLight->getDistanceAttenuation(lightToPixelDistance);
+                                            double lightAttenuation = spotLight->getAttenuation(lightToPixel);
                                             Vector3 normalizedLightDirection = lightDirection.normalize()*(-1.0);
-                                            //if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated"<<std::endl;
+
                                             lightMultiplier = lightMultiplier * shadingManager->getReflectedLightLambert(
                                                                   normalizedLightDirection, interpolatedWorldSpaceFaceNormal, spotLight->intensity
                                                                   ) ;
-                                            //std::cout<<"Light mult: "<<lightMultiplier<<std::endl;
-                                            lightMultiplier*=lightAttenuation;
+
+                                            lightMultiplier*=lightDistanceAttenuation*lightAttenuation;
                                             lightMultiplier = std::max(lightMultiplier , SHADOW_INTENSITY);
-                                            //std::cout<<"Light mult, after att: "<<lightMultiplier<<std::endl;
-                                            if (debugMode == DEBUG_SHADOWMAP) std::cout<<"final verdict: Pixel Illuminated, lightMult: "<< lightMultiplier<<std::endl;
-                                            //finalColor = Colors::White; //white - light
+
                                         }else{
-                                            //finalColor = Colors::Red; //red - shadow
+
                                             lightMultiplier = SHADOW_INTENSITY;
-                                            if (debugMode == DEBUG_SHADOWMAP){
-                                                //  std::cout<<"final verdict: Pixel in Shadow"<<std::endl;
-                                            }
+
                                         }
                                     }
                                 }
