@@ -1,7 +1,8 @@
 #ifndef TRIANGLE3_H
 #define TRIANGLE3_H
-#include <algorithm>
-#include "Vectors.h"
+
+#include "Vector2.h"
+#include "Vector3.h"
 #include "Math/Triangle.h"
 
 class Triangle3 : public Triangle<Vector3>{

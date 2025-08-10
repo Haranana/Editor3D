@@ -2,7 +2,6 @@
 #define BUFFER_H
 #include <vector>
 #include <iostream>
-#include "Math/Vector2.h"
 
 /*
  * Data structure similiar in usage to list of lists but
@@ -28,8 +27,8 @@ public:
 
 private:
     std::size_t rows, cols;
-    std::vector<T> data;
     T defaultValue;
+    std::vector<T> data;
 };
 
 
@@ -85,7 +84,7 @@ bool Buffer<T>::isEmpty() const{
 
 template<typename T>
 bool Buffer<T>::exists(int row, int col) const{
-    return row >= 0 && row < getRows() && col >= 0 && col < getCols();
+    return row >= 0 && row < (int)getRows() && col >= 0 && col < (int)getCols();
 }
 
 template<typename T>

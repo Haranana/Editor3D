@@ -1,4 +1,5 @@
 #include "Math/Matrix4.h"
+#include <stdexcept>
 
 Matrix4::Matrix4() {}
 

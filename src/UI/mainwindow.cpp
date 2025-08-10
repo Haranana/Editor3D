@@ -7,8 +7,7 @@
 #include <QPixmap>
 #include <QTimer>
 
-MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     setupUI();
     setupScene();
@@ -212,7 +211,6 @@ void MainWindow::setupScene()
     std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
     defaultCamera->transform.setPosition({ 0.0, 0.0, 0.0 });
     defaultCamera->visibleInScene = false;
-    scene->specialSceneObjects.defaultCamera = defaultCamera;
 
     camera->transform.setPosition({ 0.0, 0.0, 300 });
     scene->addObject(camera);
@@ -511,6 +509,21 @@ void MainWindow::onFileMenuImportObject(){
     }
 }
 
+void MainWindow::onFileMenuSaveObject(){
+    if(!currentObject){
+        qDebug() << "Object to save was not selected!";
+        return;
+    }
+
+    QString savePath = QFileDialog::getSaveFileName(this , tr("Save file") , "" , tr("OBJ Files (*.obj);;Text Files (*.txt);;All Files (*)"));
+    if (!savePath.isEmpty()) {
+        qDebug() << "saving:" << savePath;
+        if(RenderableObject3D* currentRenderableObject = dynamic_cast<RenderableObject3D*>(currentObject.get())){
+            objectSaver->saveObject(std::make_shared<RenderableObject3D>(*currentRenderableObject) , savePath.toStdString());
+        }
+    }
+}
+
 void MainWindow::onObjectMenuCreateCube(){
     std::shared_ptr<Cube> newObject = std::make_shared<Cube>();
 
@@ -568,6 +581,10 @@ void MainWindow::onSceneDisplayClicked(int x, int y){
             break;
         case FACES:
             scene->getObject(el.objectId)->viewportDisplay.selectFace(el.faceId);
+            break;
+        case NONE:
+            break;
+        default:
             break;
         }
     }

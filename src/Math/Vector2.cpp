@@ -1,6 +1,5 @@
 #include "Math/Vector2.h"
 
-
 Vector2& Vector2::operator=(const Vector2& otherVector){
     if(this != &otherVector){
         this->x = otherVector.x;
@@ -28,8 +27,6 @@ Vector2 Vector2::operator*(const Vector2& otherVector)const{
 Vector2 Vector2::operator/(const Vector2& otherVector)const{
     return Vector2(this->x / otherVector.x , this->y / otherVector.y);
 }
-
-
 
 Vector2 Vector2::operator+(double val)const{
     return Vector2(this->x + val , this->y + val);

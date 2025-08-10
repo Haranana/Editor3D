@@ -1,5 +1,4 @@
 #include "Scene/RenderableObject3D.h"
-#include "Rendering/BasicRenderStrategy.h"
 
 RenderableObject3D::RenderableObject3D() {
     //renderStrategy = std::make_unique<BasicRenderStrategy>();
@@ -18,9 +17,4 @@ RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
    // renderStrategy = std::make_unique<BasicRenderStrategy>();
     displaySettings = std::make_unique<DisplaySettings>();
 
-}
-
-void RenderableObject3D::setRenderStrategy(std::unique_ptr<RenderStrategy> newStrategy) {
-    // std::move przenosi własność przekazanego wskaźnika do członka klasy
-    //renderStrategy = std::move(newStrategy);
 }

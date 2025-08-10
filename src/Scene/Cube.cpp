@@ -1,7 +1,4 @@
 #include "Scene/Cube.h"
-#include "Rendering/BasicRenderStrategy.h"
-#include "Rendering/FrontOnlyRenderStrategy.h"
-#include "Rendering/RasterRenderStrategy.h"
 #include <algorithm>
 
 Cube::Cube(int sideLength) : sideLength(sideLength){

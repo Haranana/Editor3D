@@ -1,10 +1,10 @@
 #ifndef RENDERABLEOBJECT3D_H
 #define RENDERABLEOBJECT3D_H
 
-#include "Rendering/RenderStrategy.h"
 #include "Object3D.h"
 #include "Rendering/Texture.h"
 #include "Rendering/DisplaySettings.h"
+#include "Math/Vector2.h"
 
 class BasicRenderStrategy;
 class RenderStrategy;
@@ -14,8 +14,6 @@ public:
 
     RenderableObject3D();
     RenderableObject3D(const RenderableObject3D& otherObject);
-
-    void setRenderStrategy(std::unique_ptr<RenderStrategy> newStrategy);
 
     /*
     std::vector<std::pair<int , int>> edges;

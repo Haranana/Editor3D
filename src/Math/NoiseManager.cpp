@@ -1,5 +1,7 @@
 #include "Math/NoiseManager.h"
 #include "Math/Utility.h"
+#include <queue>
+#include "Rendering/Buffer.h"
 
 std::vector<Vector2> NoiseManager::poissonOffset8;
 std::vector<Vector2> NoiseManager::poissonOffset12;

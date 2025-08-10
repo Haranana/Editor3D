@@ -4,7 +4,7 @@
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
-#include "Rendering/Colors.h"
+#include "Rendering/Color.h"
 
 namespace Vectors{
     Vector2 vector4to2(const Vector4& vector);

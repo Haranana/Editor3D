@@ -1,7 +1,6 @@
 #ifndef POINTLIGHT_H
 #define POINTLIGHT_H
 #include "Light.h"
-#include <array>
 #include <vector>
 #include <cmath>
 #include <QImage>
@@ -33,8 +32,7 @@ public:
     }
 
     double getAttenuation(double distance){
-        //return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
-        return 1.0;
+        return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
     }
 
     void setViewMatrices(){
@@ -66,8 +64,8 @@ public:
     void printShadowMaps(){
         for(int face=0; face<6; face++){
             QImage img(shadowMaps[face]->getCols(), shadowMaps[face]->getRows(), QImage::Format_Grayscale8);
-            for (int y = 0; y < shadowMaps[face]->getRows(); ++y) {
-                for (int x = 0; x < shadowMaps[face]->getCols(); ++x) {
+            for (int y = 0; y < (int)shadowMaps[face]->getRows(); ++y) {
+                for (int x = 0; x < (int)shadowMaps[face]->getCols(); ++x) {
                     double d = (*shadowMaps[face])[y][x];
                     // 0 = close, 1 = far, inf = empty
                     //int v = (d == std::numeric_limits<double>::infinity()) ? 0 : int(255 * (1.0 - d));

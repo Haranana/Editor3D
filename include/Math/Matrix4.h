@@ -1,12 +1,10 @@
 #ifndef MATRIX4_H
 #define MATRIX4_H
 
-
 #include "Vector4.h"
 #include <array>
-#include <stdexcept>
-#include "Math/Vectors.h"
 #include <iostream>
+#include <QDebug>
 
 class Matrix4 {
 public:

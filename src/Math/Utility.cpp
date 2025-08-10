@@ -1,4 +1,5 @@
 #include "Math/Utility.h"
+#include <algorithm>
 
 bool MathUt::equal(double d1, double d2, double epsilon){
     return std::abs(d1 - d2) <= epsilon;

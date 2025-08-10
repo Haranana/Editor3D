@@ -4,7 +4,6 @@
 #include "Vector3.h"
 #include <iostream>
 #include <array>
-#include <stdexcept>
 
 class Matrix3{
 public:

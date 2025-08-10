@@ -1,8 +1,6 @@
 #ifndef VECTOR4_H
 #define VECTOR4_H
 
-
-
 #include <iostream>
 
 class Vector4{

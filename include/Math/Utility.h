@@ -1,12 +1,9 @@
 #ifndef UTILITY_H
 #define UTILITY_H
-#include <algorithm>
-#include <vector>
+
 #include <Math/Vectors.h>
 #include <random>
 #include <cmath>
-#include "Rendering/Buffer.h"
-#include <queue>
 
 namespace MathUt{
 

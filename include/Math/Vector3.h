@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <QDebug>
+
 class Vector3{
 
 public:

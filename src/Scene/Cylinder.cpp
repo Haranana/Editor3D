@@ -1,8 +1,4 @@
 #include "Scene/Cylinder.h"
-#include "Scene/Cube.h"
-#include "Rendering/BasicRenderStrategy.h"
-#include "Rendering/FrontOnlyRenderStrategy.h"
-#include "Rendering/RasterRenderStrategy.h"
 
 Cylinder::Cylinder(int radious, int height, int verticesInCircle) : height(height), radious(radious), verticesInCircle(verticesInCircle){
 

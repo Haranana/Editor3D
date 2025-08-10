@@ -1,4 +1,5 @@
 #include "Math/Triangle3.h"
+#include <algorithm>
 
 bool Triangle3::isInTriangle2D(const Vector3& v){
     Triangle<double> barCoords = baricentricCoords(v);

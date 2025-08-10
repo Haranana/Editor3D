@@ -25,7 +25,8 @@ inline void generatePlanarUV(RenderableObject3D& obj, Plane p)
         minB = std::min(minB,b);  maxB = std::max(maxB,b);
     }
     double dA = maxA-minA, dB = maxB-minB;
-    if (dA == 0) dA = 1;  if (dB == 0) dB = 1;
+    if (dA == 0) {dA = 1;};  if (dB == 0){ dB = 1;}
+
 
     // 2) UV
     obj.textureCoords.resize(obj.vertices.size());

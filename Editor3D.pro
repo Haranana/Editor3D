@@ -30,23 +30,18 @@ SOURCES += \
     src/Math/Vector3.cpp \
     src/Math/Vector4.cpp \
     src/Math/Vectors.cpp \
-    src/Rendering/BasicRenderStrategy.cpp \
     src/Rendering/ClippingManager.cpp \
     src/Rendering/Color.cpp \
-    src/Rendering/FrontOnlyRenderStrategy.cpp \
-    src/Rendering/GridRenderStrategy.cpp \
     src/Rendering/HitDetectionManager.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PaintTool.cpp \
     src/Rendering/PixelPainter.cpp \
-    src/Rendering/RasterRenderStrategy.cpp \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingSurface.cpp \
     src/Rendering/ShadingManager.cpp \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
     src/Scene/Cylinder.cpp \
-    src/Scene/Grid.cpp \
     src/Scene/Object3D.cpp \
     src/Scene/ObjectLoader.cpp \
     src/Scene/ObjectSaver.cpp \
@@ -82,20 +77,16 @@ HEADERS += \
     include/Math/Vector3.h \
     include/Math/Vector4.h \
     include/Math/Vectors.h \
-    include/Rendering/BasicRenderStrategy.h \
     include/Rendering/Buffer.h \
     include/Rendering/ClippingManager.h \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
     include/Rendering/DisplaySettings.h \
-    include/Rendering/FrontOnlyRenderStrategy.h \
-    include/Rendering/GridRenderStrategy.h \
     include/Rendering/HitDetectionManager.h \
     include/Rendering/IdBufferElement.h \
     include/Rendering/LinePainter.h \
     include/Rendering/PaintTool.h \
     include/Rendering/PixelPainter.h \
-    include/Rendering/RasterRenderStrategy.h \
     include/Rendering/RenderMethod.h \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \
@@ -107,7 +98,6 @@ HEADERS += \
     include/Scene/Cube.h \
     include/Scene/Cylinder.h \
     include/Scene/DistantLight.h \
-    include/Scene/Grid.h \
     include/Scene/Light.h \
     include/Scene/Object3D.h \
     include/Scene/ObjectLoader.h \
