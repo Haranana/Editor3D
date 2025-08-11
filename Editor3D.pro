@@ -43,6 +43,7 @@ SOURCES += \
     src/Scene/Cube.cpp \
     src/Scene/Cylinder.cpp \
     src/Scene/Object3D.cpp \
+    src/Scene/ObjectImporter.cpp \
     src/Scene/ObjectLoader.cpp \
     src/Scene/ObjectSaver.cpp \
     src/Scene/RenderableObject3D.cpp \
@@ -99,7 +100,11 @@ HEADERS += \
     include/Scene/Cylinder.h \
     include/Scene/DistantLight.h \
     include/Scene/Light.h \
+    include/Scene/Material.h \
+    include/Scene/MeshBuilder.h \
+    include/Scene/MtlParser.h \
     include/Scene/Object3D.h \
+    include/Scene/ObjectImporter.h \
     include/Scene/ObjectLoader.h \
     include/Scene/ObjectSaver.h \
     include/Scene/PointLight.h \
