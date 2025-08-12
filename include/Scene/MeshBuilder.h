@@ -8,14 +8,15 @@
 // Collection of structs and function that are used in production of Renderable Project from file
 
 struct MeshVertex {
-    Vector3 position;
+    Vector3 position = {0,0,0};
     Vector2 texcoord = {0,0};
     Vector3 normal   = {0,0,0};
     bool hasUV = false;
     bool hasN  = false;
 };
 
-// klucz deduplikacji: (v,vt,vn) po konwersji na 0-based (−1 gdy brak)
+// holds indices of file global v, vt, vn in 0-based standard
+// holds -1 if empty
 struct MeshTriplet { int v, vt, vn; };
 
 struct MeshTripletHash {
@@ -35,23 +36,34 @@ struct MeshBuilder {
     std::string name; // preferably from 'o'
     std::string materialName; // active usemtl (if not found then default material)
     std::vector<MeshVertex>  vertices;
-    std::vector<uint32_t> indices;
-    std::unordered_map<MeshTriplet, uint32_t, MeshTripletHash> map;
+    std::vector<int> indices; //similar to faces in RendObj, 0,1,2 -> first face ; 3,4,5 -> second face
+    std::unordered_map<MeshTriplet, int, MeshTripletHash> map; //triplet : vertex Index
 
-    uint32_t getOrCreateIndex(const MeshTriplet& t,
+    int getOrCreateIndex(const MeshTriplet& triplet,
                               const std::vector<Vector3>& pos,
                               const std::vector<Vector2>& uv,
                               const std::vector<Vector3>& nor)
     {
-        if (auto it = map.find(t); it != map.end()) return it->second;
 
-        MeshVertex vx{};
-        vx.position = pos[t.v];
-        if (t.vt >= 0) { vx.texcoord = uv[t.vt]; vx.hasUV = true; }
-        if (t.vn >= 0) { vx.normal   = nor[t.vn]; vx.hasN  = true; }
-        uint32_t idx = (uint32_t)vertices.size();
-        vertices.push_back(vx);
-        map.emplace(t, idx);
+        if (auto it = map.find(triplet); it != map.end()){
+            return it->second;
+        }
+
+        MeshVertex meshVertex;
+        meshVertex.position = pos[triplet.v];
+        if (triplet.vt >= 0){
+            meshVertex.texcoord = uv[triplet.vt];
+            meshVertex.hasUV = true;
+        }
+        if (triplet.vn >= 0){
+            meshVertex.normal = nor[triplet.vn];
+            meshVertex.hasN = true;
+        }
+
+        int idx = (int)vertices.size();
+
+        vertices.push_back(meshVertex);
+        map.emplace(triplet, idx);
 
         return idx;
     }

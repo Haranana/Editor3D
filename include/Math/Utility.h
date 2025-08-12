@@ -9,9 +9,11 @@ namespace MathUt{
 
 bool equal(double d1, double d2, double epsilon = 1e-6);
 
-bool safeDenom(double denom, double safe = 1e-6);
+int OnetoZeroBased(int i, int size);
 
-bool safePositiveDenom(double denom, double safe = 1e-6);
+double safeDenom(double denom, double safe = 1e-6);
+
+double safePositiveDenom(double denom, double safe = 1e-6);
 
 double degreeToRadian(double degree);
 

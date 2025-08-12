@@ -8,6 +8,8 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include "MeshBuilder.h"
 #include <cctype>
 
 struct ImportOptions {
@@ -40,12 +42,44 @@ class ObjImporter {
 public:
     ImportResult load(const std::string& objPath, const ImportOptions& opt = ImportOptions());
 private:
-    void parseLine(const std::string_view& line);
+
+
+    void parseLine(std::string_view& line);
+    std::string_view nextToken(std::string_view& line);
+
+    void trimLeft(std::string_view& line);
+    void trimRight(std::string_view& line);
+    void trimEdges(std::string_view& line);
+    void trimComment(std::string_view& line);
+
+    void parseV(std::string_view& line);
+    void parseVt(std::string_view& line);
+    void parseVn(std::string_view& line);
+    void parseF(std::string_view& line);
+    void parseO(std::string_view& line);
+    void parseMtlib(std::string_view& line);
+    void parseUsemtl(std::string_view& line);
+
+    bool parseInt(std::string_view& token, int& out);
+    bool parseDouble(std::string_view& token, double& out);
+    bool parseFloat(std::string_view& token, float& out);
+
+    //changes current object to MeshBuilder with given name, if no is found, then new MeshBuilder is created
+    void setCurrentObject(const std::string_view& newObjectName = "unnamed object");
     void clearData();
 
     std::vector<Vector3> vPositions;
     std::vector<Vector2> vTextureUVs;
     std::vector<Vector3> vNormals;
+    std::unordered_map<std::string_view , MeshBuilder> meshBuilders;
+    //used for trimming
+    constexpr static std::string_view whiteSpaces = " \t\n\r\f\v";
+    MeshBuilder* currentMeshBuilder = nullptr;
+
+    //whether new MeshBuilder was built,
+    //turn to true when calling startNewObject()
+    //if startedNewObject = false when parsing face then startNewObject() is to be called
+    bool startedNewObject = false;
 };
 
 #endif // OBJECTIMPORTER_H

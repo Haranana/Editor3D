@@ -5,11 +5,17 @@ bool MathUt::equal(double d1, double d2, double epsilon){
     return std::abs(d1 - d2) <= epsilon;
 }
 
-bool MathUt::safeDenom(double denom, double safe){
+//i == 0 is illegal, should be validate before function call
+int MathUt::OnetoZeroBased(int i, int size){
+    if(i > 0) return i-1;
+    else return size+i;
+}
+
+double MathUt::safeDenom(double denom, double safe){
     return denom == 0? safe : denom;
 }
 
-bool MathUt::safePositiveDenom(double denom, double safe){
+double MathUt::safePositiveDenom(double denom, double safe){
     return denom <= 0? safe : denom;
 }
 
