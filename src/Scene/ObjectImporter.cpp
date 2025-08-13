@@ -39,11 +39,11 @@ void ObjImporter::parseLine(std::string_view& line){
     }
 }
 
-std::string_view ObjImporter::nextToken(std::string_view& line){
+std::string_view ObjImporter::nextToken(std::string_view& line, const std::string_view& sep){
 
     if(line.empty()) return{};
 
-    auto firstWhiteSpaceId = line.find_first_of(whiteSpaces);
+    auto firstWhiteSpaceId = line.find_first_of(sep);
     std::string_view token = line.substr(0 , firstWhiteSpaceId);
 
     if (firstWhiteSpaceId == std::string_view::npos){
@@ -54,6 +54,22 @@ std::string_view ObjImporter::nextToken(std::string_view& line){
 
     }
     return token;
+}
+
+std::string_view ObjImporter::nextFaceTriplet(std::string_view& line){
+
+    auto firstWhiteSpaceId = line.find_first_of(whiteSpaces);
+    std::string_view triplet = line.substr(0 , firstWhiteSpaceId);
+
+    if (firstWhiteSpaceId == std::string_view::npos){
+        line.remove_prefix(line.size());
+    }else{
+        line.remove_prefix(firstWhiteSpaceId);
+        trimLeft(line);
+
+    }
+    return triplet;
+
 }
 
 void ObjImporter::trimLeft(std::string_view& line){
@@ -134,17 +150,22 @@ void ObjImporter::parseVn(std::string_view& line){
 }
 
 void ObjImporter::parseF(std::string_view& line){
-    if(!startedNewObject){
-        startNewObject();
+    if(!currentMeshBuilder){
+        setCurrentObject(); //if there wasn't any 'o' before this face we create new object ourselves
     }
 
+    std::vector<MeshTriplet> meshTriplets;
+    while(!line.empty()){
+        std::string_view polygonVertexStringView = nextFaceTriplet(line);
+        meshTriplets.push_back(parseMeshTriplet(polygonVertexStringView));
+    }
 
-
+    addFaceFan(meshTriplets);
 }
 
 void ObjImporter::parseO(std::string_view& line){
     //assuming that object name can have spaces we use everything beside 'o'
-    startNewObject(line);
+    setCurrentObject(line);
 
 }
 
@@ -155,6 +176,56 @@ void ObjImporter::parseMtlib(std::string_view& line){
 void ObjImporter::parseUsemtl(std::string_view& line){
 
 }
+
+MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& line){
+    int v,vt,vn;
+    MeshTriplet result {-1,-1,-1};
+
+    std::string_view vStringView = nextToken(line, "/");
+    std::string_view vtStringView = nextToken(line, "/");
+    std::string_view vnStringView = nextToken(line, "/");
+
+    parseInt(vStringView, v);
+    v = MathUt::OnetoZeroBased(v , vPositions.size());
+    result.v = v;
+
+    int vtId = -1;
+    if(!vtStringView.empty()){
+        parseInt(vtStringView ,vt);
+        if(vt >= (int)vTextureUVs.size()){
+            vtId = -1;
+        }else{
+            vtId = MathUt::OnetoZeroBased(vt , vTextureUVs.size());
+        }
+        result.vt =  vtId;
+    }
+
+    int vnId = -1;
+    if(!vnStringView.empty()){
+        parseInt(vnStringView ,vn);
+        if(vn >= (int)vNormals.size()){
+            vnId = -1;
+        }else{
+            vnId = MathUt::OnetoZeroBased(vn , vNormals.size());
+        }
+        result.vn =  vnId;
+    }
+
+    return result;
+}
+
+void ObjImporter::addFaceFan(const std::vector<MeshTriplet>& meshTriplets){
+    if (meshTriplets.size() < 3) return;
+    const int i0 = currentMeshBuilder->getOrCreateIndex(meshTriplets[0], vPositions, vTextureUVs, vNormals);
+    for (size_t i = 1; i + 1 < meshTriplets.size(); i++) {
+        int i1 = currentMeshBuilder->getOrCreateIndex(meshTriplets[i  ], vPositions, vTextureUVs, vNormals);
+        int i2 = currentMeshBuilder->getOrCreateIndex(meshTriplets[i+1], vPositions, vTextureUVs, vNormals);
+        currentMeshBuilder->indices.push_back(i0);
+        currentMeshBuilder->indices.push_back(i1);
+        currentMeshBuilder->indices.push_back(i2);
+    }
+}
+
 
 bool ObjImporter::parseInt(std::string_view& token, int& out){
     const char* begin = token.data();

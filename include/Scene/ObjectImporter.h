@@ -11,7 +11,7 @@
 #include <algorithm>
 #include "MeshBuilder.h"
 #include <cctype>
-
+#include "Math/Utility.h"
 struct ImportOptions {
 
     bool triangulate = true; //fan triangulation
@@ -45,7 +45,8 @@ private:
 
 
     void parseLine(std::string_view& line);
-    std::string_view nextToken(std::string_view& line);
+    std::string_view nextToken(std::string_view& line, const std::string_view& sep = whiteSpaces);
+    std::string_view nextFaceTriplet(std::string_view& line);
 
     void trimLeft(std::string_view& line);
     void trimRight(std::string_view& line);
@@ -59,10 +60,13 @@ private:
     void parseO(std::string_view& line);
     void parseMtlib(std::string_view& line);
     void parseUsemtl(std::string_view& line);
+    MeshTriplet parseMeshTriplet(std::string_view& line);
+    void addFaceFan(const std::vector<MeshTriplet>& meshTriplets);
 
     bool parseInt(std::string_view& token, int& out);
     bool parseDouble(std::string_view& token, double& out);
     bool parseFloat(std::string_view& token, float& out);
+
 
     //changes current object to MeshBuilder with given name, if no is found, then new MeshBuilder is created
     void setCurrentObject(const std::string_view& newObjectName = "unnamed object");
