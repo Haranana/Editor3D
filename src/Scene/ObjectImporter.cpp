@@ -21,7 +21,7 @@ ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& 
     result.objects = loadedObjects;
     result.materials = materials;
 
-    return ImportResult();
+    return result;
 }
 
 void ObjImporter::parseLine(std::string_view& line){
@@ -146,6 +146,7 @@ void ObjImporter::parseVn(std::string_view& line){
 void ObjImporter::parseF(std::string_view& line){
     if(!currentMeshBuilder){
         setCurrentObject(); //if there wasn't any 'o' before this face we create new object ourselves
+        startNewBuilderForCurrent();
     }
 
     std::vector<MeshTriplet> meshTriplets;
@@ -171,6 +172,7 @@ void ObjImporter::parseF(std::string_view& line){
 void ObjImporter::parseO(std::string_view& line){
     //assuming that object name can have spaces we use everything beside 'o'
     setCurrentObject(line);
+    currentMaterialId = -1;
 
 }
 
@@ -507,6 +509,7 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
             }else{
                 obj->faceHasUV[f] = true;
             }
+
         }
 
          //calculate missing vertex normals and normalize each vertex normal (just to be sure)
@@ -518,7 +521,14 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
             }
         }
 
-        obj->material = materials[meshBuilder.materialId];
+        int curMeshBuilderMatId = meshBuilder.materialId;
+        if(curMeshBuilderMatId>=0 && curMeshBuilderMatId<materials.size()){
+            obj->material = materials[meshBuilder.materialId];
+        }else{
+            obj->material = Material();
+        }
+        obj->name = meshBuilder.name;
+
         loadedObjects.push_back(obj);
     }
 
@@ -666,13 +676,9 @@ void ObjImporter::setCurrentObject(const std::string_view& newObjectName){
     std::string name(newObjectName);
 
     if(name.empty()) name="object";
-    auto it = meshBuilders.find(name);
-    if (it == meshBuilders.end()){
-        MeshBuilder fresh;
-        fresh.name = name;
-        it = meshBuilders.emplace(name, std::move(fresh)).first;
-    }
-    currentMeshBuilder = &it->second;
+    currentObjectBaseName = std::move(name);
+
+    currentMeshBuilder = nullptr;
 }
 
 std::string ObjImporter::makeUniqueName(const std::string& base){

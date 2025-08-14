@@ -12,6 +12,7 @@
 #include "MeshBuilder.h"
 #include <cctype>
 #include "Math/Utility.h"
+
 struct ImportOptions {
 
     bool triangulate = true; //fan triangulation
