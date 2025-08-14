@@ -4,6 +4,7 @@
 #include "Object3D.h"
 #include "Rendering/Texture.h"
 #include "Rendering/DisplaySettings.h"
+#include "Scene/Material.h"
 #include "Math/Vector2.h"
 
 class BasicRenderStrategy;
@@ -45,7 +46,7 @@ public:
     //Vector3{0,0,0} is considered placeholder vector indicating lack of calculated normal for i vertex
     std::vector<Vector3> vertexNormals;
 
-
+    Material material;
     std::shared_ptr<DisplaySettings> displaySettings;
 
     //wspolrzedne uv tekstur

@@ -35,7 +35,7 @@ struct ImportOptions {
 struct ImportResult {
     std::vector<std::shared_ptr<RenderableObject3D>> objects;
     // opcjonalnie: mapa materiałów po nazwie, do diagnostyki
-    std::unordered_map<std::string, Material> materialLib;
+    std::vector<Material> materials;
 };
 
 class ObjImporter {
@@ -57,8 +57,25 @@ private:
     void parseVn(std::string_view& line);
     void parseF(std::string_view& line);
     void parseO(std::string_view& line);
+
     void parseMtllib(std::string_view& line);
     void parseUsemtl(std::string_view& line);
+
+    void parseKa(std::string_view& line);
+    void parseKd(std::string_view& line);
+    void parseKs(std::string_view& line);
+    void parseKe(std::string_view& line);
+
+    void parseNs(std::string_view& line);
+    void parseNi(std::string_view& line);
+    void parseD(std::string_view& line);
+    void parseIllum(std::string_view& line);
+
+    void parseMapKd(std::string_view& line , std::string& currentMtlDir);
+    void parseMapKs(std::string_view& line, std::string& currentMtlDir);
+    void parseMapD(std::string_view& line, std::string& currentMtlDir);
+    void parseMapKe(std::string_view& line, std::string& currentMtlDir);
+
 
     void splitMeshTriplet(std::string_view& triplet, std::string_view& v, std::string_view& vt, std::string_view& vn);
     MeshTriplet parseMeshTriplet(std::string_view& v, std::string_view& vt, std::string_view& vn);
@@ -69,10 +86,28 @@ private:
     bool parseDouble(std::string_view& token, double& out);
     bool parseFloat(std::string_view& token, float& out);
 
+    void loadMtlFile(const std::string& mtlFullPath);
+    int  getMaterialIdByName(const std::string& name);
+    static std::string joinPath(const std::string& base, std::string_view rel);
+    bool parse3Floats(std::string_view& line, float& a, float& b, float& c);
+    std::string extractMapPathRelativeTo(const std::string& baseDir, std::string_view lineRemainder);
+
+
 
     //changes current object to MeshBuilder with given name, if no is found, then new MeshBuilder is created
-    void setCurrentObject(const std::string_view& newObjectName = "unnamed object");
+    void setCurrentObject(); // default "object"
+    void setCurrentObject(const std::string_view& name);
+    std::string makeUniqueName(const std::string& base);
+    MeshBuilder& startNewBuilderForCurrent();
     void clearData();
+
+    int currentMaterialId = -1;
+    std::vector<Material> materials;
+    Material* currentMaterial = nullptr;
+    std::unordered_map<std::string,int> matNameToId;
+    std::string objDir;
+    std::string currentMtlDir;
+    std::unordered_map<std::string,int> uniqueNameCounter;
 
     std::vector<Vector3> vPositions;
     std::vector<Vector2> vTextureUVs;
@@ -80,7 +115,10 @@ private:
     std::map<std::string , MeshBuilder> meshBuilders;
     //used for trimming
     constexpr static std::string_view whiteSpaces = " \t\n\r\f\v";
+
+
     MeshBuilder* currentMeshBuilder = nullptr;
+    std::string currentObjectBaseName;
     ImportOptions importOptions;
 
     //whether new MeshBuilder was built,

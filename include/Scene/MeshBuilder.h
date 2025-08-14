@@ -38,6 +38,7 @@ struct MeshBuilder {
     std::vector<MeshVertex>  vertices;
     std::vector<int> indices; //similar to faces in RendObj, 0,1,2 -> first face ; 3,4,5 -> second face
     std::unordered_map<MeshTriplet, int, MeshTripletHash> map; //triplet : vertex Index
+    int materialId = -1;
 
     int getOrCreateIndex(const MeshTriplet& triplet,
                               const std::vector<Vector3>& pos,

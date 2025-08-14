@@ -1,9 +1,12 @@
 #include "Scene/ObjectImporter.h"
+#include <filesystem>
 
 ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& opt){
 
     clearData();
     importOptions = opt;
+    objDir = std::filesystem::path(objPath).parent_path().string();
+
     std::ifstream file(objPath);
     std::string line;
 
@@ -12,7 +15,11 @@ ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& 
         parseLine(line_view);
     }
 
+    ImportResult result;
+
     std::vector<std::shared_ptr<RenderableObject3D>> loadedObjects = meshBuildersToRenderableObjects();
+    result.objects = loadedObjects;
+    result.materials = materials;
 
     return ImportResult();
 }
@@ -168,11 +175,155 @@ void ObjImporter::parseO(std::string_view& line){
 }
 
 void ObjImporter::parseMtllib(std::string_view& line){
-
+    while(!line.empty()){
+        std::string_view fileName = nextToken(line);
+        if(fileName.empty()){
+            break;
+        }
+        loadMtlFile(joinPath(objDir , fileName));
+    }
 }
 
 void ObjImporter::parseUsemtl(std::string_view& line){
+    trimEdges(line);
+    if(line.empty()) return;
+    currentMaterialId = getMaterialIdByName(std::string(line));
+    startNewBuilderForCurrent();
 
+}
+
+void ObjImporter::parseKa(std::string_view& line){
+    double x=0.0,y=0.0,z=0.0;
+
+    std::string_view xStringView = nextToken(line);
+    std::string_view yStringView = nextToken(line);
+    std::string_view zStringView = nextToken(line);
+
+    if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
+
+    if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
+        currentMaterial->Ka = {x,y,z};
+    }else{
+        currentMaterial->Ka = {0.0,0.0,0.0};
+    }
+}
+
+void ObjImporter::parseKd(std::string_view& line){
+    double x=1.0,y=1.0,z=1.0;
+
+    std::string_view xStringView = nextToken(line);
+    std::string_view yStringView = nextToken(line);
+    std::string_view zStringView = nextToken(line);
+
+    if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
+
+    if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
+        currentMaterial->Kd = {x,y,z};
+    }else{
+        currentMaterial->Kd = {1.0,1.0,1.0};
+    }
+}
+
+void ObjImporter::parseKs(std::string_view& line ){
+    double x=0.0,y=0.0,z=0.0;
+
+    std::string_view xStringView = nextToken(line);
+    std::string_view yStringView = nextToken(line);
+    std::string_view zStringView = nextToken(line);
+
+    if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
+
+    if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
+        currentMaterial->Ks = {x,y,z};
+    }else{
+        currentMaterial->Ks = {0.0,0.0,0.0};
+    }
+}
+
+void ObjImporter::parseKe(std::string_view& line){
+    double x=0.0,y=0.0,z=0.0;
+
+    std::string_view xStringView = nextToken(line);
+    std::string_view yStringView = nextToken(line);
+    std::string_view zStringView = nextToken(line);
+
+    if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
+
+    if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
+        currentMaterial->Ke = {x,y,z};
+    }else{
+        currentMaterial->Ke = {0.0,0.0,0.0};
+    }
+}
+
+void ObjImporter::parseNs(std::string_view& line){
+
+    double ns;
+    std::string_view nsStringView = nextToken(line);
+
+    if(nsStringView.empty()) return;
+
+    if(parseDouble(nsStringView, ns)){
+        currentMaterial->Ns = ns;
+    }else{
+        currentMaterial->Ns = Material::defaultNs;
+    }
+}
+
+void ObjImporter::parseNi(std::string_view& line){
+    double ni;
+    std::string_view niStringView = nextToken(line);
+
+    if(niStringView.empty()) return;
+
+    if(parseDouble(niStringView, ni)){
+        currentMaterial->Ni = ni;
+    }else{
+        currentMaterial->Ni = Material::defaultNi;
+    }
+}
+
+void ObjImporter::parseD(std::string_view& line){
+    double d;
+    std::string_view dStringView = nextToken(line);
+
+    if(dStringView.empty()) return;
+
+    if(parseDouble(dStringView, d)){
+        currentMaterial->d = d;
+    }else{
+        currentMaterial->d = Material::defaultD;
+    }
+}
+
+
+void ObjImporter::parseIllum(std::string_view& line){
+    int illum;
+    std::string_view illumStringView = nextToken(line);
+
+    if(illumStringView.empty()) return;
+
+    if(parseInt(illumStringView, illum)){
+        currentMaterial->illum = illum;
+    }else{
+        currentMaterial->illum = Material::defaultIllum;
+    }
+}
+
+void ObjImporter::parseMapKd(std::string_view& line ,std::string& currentMtlDir){
+    currentMaterial->map_Kd = extractMapPathRelativeTo(currentMtlDir , line);
+}
+
+void ObjImporter::parseMapKs(std::string_view& line ,std::string& currentMtlDir){
+    currentMaterial->map_Ks = extractMapPathRelativeTo(currentMtlDir , line);
+}
+
+void ObjImporter::parseMapD(std::string_view& line ,std::string& currentMtlDir){
+    currentMaterial->map_d = extractMapPathRelativeTo(currentMtlDir , line);
+}
+
+void ObjImporter::parseMapKe(std::string_view& line ,std::string& currentMtlDir){
+    currentMaterial->map_Ke = extractMapPathRelativeTo(currentMtlDir , line);
 }
 
 void ObjImporter::splitMeshTriplet(std::string_view& triplet, std::string_view& v, std::string_view& vt, std::string_view& vn){
@@ -356,8 +507,6 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
             }else{
                 obj->faceHasUV[f] = true;
             }
-
-
         }
 
          //calculate missing vertex normals and normalize each vertex normal (just to be sure)
@@ -369,6 +518,7 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
             }
         }
 
+        obj->material = materials[meshBuilder.materialId];
         loadedObjects.push_back(obj);
     }
 
@@ -399,8 +549,123 @@ bool ObjImporter::parseFloat(std::string_view& token, float& out){
     return (ec == std::errc{} && ptr == end);
 }
 
+void ObjImporter::loadMtlFile(const std::string& mtlFullPath){
+    std::ifstream file(mtlFullPath);
+    if (!file) return;
+
+    currentMtlDir = std::filesystem::path(mtlFullPath).parent_path().string();
+
+    currentMaterial = nullptr;
+    std::string lineString;
+
+    while (std::getline(file, lineString)){
+
+        std::string_view line = lineString;
+        trimComment(line);
+        trimEdges(line);
+        if (line.empty()) continue;
+
+        std::string_view token = nextToken(line);
+
+        if (token == "newmtl"){
+            trimEdges(line);
+            if (line.empty()) {
+                currentMaterial = nullptr;
+                continue;
+            }
+
+            int id = getMaterialIdByName(std::string(line));
+            currentMaterial = &materials[id];
+            currentMaterial->name = std::string(line);
+
+        }
+        else if (!currentMaterial){
+            continue;
+        }
+        else if(token == "Ka"){
+            parseKa(line);
+        }
+        else if(token == "Kd"){
+            parseKd(line);
+        }
+        else if(token == "Ks"){
+            parseKs(line);
+        }
+        else if(token == "Ke"){
+            parseKe(line);
+        }
+        else if (token == "Ns"){
+            parseNs(line);
+        }
+        else if (token == "Ni"){
+            parseNi(line);
+        }
+        else if (token == "d"){
+            parseD(line);
+        }
+        else if (token == "illum"){
+            parseIllum(line);
+        }
+        else if (token == "map_Kd"){
+            parseMapKd(line, currentMtlDir);
+        }
+        else if (token == "map_Ks"){
+            parseMapKs(line, currentMtlDir);
+        }
+        else if (token == "map_d"){
+            parseMapD(line, currentMtlDir);
+        }
+        else if (token == "map_Ke"){
+            parseMapKe(line, currentMtlDir);
+        }
+    }
+}
+
+int ObjImporter::getMaterialIdByName(const std::string& name){
+    auto it = matNameToId.find(name);
+    if (it != matNameToId.end()) return it->second;
+    Material m; m.name = name;
+    int id = (int)materials.size();
+    materials.push_back(std::move(m));
+    matNameToId.emplace(name, id);
+    return id;
+}
+
+std::string ObjImporter::joinPath(const std::string& base, std::string_view rel){
+    if (rel.empty()) return base;
+    std::filesystem::path p = std::filesystem::path(base) / std::filesystem::path(std::string(rel));
+    return p.lexically_normal().string();
+}
+
+bool ObjImporter::parse3Floats(std::string_view& line, float& a, float& b, float& c){
+    std::string_view ta = nextToken(line);
+    std::string_view tb = nextToken(line);
+    std::string_view tc = nextToken(line);
+    return parseFloat(ta, a) && parseFloat(tb, b) && parseFloat(tc, c);
+}
+
+std::string ObjImporter::extractMapPathRelativeTo(const std::string& baseDir, std::string_view remainder){
+    trimEdges(remainder);
+    std::string_view chosen;
+    while (!remainder.empty()){
+        std::string_view tok = nextToken(remainder);
+        if (tok.empty()) break;
+        if (tok.front() == '-') continue;
+        chosen = tok;
+    }
+    if (chosen.empty()) return {};
+    return joinPath(baseDir, chosen);
+}
+
+void ObjImporter::setCurrentObject(){
+    setCurrentObject("object");
+}
+
 void ObjImporter::setCurrentObject(const std::string_view& newObjectName){
+
     std::string name(newObjectName);
+
+    if(name.empty()) name="object";
     auto it = meshBuilders.find(name);
     if (it == meshBuilders.end()){
         MeshBuilder fresh;
@@ -408,6 +673,41 @@ void ObjImporter::setCurrentObject(const std::string_view& newObjectName){
         it = meshBuilders.emplace(name, std::move(fresh)).first;
     }
     currentMeshBuilder = &it->second;
+}
+
+std::string ObjImporter::makeUniqueName(const std::string& base){
+
+    int& uniqueNameCount = uniqueNameCounter[base];
+    std::string name = (uniqueNameCount == 0 ? base : base + "." + std::to_string(uniqueNameCount));
+
+    while (meshBuilders.count(name)) {
+        uniqueNameCount++;
+        name = base + "." + std::to_string(uniqueNameCount);
+    }
+    uniqueNameCount++;
+
+    return name;
+}
+
+MeshBuilder& ObjImporter::startNewBuilderForCurrent(){
+
+    std::string base = currentObjectBaseName.empty() ? "object" : currentObjectBaseName;
+
+    std::string display = base;
+    if (currentMaterialId >= 0) {
+        const std::string& m = materials[currentMaterialId].name;
+        display += " (mtl: " + m + ")";
+    }
+
+    std::string key = makeUniqueName(display);
+
+    MeshBuilder fresh;
+    fresh.name = key;
+    fresh.materialId = currentMaterialId;
+
+    auto [it,_] = meshBuilders.emplace(key, std::move(fresh));
+    currentMeshBuilder = &it->second;
+    return *currentMeshBuilder;
 }
 
 void ObjImporter::clearData(){
@@ -418,4 +718,13 @@ void ObjImporter::clearData(){
     meshBuilders.clear();
     currentMeshBuilder = nullptr;
     importOptions = ImportOptions();
+    currentMaterialId = -1;
+    materials.clear();
+    matNameToId.clear();
+    objDir.clear();
+    currentMtlDir.clear();
+    currentObjectBaseName.clear();
+    uniqueNameCounter.clear();
+    currentMaterial = nullptr;
 }
+
