@@ -3,6 +3,7 @@
 ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& opt){
 
     clearData();
+    importOptions = opt;
     std::ifstream file(objPath);
     std::string line;
 
@@ -10,6 +11,8 @@ ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& 
         std::string_view line_view = line;
         parseLine(line_view);
     }
+
+    std::vector<std::shared_ptr<RenderableObject3D>> loadedObjects = meshBuildersToRenderableObjects();
 
     return ImportResult();
 }
@@ -23,19 +26,19 @@ void ObjImporter::parseLine(std::string_view& line){
     std::string_view lineType = nextToken(line);
 
     if(lineType == "v"){
-
+        parseV(line);
     }else if(lineType =="vt"){
-
+        parseVt(line);
     }else if(lineType == "vn"){
-
+        parseVn(line);
     }else if(lineType == "f"){
-
+        parseF(line);
     }else if(lineType == "o"){
-
-    }else if(lineType == "mtlib"){
-
+        parseO(line);
+    }else if(lineType == "mtllib"){
+        parseMtllib(line);
     }else if(lineType == "usemtl"){
-
+        parseUsemtl(line);
     }
 }
 
@@ -54,22 +57,6 @@ std::string_view ObjImporter::nextToken(std::string_view& line, const std::strin
 
     }
     return token;
-}
-
-std::string_view ObjImporter::nextFaceTriplet(std::string_view& line){
-
-    auto firstWhiteSpaceId = line.find_first_of(whiteSpaces);
-    std::string_view triplet = line.substr(0 , firstWhiteSpaceId);
-
-    if (firstWhiteSpaceId == std::string_view::npos){
-        line.remove_prefix(line.size());
-    }else{
-        line.remove_prefix(firstWhiteSpaceId);
-        trimLeft(line);
-
-    }
-    return triplet;
-
 }
 
 void ObjImporter::trimLeft(std::string_view& line){
@@ -108,7 +95,7 @@ void ObjImporter::parseV(std::string_view& line){
 
     if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
 
-    if(parseDouble(xStringView, x) && parseDouble(xStringView, x) && parseDouble(xStringView, x)){
+    if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
         //in future there should be scale and axis conversion
         vPositions.emplace_back(x,y,z);
     }else{
@@ -125,7 +112,7 @@ void ObjImporter::parseVt(std::string_view& line){
     if(uStringView.empty() || vStringView.empty()) return;
 
     if(parseDouble(uStringView, u) && parseDouble(vStringView, v)){
-        //in future there should be scale and axis conversion
+        if (importOptions.flipV) v = 1.0f - v;
         vTextureUVs.emplace_back(u,v);
     }else{
         //in fututre maybe some warning
@@ -141,7 +128,7 @@ void ObjImporter::parseVn(std::string_view& line){
 
     if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
 
-    if(parseDouble(xStringView, x) && parseDouble(xStringView, x) && parseDouble(xStringView, x)){
+    if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
         //in future there should be scale and axis conversion
         vNormals.emplace_back(x,y,z);
     }else{
@@ -156,8 +143,19 @@ void ObjImporter::parseF(std::string_view& line){
 
     std::vector<MeshTriplet> meshTriplets;
     while(!line.empty()){
-        std::string_view polygonVertexStringView = nextFaceTriplet(line);
-        meshTriplets.push_back(parseMeshTriplet(polygonVertexStringView));
+        std::string_view polygonVertexStringView = nextToken(line);
+        std::string_view v;
+        std::string_view vt;
+        std::string_view vn;
+        splitMeshTriplet(polygonVertexStringView , v , vt, vn);
+        MeshTriplet resultTriplet = parseMeshTriplet(v,vt,vn);
+
+        if(resultTriplet.v == -1){
+            meshTriplets.clear();
+            break;
+        }
+
+        meshTriplets.push_back(resultTriplet);
     }
 
     addFaceFan(meshTriplets);
@@ -169,7 +167,7 @@ void ObjImporter::parseO(std::string_view& line){
 
 }
 
-void ObjImporter::parseMtlib(std::string_view& line){
+void ObjImporter::parseMtllib(std::string_view& line){
 
 }
 
@@ -177,25 +175,52 @@ void ObjImporter::parseUsemtl(std::string_view& line){
 
 }
 
-MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& line){
+void ObjImporter::splitMeshTriplet(std::string_view& triplet, std::string_view& v, std::string_view& vt, std::string_view& vn){
+
+    size_t sep1 = triplet.find('/');
+    if (sep1 == std::string_view::npos){
+        v=triplet;
+        vt={};
+        vn={};
+        return;
+    }
+
+    v = triplet.substr(0, sep1);
+    size_t sep2= triplet.find('/', sep1+1);
+    if (sep2 == std::string_view::npos){
+        vt = triplet.substr(sep1+1);
+        vn = {};
+    } else {
+        vt = triplet.substr(sep1+1, sep2-(sep1+1));
+        vn = triplet.substr(sep2+1);
+    }
+}
+
+
+MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& vStringView, std::string_view& vtStringView, std::string_view& vnStringView){
     int v,vt,vn;
     MeshTriplet result {-1,-1,-1};
 
-    std::string_view vStringView = nextToken(line, "/");
-    std::string_view vtStringView = nextToken(line, "/");
-    std::string_view vnStringView = nextToken(line, "/");
+    if(!parseInt(vStringView, v) || v==0 ){
+        return result;
+    }
 
-    parseInt(vStringView, v);
     v = MathUt::OnetoZeroBased(v , vPositions.size());
+    if(v < 0 || v >= (int)vPositions.size()){
+        v = -1;
+    }
     result.v = v;
 
     int vtId = -1;
     if(!vtStringView.empty()){
         parseInt(vtStringView ,vt);
-        if(vt >= (int)vTextureUVs.size()){
+        if(vt >= (int)vTextureUVs.size() || vt ==0){
             vtId = -1;
         }else{
             vtId = MathUt::OnetoZeroBased(vt , vTextureUVs.size());
+            if(vtId < 0 || vtId >= (int)vTextureUVs.size()){
+                vtId = -1;
+            }
         }
         result.vt =  vtId;
     }
@@ -203,10 +228,13 @@ MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& line){
     int vnId = -1;
     if(!vnStringView.empty()){
         parseInt(vnStringView ,vn);
-        if(vn >= (int)vNormals.size()){
+        if(vn >= (int)vNormals.size() || vn == 0){
             vnId = -1;
         }else{
             vnId = MathUt::OnetoZeroBased(vn , vNormals.size());
+            if(vnId < 0 || vnId >= (int)vNormals.size()){
+                vnId = -1;
+            }
         }
         result.vn =  vnId;
     }
@@ -226,6 +254,126 @@ void ObjImporter::addFaceFan(const std::vector<MeshTriplet>& meshTriplets){
     }
 }
 
+std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRenderableObjects(){
+    std::vector<std::shared_ptr<RenderableObject3D>> loadedObjects;
+    loadedObjects.reserve(meshBuilders.size());
+
+    for(const auto& it: meshBuilders){
+
+        //preinit
+        std::shared_ptr<RenderableObject3D> obj = std::make_shared<RenderableObject3D>();
+        const MeshBuilder& meshBuilder = it.second;
+
+        size_t verticesAmount = meshBuilder.vertices.size();
+        size_t indicesAmount = meshBuilder.indices.size();
+        size_t facesAmount = indicesAmount/3;
+
+        obj->vertices.resize(verticesAmount);
+        obj->textureCoords.resize(verticesAmount);
+        obj->vertexNormals.resize(verticesAmount);
+        obj->vertexHasNormal.resize(verticesAmount);
+        obj->vertexHasUV.resize(verticesAmount);
+        std::vector<Vector3> accum(verticesAmount, Vector3{0,0,0});
+
+
+        //vertices loop
+        for(size_t i = 0; i < verticesAmount; i++){
+
+            //copy vertex
+            const MeshVertex& meshVertex = meshBuilder.vertices[i];
+            obj->vertices[i] = meshVertex.position;
+
+            //copy vertex UV if aplicable
+            if(meshVertex.hasUV){
+                obj->textureCoords[i] = meshVertex.texcoord;
+                obj->vertexHasUV[i] = true;
+            }else{
+                obj->textureCoords[i] = Vector2(0,0);
+                obj->vertexHasUV[i] = false;
+            }
+
+            //copy vertex normal if aplicable
+            if(meshVertex.hasN){
+                obj->vertexNormals[i] = meshVertex.normal;
+                obj->vertexHasNormal[i] = true;
+            }else{
+                obj->vertexNormals[i] = Vector3{0,0,0};
+                obj->vertexHasNormal[i] = false;
+            }
+
+        }
+
+        //copy vertex indices for each face
+        obj->faceVertexIndices.clear();
+        obj->faceVertexIndices.reserve(indicesAmount);
+        for (auto idx : meshBuilder.indices) {
+            obj->faceVertexIndices.push_back((int)idx);
+        }
+
+        obj->normals.resize(facesAmount);
+        obj->faceHasUV.assign(facesAmount, false);
+        obj->vertexToFaceNormals.assign(verticesAmount, {}); // N pustych list
+
+        //faces loop
+        for (size_t f = 0; f < facesAmount; f++) {
+            const int i0 = obj->faceVertexIndices[3*f + 0];
+            const int i1 = obj->faceVertexIndices[3*f + 1];
+            const int i2 = obj->faceVertexIndices[3*f + 2];
+
+            const Vector3& p0 = obj->vertices[i0];
+            const Vector3& p1 = obj->vertices[i1];
+            const Vector3& p2 = obj->vertices[i2];
+
+            //calculate face normals
+            const Vector3 e1 = p1 - p0;
+            const Vector3 e2 = p2 - p0;
+            Vector3 faceNormal = e1.crossProduct(e2); //not normalized normal
+            float len2      = faceNormal.dotProduct(faceNormal);
+
+            Vector3 normalizedFaceNormal;
+            if (len2 > 1e-20f) {
+                normalizedFaceNormal = faceNormal / std::sqrt(len2);
+            } else {
+                normalizedFaceNormal = Vector3{0,0,1};
+                faceNormal = Vector3{0,0,0};
+            }
+
+            obj->normals[f] = normalizedFaceNormal;
+
+            //fill vertexToFace normals;
+            obj->vertexToFaceNormals[i0].push_back((int)f);
+            obj->vertexToFaceNormals[i1].push_back((int)f);
+            obj->vertexToFaceNormals[i2].push_back((int)f);
+
+            //used for calculating vertex normals
+            if (!obj->vertexHasNormal[i0]) accum[i0] = accum[i0] + faceNormal;
+            if (!obj->vertexHasNormal[i1]) accum[i1] = accum[i1] + faceNormal;
+            if (!obj->vertexHasNormal[i2]) accum[i2] = accum[i2] + faceNormal;
+
+            //check which faces do not have UV and fill the list
+            if(!obj->vertexHasUV[i0] || !obj->vertexHasUV[i1] || !obj->vertexHasUV[i2]){
+                obj->faceHasUV[f] = false;
+            }else{
+                obj->faceHasUV[f] = true;
+            }
+
+
+        }
+
+         //calculate missing vertex normals and normalize each vertex normal (just to be sure)
+        for (size_t vi = 0; vi < verticesAmount; ++vi) {
+            if(!obj->vertexHasNormal[vi]){
+            obj->vertexNormals[vi]= accum[vi].normalize() ;
+            }else{
+                obj->vertexNormals[vi] = obj->vertexNormals[vi].normalize();
+            }
+        }
+
+        loadedObjects.push_back(obj);
+    }
+
+    return loadedObjects;
+}
 
 bool ObjImporter::parseInt(std::string_view& token, int& out){
     const char* begin = token.data();
@@ -252,12 +400,14 @@ bool ObjImporter::parseFloat(std::string_view& token, float& out){
 }
 
 void ObjImporter::setCurrentObject(const std::string_view& newObjectName){
-    auto meshBuilderIterator = meshBuilders.find(newObjectName);
-    if(meshBuilderIterator == meshBuilders.end()){
-        meshBuilders[newObjectName] = MeshBuilder();
+    std::string name(newObjectName);
+    auto it = meshBuilders.find(name);
+    if (it == meshBuilders.end()){
+        MeshBuilder fresh;
+        fresh.name = name;
+        it = meshBuilders.emplace(name, std::move(fresh)).first;
     }
-
-    currentMeshBuilder = &meshBuilders.at(newObjectName);
+    currentMeshBuilder = &it->second;
 }
 
 void ObjImporter::clearData(){
@@ -267,4 +417,5 @@ void ObjImporter::clearData(){
     startedNewObject = false;
     meshBuilders.clear();
     currentMeshBuilder = nullptr;
+    importOptions = ImportOptions();
 }

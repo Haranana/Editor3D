@@ -22,6 +22,8 @@ public:
 
     std::vector<Vector3> vertices;
 
+
+    //to delete lmao
     std::vector<Vector3> transformedVertices;
 
     //kolejne indeksy wierzcholkow wszystkich scian obiektu, zakladamy, ze kazdy polygon ma dokladnie 3 wierzcholki
@@ -31,17 +33,23 @@ public:
     //tablica wektorow normalnych ścian
     std::vector<Vector3> normals;
 
+    std::vector<bool> vertexHasNormal;
+    std::vector<bool> vertexHasUV;
+    std::vector<bool> faceHasUV;
+
     // dwuwymiarowa lista przechowujaca informacje dla wierzcholka o danym indeksie
     // normalne scian o jakich indeksach z nim granicza
     std::vector<std::vector<int>> vertexToFaceNormals;
 
     //normalne wierzcholkow;
+    //Vector3{0,0,0} is considered placeholder vector indicating lack of calculated normal for i vertex
     std::vector<Vector3> vertexNormals;
 
 
     std::shared_ptr<DisplaySettings> displaySettings;
 
     //wspolrzedne uv tekstur
+    //default is Vector2{0,0}
     std::vector<Vector2> textureCoords;
     //tekstura calego obiektu, byc moze w przyszlosci zostanie to zamienione na tekstury scian
     std::shared_ptr<Texture> texture;

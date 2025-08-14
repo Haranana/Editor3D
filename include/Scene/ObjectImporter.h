@@ -46,7 +46,6 @@ private:
 
     void parseLine(std::string_view& line);
     std::string_view nextToken(std::string_view& line, const std::string_view& sep = whiteSpaces);
-    std::string_view nextFaceTriplet(std::string_view& line);
 
     void trimLeft(std::string_view& line);
     void trimRight(std::string_view& line);
@@ -58,10 +57,13 @@ private:
     void parseVn(std::string_view& line);
     void parseF(std::string_view& line);
     void parseO(std::string_view& line);
-    void parseMtlib(std::string_view& line);
+    void parseMtllib(std::string_view& line);
     void parseUsemtl(std::string_view& line);
-    MeshTriplet parseMeshTriplet(std::string_view& line);
+
+    void splitMeshTriplet(std::string_view& triplet, std::string_view& v, std::string_view& vt, std::string_view& vn);
+    MeshTriplet parseMeshTriplet(std::string_view& v, std::string_view& vt, std::string_view& vn);
     void addFaceFan(const std::vector<MeshTriplet>& meshTriplets);
+    std::vector<std::shared_ptr<RenderableObject3D>> meshBuildersToRenderableObjects();
 
     bool parseInt(std::string_view& token, int& out);
     bool parseDouble(std::string_view& token, double& out);
@@ -75,10 +77,11 @@ private:
     std::vector<Vector3> vPositions;
     std::vector<Vector2> vTextureUVs;
     std::vector<Vector3> vNormals;
-    std::unordered_map<std::string_view , MeshBuilder> meshBuilders;
+    std::map<std::string , MeshBuilder> meshBuilders;
     //used for trimming
     constexpr static std::string_view whiteSpaces = " \t\n\r\f\v";
     MeshBuilder* currentMeshBuilder = nullptr;
+    ImportOptions importOptions;
 
     //whether new MeshBuilder was built,
     //turn to true when calling startNewObject()

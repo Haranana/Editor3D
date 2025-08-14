@@ -1,7 +1,7 @@
 #include "Scene/RenderableObject3D.h"
 
 RenderableObject3D::RenderableObject3D() {
-    //renderStrategy = std::make_unique<BasicRenderStrategy>();
+
 }
 
 
@@ -14,7 +14,10 @@ RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
     textureCoords(otherObject.textureCoords)
 {
     this->transform = otherObject.transform;
-   // renderStrategy = std::make_unique<BasicRenderStrategy>();
     displaySettings = std::make_unique<DisplaySettings>();
 
+    vertexHasNormal = otherObject.vertexHasNormal;
+    vertexNormals = otherObject.vertexNormals;
+    vertexHasUV = otherObject.vertexHasUV;
+    faceHasUV = otherObject.faceHasUV;
 }

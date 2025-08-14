@@ -18,12 +18,14 @@ public:
     Transform3D transform;
 
     //probably should not be in Object3D, realistically should be deleted and every field moved to displaySettings
+    //to delete as of 13/08
     ViewportDisplay viewportDisplay;
 
     //determines whether an object should be visible in scene list of object
     //normally it should remain true except for special cases such as default camera and grid
     bool visibleInScene = true;
 
+    std::string name = "object";
 protected:
 
     /*refers to original position of some anchor Point of the object
