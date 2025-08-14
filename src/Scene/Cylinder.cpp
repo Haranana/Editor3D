@@ -45,8 +45,6 @@ Cylinder::Cylinder(int radious, int height, int verticesInCircle) : height(heigh
         faceVertexIndices.push_back(top);
         faceVertexIndices.push_back(bot);
     }
-
-    transformedVertices = vertices;
     //renderStrategy = std::make_unique<RasterRenderStrategy>();
 
 }

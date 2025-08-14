@@ -51,6 +51,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     */
 
     //object is hidden => return
+
     if(obj.displaySettings.get()->renderMode == DisplaySettings::RenderMode::NONE){
         return;
     }
@@ -181,7 +182,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                     getCamera()->transform.getPosition(),
                     interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal, baseColor);
             }
-
             // raster fill
             if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
                 for (int y = minY; y <= maxY; y++) {
@@ -447,6 +447,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 }
             }
         }
+
         //pass wireframe - drawing edges of rasterizatied triangle
         if(obj.displaySettings->colorWireframes || obj.displaySettings->renderMode == DisplaySettings::RenderMode::WIREFRAME){
             //IdBufferElement edgeEl;
@@ -474,6 +475,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             }
 
         }
+
     }
 }
 

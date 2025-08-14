@@ -16,8 +16,6 @@ Cube::Cube(int sideLength) : sideLength(sideLength){
                 Vector3(radious , -radious , radious),
                 Vector3(-radious , -radious , radious)};
 
-    transformedVertices = vertices;
-
     faceVertexIndices = {0,1,2,
                         2,3,0,
                         3,2,6,

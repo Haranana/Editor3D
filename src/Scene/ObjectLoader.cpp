@@ -45,9 +45,7 @@ void ObjectLoader::createObjects(){
 
     std::shared_ptr<RenderableObject3D> object = std::make_shared<RenderableObject3D>();
 
-
     object->vertices = vertices;
-    object->transformedVertices = object->vertices;
 
     for(const auto& face : faces){
         object->faceVertexIndices.push_back(face.firstVertex-1);

@@ -40,6 +40,7 @@
 #include "PointLightPropertiesWidget.h"
 #include <QScrollArea>
 #include "SpotLightPropertiesWidget.h"
+#include "Scene/ObjectImporter.h"
 
 class MainWindow : public QMainWindow
 {
@@ -77,6 +78,8 @@ private:
     void simpleTestScene(); //single cube with no lighting
     void pointLightRoomTestScene();
     void pointLightShadowTestScene();
+
+    void addImportedObjectsToScene(const ImportResult& import, const QString& sourcePath);
 
     QVBoxLayout* rightLayout;
     QWidget* rightPanel;
@@ -125,7 +128,7 @@ private:
 
     QPushButton* addCubeButton = nullptr;
     SelectMode curSelectMode = NONE;
-
+    ObjImporter objImporter;
 
 private slots:
 

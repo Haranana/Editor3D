@@ -3,8 +3,12 @@
 
 ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& opt){
 
+
+
     clearData();
+
     importOptions = opt;
+
     objDir = std::filesystem::path(objPath).parent_path().string();
 
     std::ifstream file(objPath);
@@ -15,9 +19,11 @@ ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& 
         parseLine(line_view);
     }
 
+
     ImportResult result;
 
     std::vector<std::shared_ptr<RenderableObject3D>> loadedObjects = meshBuildersToRenderableObjects();
+
     result.objects = loadedObjects;
     result.materials = materials;
 

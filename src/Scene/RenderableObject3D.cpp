@@ -1,14 +1,13 @@
 #include "Scene/RenderableObject3D.h"
 
 RenderableObject3D::RenderableObject3D() {
-
+    displaySettings = std::make_unique<DisplaySettings>();
 }
 
 
 //do zrobienia dla wszystkic obiektow
 RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
     vertices(otherObject.vertices),
-    transformedVertices(otherObject.transformedVertices),
     faceVertexIndices(otherObject.faceVertexIndices),
     normals(otherObject.normals),
     textureCoords(otherObject.textureCoords)

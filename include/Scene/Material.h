@@ -3,6 +3,8 @@
 
 #include <string>
 #include "Math/Vector3.h"
+#include "Rendering/Texture.h"
+
 class Material{
 public:
     std::string name;
@@ -25,10 +27,39 @@ public:
     std::string map_d;    // opacity (opcjonalnie do cutout)
     std::string map_Ke;   // emissive
 
+    std::shared_ptr<Texture> albedoTexture;
+    std::shared_ptr<Texture> specularTexture;
+    std::shared_ptr<Texture> opacityTexture;
+    std::shared_ptr<Texture> emissiveTexture;
+
     static constexpr double defaultNs = 32.0;
     static constexpr double defaultNi = 1.0;
     static constexpr double defaultD = 1.0;
     static constexpr int defaultIllum = 2;
+
+    void loadTexturesFromPaths(const QString& sourceObjPath){
+        QString pathKd = Texture::resolveMapPath(sourceObjPath, this->map_Kd);
+        if(pathKd!=""){
+            albedoTexture = Texture::loadTextureCached(pathKd);
+        }
+
+        QString pathKs = Texture::resolveMapPath(sourceObjPath, this->map_Ks);
+        if(pathKs!=""){
+            specularTexture = Texture::loadTextureCached(pathKs);
+        }
+
+        QString pathD = Texture::resolveMapPath(sourceObjPath, this->map_d);
+        if(pathD!=""){
+            opacityTexture = Texture::loadTextureCached(pathD);
+        }
+
+        QString pathKe = Texture::resolveMapPath(sourceObjPath, this->map_Ke);
+        if(pathKe!=""){
+            emissiveTexture = Texture::loadTextureCached(pathKe);
+        }
+
+
+    }
 };
 
 #endif // MATERIAL_H

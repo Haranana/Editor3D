@@ -23,10 +23,6 @@ public:
 
     std::vector<Vector3> vertices;
 
-
-    //to delete lmao
-    std::vector<Vector3> transformedVertices;
-
     //kolejne indeksy wierzcholkow wszystkich scian obiektu, zakladamy, ze kazdy polygon ma dokladnie 3 wierzcholki
     //przykladowo faceVertexIndices[faceId] zwroci id pierwszego wierzcholka w scianie o danej faceId
     std::vector<int> faceVertexIndices;
@@ -56,7 +52,15 @@ public:
     std::shared_ptr<Texture> texture;
 
     //std::unique_ptr<RenderStrategy> renderStrategy;
-
+    void debugStats(){
+        std::cout<<"name: "<<name<<std::endl;
+        std::cout<<"vertices: "<<vertices.size()<<std::endl;
+        std::cout<<"faceVertexIndices: "<<faceVertexIndices.size()<<std::endl;
+        std::cout<<"normals: "<<normals.size()<<std::endl;
+        std::cout<<"vertexNormals: "<<vertexNormals.size()<<std::endl;
+        std::cout<<"textureCoords: "<<textureCoords.size()<<std::endl;
+        std::cout<<std::endl<<std::endl;
+    }
 };
 
 #endif // RENDERABLEOBJECT3D_H

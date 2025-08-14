@@ -449,6 +449,20 @@ void MainWindow::pointLightShadowTestScene(){
 
 }
 
+void MainWindow::addImportedObjectsToScene(const ImportResult& import, const QString& sourcePath){
+
+    for(const auto& obj : import.objects){
+        obj->material.loadTexturesFromPaths(sourcePath);
+        scene->addObject(obj);
+        QString itemTextLight = QString::fromStdString(obj->name);
+        objectsList->addItem(itemTextLight);
+        obj->debugStats();
+    }
+
+
+    refreshScene();
+}
+
 void MainWindow::onAddCubeClicked()
 {
 
@@ -498,14 +512,8 @@ void MainWindow::onFileMenuImportObject(){
     QString fileName = QFileDialog::getOpenFileName(this, tr("Import .obj file"),"",tr("OBJ Files (*.obj);;Text Files (*.txt);;All Files (*)"));
     if (!fileName.isEmpty()) {
         qDebug() << "chosen file:" << fileName;
-
-
-        std::shared_ptr<RenderableObject3D> loadedObject = objectLoader->loadObject(fileName.toStdString())[0];
-        scene->addObject(loadedObject);
-        QString itemText = QString("imported cube");
-        objectsList->addItem(itemText);
-
-        refreshScene();
+        ImportResult importResult = objImporter.load(fileName.toStdString());
+        addImportedObjectsToScene(importResult , fileName);
     }
 }
 
