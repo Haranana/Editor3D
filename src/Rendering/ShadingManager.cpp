@@ -1,11 +1,18 @@
 #include "Rendering/ShadingManager.h"
 
-
 ShadingManager::ShadingManager() {}
 
 double ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo) const{
     double NdotL = std::max(0.0, normal.dotProduct(lightDirection*(-1.0)));
     return NdotL * albedo * lightEnergy;
+}
+
+Vector3 ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const{
+    double NdotL = std::max(0.0, normal.dotProduct(lightDirection));
+    return {NdotL * albedo.x * lightEnergy.x,
+            NdotL * albedo.y * lightEnergy.y,
+            NdotL * albedo.z * lightEnergy.z,
+            } ;
 }
 
 Color ShadingManager::shadeColorFR(const Vector3& cameraPosition,

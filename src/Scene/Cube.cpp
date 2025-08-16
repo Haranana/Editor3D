@@ -1,7 +1,7 @@
 #include "Scene/Cube.h"
 #include <algorithm>
 
-Cube::Cube(int sideLength) : sideLength(sideLength){
+Cube::Cube(int sideLength) :RenderableObject3D(), sideLength(sideLength){
 
     int radious = sideLength/2;
 

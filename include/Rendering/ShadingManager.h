@@ -1,7 +1,6 @@
 #ifndef SHADINGMANAGER_H
 #define SHADINGMANAGER_H
-#include "Math/Vectors.h"
-#include "Math/Matrices.h"
+#include "Math/Vector3.h"
 #include "Buffer.h"
 #include "Color.h"
 #include "memory"
@@ -16,7 +15,7 @@ public:
                         const Color& color) const;
 
     double getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo = defaultAlbedo) const;
-
+    Vector3 getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const;
     std::shared_ptr<Buffer<double>> shadowMap;
 private:
     //returns vector beetwen camera and specified point, used in calculating facing ratio

@@ -2,6 +2,10 @@
 
 RenderableObject3D::RenderableObject3D() {
     displaySettings = std::make_unique<DisplaySettings>();
+    material = Material();
+    vertexHasNormal.assign(vertexHasNormal.size() , false);
+    vertexHasUV.assign(vertexHasUV.size() , false);
+    faceHasUV.assign(faceHasUV.size() , false);
 }
 
 

@@ -32,8 +32,8 @@ public:
 
     Buffer<double> shadowMap;
 
-    double outerAngle = 1.047; //default 60 degrees
-    double innerAngle = 0.785; //default 45 degrees
+    double outerAngle = defaultOuterAngle; //default 60 degrees
+    double innerAngle = defaultInnerAngle; //default 45 degrees
     double range = deafultRange;
 
     double attenuationConstant = 1.0;
@@ -45,15 +45,15 @@ public:
         lightType = LightType::SPOT;
     }
 
-    double getAttenuation(const Vector3& lightToPoint){
+    double getConeAttenuation(const Vector3& lightToPoint){
 
         double outerAngleCos = getOuterAngleCos();
         double innerAngleCos = getInnerAngleCos();
         double lightToPointCos = (lightToPoint.normalize()*(-1.0)).dotProduct(direction.normalize());
 
         double denom = MathUt::safePositiveDenom(innerAngleCos - outerAngleCos);
+        return std::clamp((lightToPointCos-outerAngleCos)/denom, 0.0, 1.0);
 
-        return (lightToPointCos-outerAngleCos)/denom;
     }
 
     double getDistanceAttenuation(double distance){
