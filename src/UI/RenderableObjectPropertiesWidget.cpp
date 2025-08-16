@@ -6,6 +6,9 @@ RenderableObjectPropertiesWidget::RenderableObjectPropertiesWidget(QWidget* pare
     transform3DPropertiesWidget = new Transform3DPropertiesWidget(this);
     layout->addRow(transform3DPropertiesWidget);
 
+    materialPropertiesWidget = new MaterialPropertiesWidget(this);
+    layout->addRow(materialPropertiesWidget);
+
     displaySettingsPropertiesWidget = new DisplaySettingsPropertiesWidget(this);
     layout->addRow(displaySettingsPropertiesWidget);
 
@@ -18,6 +21,7 @@ void RenderableObjectPropertiesWidget::setObject(std::shared_ptr<Object3D> objec
     obj = std::dynamic_pointer_cast<RenderableObject3D>(object);
 
     transform3DPropertiesWidget->setObject(object);
+    materialPropertiesWidget->setObject(object);
     displaySettingsPropertiesWidget->setObject(object);
     colorPicker->setColor(obj->viewportDisplay.color);
 }

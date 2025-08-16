@@ -54,6 +54,7 @@ SOURCES += \
     src/UI/DistantLightPropertiesWidget.cpp \
     src/UI/ImageLabel.cpp \
     src/UI/LightPropertiesWidget.cpp \
+    src/UI/MaterialPropertiesWidget.cpp \
     src/UI/PointLightPropertiesWidget.cpp \
     src/UI/RenderWidget.cpp \
     src/UI/RenderableObjectPropertiesWidget.cpp \

@@ -10,6 +10,7 @@
 #include "UI/Transform3DPropertiesWidget.h"
 #include "UI/DisplaySettingsPropertiesWidget.h"
 #include <QCheckBox>
+#include "UI/MaterialPropertiesWidget.h"
 
 class RenderableObjectPropertiesWidget : public ObjectPropertiesWidget{
     Q_OBJECT
@@ -26,6 +27,7 @@ private:
 
     Transform3DPropertiesWidget* transform3DPropertiesWidget;
     DisplaySettingsPropertiesWidget* displaySettingsPropertiesWidget;
+    MaterialPropertiesWidget* materialPropertiesWidget;
     ColorPicker* colorPicker;
 };
 
