@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QCheckBox>
 
+
 class Transform3DPropertiesWidget : public ObjectPropertiesWidget{
     Q_OBJECT
 public:

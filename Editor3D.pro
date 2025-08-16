@@ -59,6 +59,7 @@ SOURCES += \
     src/UI/RenderableObjectPropertiesWidget.cpp \
     src/UI/SpotLightPropertiesWidget.cpp \
     src/UI/Transform3DPropertiesWidget.cpp \
+    src/UI/Vector3PropertiesWIdget.cpp \
     src/UI/mainwindow.cpp \
     src/main.cpp
 
@@ -117,12 +118,14 @@ HEADERS += \
     include/UI/DistantLightPropertiesWidget.h \
     include/UI/ImageLabel.h \
     include/UI/LightPropertiesWidget.h \
+    include/UI/MaterialPropertiesWidget.h \
     include/UI/ObjectPropertiesWidget.h \
     include/UI/PointLightPropertiesWidget.h \
     include/UI/RenderWidget.h \
     include/UI/RenderableObjectPropertiesWidget.h \
     include/UI/SpotLightPropertiesWidget.h \
     include/UI/Transform3DPropertiesWidget.h \
+    include/UI/Vector3PropertiesWidget.h \
     include/UI/mainwindow.h
 
 ######################################################################

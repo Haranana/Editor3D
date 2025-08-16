@@ -43,7 +43,7 @@ void Renderer::renderSceneObjects(){
 
 /* --+-- Lasciate ogni speranza, voi ch'entrate --+-- */
 void Renderer::renderObject(RenderableObject3D& obj, int objId){
-    std::cout<<"1"<<std::endl;
+
     /*
     std::cout<<"Obj id: "<<objId<<std::endl;
     obj.displaySettings->print();
@@ -67,7 +67,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const Vector3 camPos = getCamera()->transform.getPosition();
     const Color baseColor = obj.viewportDisplay.color;
     Color finalColor = baseColor;
-    std::cout<<"2"<<std::endl;
+
     //building clip-space for all vertices and depending on shading, getting color on vertices
     std::vector<ClippingManager::ClippedVertex> clipVertices;
     for(size_t i = 0; i < obj.vertices.size(); i++){
@@ -98,12 +98,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
         Vector2 uv{};
         bool hasUV = false;
-        std::cout<<"3"<<std::endl;
+
         if (i < obj.textureCoords.size() && obj.vertexHasUV[i]) {
             uv    = obj.textureCoords[i];
             hasUV = true;
         }
-        std::cout<<"4"<<std::endl;
+
 
         clipVertices.push_back({
             clipSpaceVertex,
