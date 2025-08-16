@@ -3,8 +3,8 @@
 #include <QHBoxLayout>
 #include <cmath>
 
-Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMin, double valueMax, double valueStep, double valueToSliderFactor)
-    :QWidget(parent), valueMin(valueMin) , valueMax(valueMax), valueStep(valueStep) , valueToSliderFactor(valueToSliderFactor){
+Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMin, double valueMax, double valueStep, double valueToSliderFactor, int decimals)
+    :QWidget(parent), valueMin(valueMin) , valueMax(valueMax), valueStep(valueStep) , valueToSliderFactor(valueToSliderFactor), decimals(decimals){
     auto layout = new QFormLayout(this);
 
     auto xRow = new QWidget(this);

@@ -628,7 +628,7 @@ void MainWindow::onObjectMenuCreateDistantLight(){
     light->castsShadow = true;
 
     scene->addObject(light);
-    QString itemText = QString("Point Light");
+    QString itemText = QString("Distant Light");
     objectsList->addItem(itemText);
 
     refreshScene();

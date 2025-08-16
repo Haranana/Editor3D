@@ -15,7 +15,6 @@ class LightPropertiesWidget : public ObjectPropertiesWidget {
     Q_OBJECT
 public:
     LightPropertiesWidget(QWidget* parent = nullptr);
-
     void setObject(std::shared_ptr<Object3D> object) override;
 
 private slots:
@@ -25,7 +24,6 @@ private slots:
     void onCastShadowChanged(int state);
 
 private:
-
     static constexpr double intensityMin = 0.0;
     static constexpr double intensityMax = 10.0;
     static constexpr double intensityStep = 0.01;
@@ -40,7 +38,6 @@ private:
     QDoubleSpinBox* biasSpin;
     ColorPicker* colorPicker;
     QCheckBox* castShadowCheck;
-
 
     QSlider* intensitySlider;
     QSlider* biasSlider;
