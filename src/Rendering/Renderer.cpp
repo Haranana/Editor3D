@@ -402,12 +402,14 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                             if (depthInLightView <= spotLight->shadowMap[sy][sx] + 0.05){
                                                 isInShadow = false;
-                                                pointToLightDirection = (spotLight->direction*(-1.0)).normalize();
+
                                                 Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
+                                                pointToLightDirection = (pointToLightVector).normalize();
                                                 double distanceAttenuation = spotLight->getDistanceAttenuation(pointToLightVector.length());
                                                 double coneAttenuation = spotLight->getConeAttenuation(pointToLightVector*(-1.0));
 
                                                 attenuation = distanceAttenuation*coneAttenuation;
+                                                attenuation = std::clamp(attenuation, 0.0, 1.0);
                                             }
 
                                         }
