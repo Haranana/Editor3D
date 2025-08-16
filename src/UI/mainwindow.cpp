@@ -67,13 +67,14 @@ void MainWindow::setupUI()
     propertiesWidgetScrollArea = new QScrollArea(this);
     propertiesWidgetScrollArea->setWidgetResizable(true);
     propertiesWidgetScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    propertiesWidgetScrollArea->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     rightLayout = new QVBoxLayout(propertiesWidgetScrollArea);
 
     rightPanel = new QWidget(propertiesWidgetScrollArea);
     rightLayout = new QVBoxLayout(rightPanel);
     rightLayout->setContentsMargins(12,12,12,12);
     rightLayout->setSpacing(8);
-    rightLayout->addStretch();
+    //rightLayout->addStretch();
 
     propertiesWidgetScrollArea->setWidget(rightPanel);
     mainLayout->addWidget(propertiesWidgetScrollArea, 2);

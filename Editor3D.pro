@@ -113,6 +113,7 @@ HEADERS += \
     include/Scene/RenderableObject3D.h \
     include/Scene/Scene.h \
     include/Scene/SpotLight.h \
+    include/UI/CameraPropertiesWidget.h \
     include/UI/ColorPicker.h \
     include/UI/ColorPreview.h \
     include/UI/DisplaySettingsPropertiesWidget.h \
