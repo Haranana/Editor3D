@@ -20,6 +20,7 @@ public:
     const double valueMax;
     const double valueStep;
     const double valueToSliderFactor;
+    const int decimals = 2;
 
 
 private slots:

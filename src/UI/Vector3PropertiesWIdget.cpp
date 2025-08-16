@@ -23,9 +23,9 @@ Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMi
     zSpinBox = new QDoubleSpinBox(this);
     zSpinBox->setRange(valueMin, valueMax);
     zSpinBox->setSingleStep(valueStep);
-    xSpinBox->setDecimals(6);
-    ySpinBox->setDecimals(6);
-    zSpinBox->setDecimals(6);
+    xSpinBox->setDecimals(decimals);
+    ySpinBox->setDecimals(decimals);
+    zSpinBox->setDecimals(decimals);
 
     xSlider = new QSlider(Qt::Horizontal, this);
     xSlider->setRange(static_cast<int>(valueMin*valueToSliderFactor), static_cast<int>(valueMax*valueToSliderFactor));
@@ -83,6 +83,10 @@ Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMi
     yLayout->addWidget(ySlider);
     zLayout->addWidget(zSpinBox);
     zLayout->addWidget(zSlider);
+
+    xLayout->setContentsMargins(0,0,0,0);
+    yLayout->setContentsMargins(0,0,0,0);
+    zLayout->setContentsMargins(0,0,0,0);
 
     layout->addRow("X",xRow);
     layout->addRow("Y",yRow);

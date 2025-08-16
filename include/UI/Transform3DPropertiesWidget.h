@@ -8,14 +8,14 @@
 #include "Math/Utility.h"
 #include <QScrollArea>
 #include <QCheckBox>
+#include "Math/Vector3.h"
 
+class Vector3PropertiesWidget;
 
 class Transform3DPropertiesWidget : public ObjectPropertiesWidget{
     Q_OBJECT
 public:
-
     Transform3DPropertiesWidget(QWidget* parent = nullptr);
-
     void setObject(std::shared_ptr<Object3D> object) override;
 
 private slots:
@@ -24,7 +24,6 @@ private slots:
     void onRotChanged();
 
 private:
-
     static constexpr double posRangeMin = -500;
     static constexpr double posRangeMax = 500;
     static constexpr double posSpinStep = 1.0;
@@ -37,32 +36,16 @@ private:
     static constexpr double rotRangeMin = 0.0;
     static constexpr double rotRangeMax = 360.0;
     static constexpr double rotSpinStep = 1.0;
-    static constexpr int rotSpinDecimals = 1;
 
     std::shared_ptr<Object3D> obj;
 
+    Vector3PropertiesWidget* posWidget;
+    Vector3PropertiesWidget* scaleWidget;
+    Vector3PropertiesWidget* rotWidget;
 
-
-    QDoubleSpinBox* posX;
-    QDoubleSpinBox* posY;
-    QDoubleSpinBox* posZ;
-    QSlider* posXSlider;
-    QSlider* posYSlider;
-    QSlider* posZSlider;
-
-    QDoubleSpinBox* scaleX;
-    QDoubleSpinBox* scaleY;
-    QDoubleSpinBox* scaleZ;
-    QSlider* scaleXSlider;
-    QSlider* scaleYSlider;
-    QSlider* scaleZSlider;
-
-    QDoubleSpinBox* rotX;
-    QDoubleSpinBox* rotY;
-    QDoubleSpinBox* rotZ;
-    QSlider* rotXSlider;
-    QSlider* rotYSlider;
-    QSlider* rotZSlider;
+    Vector3 posProxy;
+    Vector3 scaleProxy;
+    Vector3 rotProxy;
 };
 
 #endif // TRANSFORM3DPROPERTIESWIDGET_H
