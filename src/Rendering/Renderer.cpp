@@ -43,7 +43,7 @@ void Renderer::renderSceneObjects(){
 
 /* --+-- Lasciate ogni speranza, voi ch'entrate --+-- */
 void Renderer::renderObject(RenderableObject3D& obj, int objId){
-
+    std::cout<<"1"<<std::endl;
     /*
     std::cout<<"Obj id: "<<objId<<std::endl;
     obj.displaySettings->print();
@@ -67,7 +67,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const Vector3 camPos = getCamera()->transform.getPosition();
     const Color baseColor = obj.viewportDisplay.color;
     Color finalColor = baseColor;
-
+    std::cout<<"2"<<std::endl;
     //building clip-space for all vertices and depending on shading, getting color on vertices
     std::vector<ClippingManager::ClippedVertex> clipVertices;
     for(size_t i = 0; i < obj.vertices.size(); i++){
@@ -98,10 +98,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
         Vector2 uv{};
         bool hasUV = false;
+        std::cout<<"3"<<std::endl;
         if (i < obj.textureCoords.size() && obj.vertexHasUV[i]) {
             uv    = obj.textureCoords[i];
             hasUV = true;
         }
+        std::cout<<"4"<<std::endl;
 
         clipVertices.push_back({
             clipSpaceVertex,
@@ -393,7 +395,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             double coneAttenuation = spotLight->getConeAttenuation(pointToLightVector*(-1.0));
 
                                             attenuation = distanceAttenuation*coneAttenuation;
-
+                                            attenuation = std::clamp(attenuation, 0.0, 1.0);
                                         }else{
 
                                             float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
@@ -441,6 +443,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             outColor.y = std::clamp(outColor.y,0.0,1.0);
                             outColor.z = std::clamp(outColor.z,0.0,1.0);
                             finalColor = Vectors::vector3ToColor(outColor);
+                           // finalColor = Colors::Purple;
 
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                                    obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){

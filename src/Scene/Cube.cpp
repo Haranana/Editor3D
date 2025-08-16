@@ -41,6 +41,9 @@ Cube::Cube(int sideLength) :RenderableObject3D(), sideLength(sideLength){
     displaySettings = std::make_unique<DisplaySettings>();
 
     textureCoords.resize(vertices.size() , Vector2(0.0,0.0));
+    vertexHasNormal.resize(vertices.size() , false);
+    vertexHasUV.resize(vertices.size() , false);
+    faceHasUV.resize(faceVertexIndices.size()/3, false);
 
     vertexToFaceNormals.resize(vertices.size() , {});
     for (size_t face = 0; face < faceVertexIndices.size(); face += 3) {
@@ -61,5 +64,7 @@ Cube::Cube(int sideLength) :RenderableObject3D(), sideLength(sideLength){
         }
         vertexNormals.push_back(nSum.normalize());
     }
+
+
 
 }
