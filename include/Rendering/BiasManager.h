@@ -7,7 +7,7 @@
 class BiasManager{
 public:
 
-
+    //p0,p1,p2 are triangle vertices and should be in lightSpace
     double getSlopeScaled(const Buffer<double>& shadowMap,
                          const Vector3& p0, const Vector3& p1, const Vector3& p2,
                          double alphaConst = 1.5,int pcfKernelSize = 0){
@@ -19,6 +19,8 @@ public:
     }
 
 private:
+
+    //SSDB
     double getSsdbKSlope(){
         return defaultSsdbKSlope;
     }
@@ -42,6 +44,44 @@ private:
 
 
     static constexpr double defaultSsdbKSlope = 1.0;
+
+
+    //Normal Angle
+    double getNaNormalFactor(){
+        return defaultNaNormalFactor;
+    }
+
+    double getNaAngleFactor(){
+        return defaultNaAngleFactor;
+    }
+
+    double getNaWorldUnitsPerTexelDistantLight(double right, double left, double top, double bottom){
+        return std::max( (right-left) , (top-bottom));
+    }
+
+    //in point light FovY = 90, tan(45) = 1
+    double getNaWorldUnitsPerTexelPointLight(double depth, int shadowMapWidth, int shadowMapHeight){
+        static constexpr double angleTan = 1.0;
+        double tY = 2*depth*angleTan/shadowMapHeight;
+        double tX = 2*depth*angleTan/shadowMapWidth; //assuming aspect is 1, which it always is
+        return std::max(tX,tY);
+    }
+
+    double getNaWorldUnitsPerTexelSpotLight(){
+
+    }
+
+    double getNaPCFCorrectOnWorldUnitsPerTexel(double wupt, int kernel){
+        return wupt*(double(std::max(1 , kernel)));
+    }
+
+    double getNaAngleBias(const Vector3& normal, const Vector3& lightVector){
+        return (1-std::max(0.0 , normal.dotProduct(lightVector)) );
+    }
+
+    static constexpr double defaultNaNormalFactor = 0.75;
+    static constexpr double defaultNaAngleFactor = 1.0;
+
 
 };
 

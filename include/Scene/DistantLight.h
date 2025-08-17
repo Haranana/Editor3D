@@ -14,6 +14,13 @@ public:
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
     static constexpr size_t defaultShadowMapSize = 2048; //in pixels
 
+
+    //used in projectionMatrix and normalAngleBias
+    double oLeft = 0.0;
+    double oRight = 0.0;
+    double oBottom = 0.0;
+    double oTop = 0.0;
+
     //probably should be kept normalized
     Vector3 direction;
     Buffer<double> shadowMap;
@@ -57,6 +64,10 @@ public:
                              double orthoNear,
                              double orthoFar){
 
+        oLeft = orthoLeft;
+        oRight = orthoRight;
+        oBottom = orthoBottom;
+        oTop = orthoTop;
         projectionMatrix = LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
     }
 
