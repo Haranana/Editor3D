@@ -29,6 +29,7 @@ private:
 
     LightPropertiesWidget* lightPropertiesWidget;
 
+
     std::shared_ptr<PointLight> light;
 
     static constexpr double minRange = 1.0;

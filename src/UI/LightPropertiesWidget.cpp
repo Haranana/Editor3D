@@ -13,18 +13,18 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
     intensitySpin->setRange(intensityMin, intensityMax);
     intensitySpin->setSingleStep(intensityStep);
     intensitySlider = new QSlider(Qt::Horizontal, this);
-    intensitySlider->setRange(int(intensityMin*100), int(intensityMax*100));
+    intensitySlider->setRange(int(intensityMin*intensitySliderFactor), int(intensityMax*intensitySliderFactor));
     intensityLayout->addWidget(intensitySpin);
     intensityLayout->addWidget(intensitySlider);
     layout->addRow("Intensity", intensityRow);
     connect(intensitySpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double v){
-        int iv = int(v*100);
+        int iv = int(v*intensitySliderFactor);
         if (intensitySlider->value() != iv)
             intensitySlider->setValue(iv);
         onIntensityChanged(v);
     });
     connect(intensitySlider, &QSlider::valueChanged, [this](int v){
-        double dv = v/100.0;
+        double dv = double(v)/double(intensitySliderFactor);
         if (std::abs(intensitySpin->value() - dv) > 0.00001)
             intensitySpin->setValue(dv);
     });
@@ -36,18 +36,18 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
     biasSpin->setRange(biasMin, biasMax);
     biasSpin->setSingleStep(biasStep);
     biasSlider = new QSlider(Qt::Horizontal, this);
-    biasSlider->setRange(int(biasMin * 1000000), int(biasMax * 1000000));
+    biasSlider->setRange(int(biasMin * biasSliderFactor), int(biasMax * biasSliderFactor));
     biasLayout->addWidget(biasSpin);
     biasLayout->addWidget(biasSlider);
     layout->addRow("Shadow bias", biasRow);
     connect(biasSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double v){
-        int iv = int(v * 1000000);
+        int iv = int(v * biasSliderFactor);
         if (biasSlider->value() != iv)
             biasSlider->setValue(iv);
         onBiasChanged(v);
     });
     connect(biasSlider, &QSlider::valueChanged, [this](int v){
-        double dv = v / 1000000.0;
+        double dv = double(v) / double(biasSliderFactor);
         if (std::abs(biasSpin->value() - dv) > 1e-8)
             biasSpin->setValue(dv);
     });
@@ -73,7 +73,7 @@ void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     intensitySpin->blockSignals(false);
 
     intensitySlider->blockSignals(true);
-    intensitySlider->setValue(int(light->intensity*100));
+    intensitySlider->setValue(int(light->intensity*intensitySliderFactor));
     intensitySlider->blockSignals(false);
 
     biasSpin->blockSignals(true);
@@ -81,7 +81,7 @@ void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     biasSpin->blockSignals(false);
 
     biasSlider->blockSignals(true);
-    biasSlider->setValue(int(light->bias*1000000));
+    biasSlider->setValue(int(light->bias*biasSliderFactor));
     biasSlider->blockSignals(false);
 
     colorPicker->blockSignals(true);

@@ -28,9 +28,12 @@ private:
     static constexpr double intensityMax = 10.0;
     static constexpr double intensityStep = 0.01;
 
-    static constexpr double biasMin = 0.00001;
-    static constexpr double biasMax = 0.01;
-    static constexpr double biasStep = 0.00001;
+    static constexpr double biasMin = 0.0001;
+    static constexpr double biasMax = 1.0;
+    static constexpr double biasStep = 0.0001;
+
+    static constexpr int intensitySliderFactor = int(1.0/intensityStep);
+    static constexpr int biasSliderFactor = int(1.0/biasStep);
 
     std::shared_ptr<Light> light;
 
