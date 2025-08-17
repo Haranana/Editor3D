@@ -6,6 +6,7 @@
 #include <QSizePolicy>
 #include <QPixmap>
 #include <QTimer>
+#include "UI/CameraPropertiesWidget.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
@@ -498,6 +499,8 @@ void MainWindow::onObjectSelected(){
         currentPropertiesWidget = new SpotLightPropertiesWidget(rightPanel);
     }else if(dynamic_cast<PointLight*>(currentObject.get())){
         currentPropertiesWidget = new PointLightPropertiesWidget(rightPanel);
+    }else if(dynamic_cast<Camera*>(currentObject.get())){
+        currentPropertiesWidget = new CameraPropertiesWidget(rightPanel);
     }
 
     if (currentPropertiesWidget) {

@@ -48,6 +48,7 @@ SOURCES += \
     src/Scene/ObjectSaver.cpp \
     src/Scene/RenderableObject3D.cpp \
     src/Scene/Scene.cpp \
+    src/UI/CameraPropertiesWidget.cpp \
     src/UI/ColorPicker.cpp \
     src/UI/ColorPreview.cpp \
     src/UI/DisplaySettingsPropertiesWidget.cpp \

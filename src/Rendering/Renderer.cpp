@@ -305,7 +305,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
                                             int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
-
+                                            //std::cout<<depthInLightView<<std::endl;
                                             if (depthInLightView <= distantLight->shadowMap[sy][sx] + 0.05){
                                                 isInShadow = false;
                                                 pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
