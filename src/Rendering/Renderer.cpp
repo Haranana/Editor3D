@@ -306,7 +306,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
                                             //std::cout<<depthInLightView<<std::endl;
-                                            if (depthInLightView <= distantLight->shadowMap[sy][sx] + 0.05){
+                                            if (depthInLightView <= distantLight->shadowMap[sy][sx] + distantLight->bias){ //0.05
                                                 isInShadow = false;
                                                 pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
                                                 attenuation = 1.0;
@@ -361,11 +361,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                         }else{
 
-                                            float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            float depthInLightView = (interpolatedWorldSpaceCoords - pointLight->transform.getPosition()).length();
                                             int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
-
-                                            if (depthInLightView <= (*pointLight->shadowMaps[face])[sy][sx] + 0.05){
+                                            float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
+                                            if (normalizedDepth <= (*pointLight->shadowMaps[face])[sy][sx] + pointLight->bias){
                                                 isInShadow = false;
                                                 Vector3 pointToLightVector = (pointLight->transform.getPosition() - interpolatedWorldSpaceCoords);
                                                 pointToLightDirection = (pointToLightVector).normalize();
@@ -398,11 +399,13 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             attenuation = std::clamp(attenuation, 0.0, 1.0);
                                         }else{
 
-                                            float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            float depthInLightView = (interpolatedWorldSpaceCoords - spotLight->transform.getPosition()).length();
                                             int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1)));
+                                            float normalizedDepth =std::clamp((depthInLightView-lightSource->near)/(spotLight->range-lightSource->near),0.0,1.0);
 
-                                            if (depthInLightView <= spotLight->shadowMap[sy][sx] + 0.05){
+                                            if (normalizedDepth <= spotLight->shadowMap[sy][sx] + spotLight->bias){
                                                 isInShadow = false;
 
                                                 Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
@@ -557,17 +560,17 @@ void Renderer::updateShadowMaps(){
                 // light backoff
                 double shift = maxZ + padZ;                     // point closest to camera
                 Matrix4 backOff = Matrices4::translation(0,0,-shift);
-                lightView = backOff * lightView;
+                distantLight->setViewMatrix(backOff * lightView);
 
                 // calculate bbox Z after backOff
                 for (auto& v : cameraFrustum) {
-                    Vector3 inLS = Vectors::vector4to3(lightView * Vectors::vector3to4(v));
+                    Vector3 inLS = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(v));
                     minZ = std::min(minZ, inLS.z);
                     maxZ = std::max(maxZ, inLS.z);
                 }
 
                 // calculate near and far and set proj matrix
-                double nearDist = 0.1;
+                double nearDist = lightSource->near;
                 double farDist  = (-minZ) + padZ;
 
                 distantLight->setProjectionMatrix(
@@ -584,12 +587,12 @@ void Renderer::updateShadowMaps(){
                     std::cout<<"bbox in lightviewproj: "<<std::endl;
                     for(Vector3& v : cameraFrustum){
                         Vector4 v4 = Vectors::vector3to4(v);
-                        Vector4 proj = lightProjection * lightView * v4;
+                        Vector4 proj = lightProjection * distantLight->getViewMatrix() * v4;
                         Vector3 ndc = Vector3(proj.x / proj.w, proj.y / proj.w, proj.z / proj.w);
                         std::cout << "NDC: " << ndc << std::endl;
                     }
                 }
-                shadowMapDepthPass((*distantLight), lightView, lightProjection);
+                shadowMapDepthPass((*distantLight));
                 //depth pass - filling shadow map of current light source
 
             }
@@ -603,7 +606,7 @@ void Renderer::updateShadowMaps(){
                 //get light view matrices
                 pointLight->setViewMatrices();
 
-                double near = 0.1;
+                double near = lightSource->near;
                 double far = pointLight->range;
 
                 pointLight->setProjectionMatrix(near, far);
@@ -624,7 +627,7 @@ void Renderer::updateShadowMaps(){
 
                 spotLight->setViewMatrix();
 
-                double near = 0.1;
+                double near = lightSource->near;
                 double far = spotLight->range;
 
                 spotLight->setProjectionMatrix(near, far);
@@ -645,7 +648,7 @@ void Renderer::updateShadowMaps(){
     }
 }
 
-void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection){
+void Renderer::shadowMapDepthPass(DistantLight& lightSource){
     //clear shadowMap
     lightSource.shadowMap.clear();
 
@@ -654,7 +657,7 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource, const Matrix4& ligh
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
             if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
 
-            Matrix4 MVP = lightProjection * lightView * curObject->transform.getTransMatrix();
+            Matrix4 MVP = lightSource.getProjectionMatrix() * lightSource.getViewMatrix() * curObject->transform.getTransMatrix();
 
             //clipping preprocess
             std::vector<ClippingManager::ClippedVertex> clipVertices;
@@ -936,9 +939,11 @@ void Renderer::shadowMapDepthPass(PointLight& lightSource){
                                 //Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
                                 //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
                                 float depthInLightView = (interpolatedWorldSpaceCoords - lightSource.transform.getPosition()).length();
-                                if (depthInLightView < (*lightSource.shadowMaps[shadowCubeFace])[y][x]){
-                                    (*lightSource.shadowMaps[shadowCubeFace])[y][x] = depthInLightView;
-                                    (*lightSource.shadowMaps[shadowCubeFace])[y][x] = std::min(lightSource.range, (*lightSource.shadowMaps[shadowCubeFace])[y][x]);
+                                float normalizedDepth = std::clamp((depthInLightView - lightSource.near) / (lightSource.range - lightSource.near), 0.0, 1.0);
+
+                                if (normalizedDepth < (*lightSource.shadowMaps[shadowCubeFace])[y][x]){
+                                    (*lightSource.shadowMaps[shadowCubeFace])[y][x] = normalizedDepth;
+                                    //(*lightSource.shadowMaps[shadowCubeFace])[y][x] = std::min(lightSource.range, (*lightSource.shadowMaps[shadowCubeFace])[y][x]);
                                 }
                             }
                         }
@@ -1094,13 +1099,16 @@ void Renderer::shadowMapDepthPass(SpotLight& lightSource){
                                 double invDenom = w0 * v0.invW + w1 * v1.invW + w2 * v2.invW;
                                 Vector3 interpolatedWorldSpaceCoords = (v0.worldSpaceVertexOverW*w0 + v1.worldSpaceVertexOverW*w1 + v2.worldSpaceVertexOverW*w2)/invDenom;
 
-                                //Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix(shadowCubeFace) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
-                                //Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-                                //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                               // Vector4 lightProjCoord = lightSource.getProjectionMatrix() * lightSource.getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                               // Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                               // float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+
                                 float depthInLightView = (interpolatedWorldSpaceCoords - lightSource.transform.getPosition()).length();
-                                if (depthInLightView < lightSource.shadowMap[y][x]){
-                                    lightSource.shadowMap[y][x] = depthInLightView;
-                                    lightSource.shadowMap[y][x] = std::min(lightSource.range, lightSource.shadowMap[y][x]);
+                                float normalizedDepth = std::clamp((depthInLightView-lightSource.near)/(lightSource.range - lightSource.near),0.0,1.0);
+
+                                if (normalizedDepth < lightSource.shadowMap[y][x]){
+                                    lightSource.shadowMap[y][x] = normalizedDepth;
+                                    //lightSource.shadowMap[y][x] = std::min(lightSource.range, lightSource.shadowMap[y][x]);
                                 }
                             }
                         }

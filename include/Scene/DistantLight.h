@@ -41,6 +41,11 @@ public:
         viewMatrix = LightMatrices::lightView(bboxCenter+direction,bboxCenter, up);
     }
 
+
+    void setViewMatrix(const Matrix4& viewMatrix){
+        this->viewMatrix = viewMatrix;
+    }
+
     Matrix4 getViewMatrix(){
         return viewMatrix;
     };

@@ -57,7 +57,7 @@ private:
     void renderSceneObjects();
     void renderObject( RenderableObject3D& obj, int objId);
     void updateShadowMaps();
-    void shadowMapDepthPass(DistantLight& lightSource, const Matrix4& lightView, const Matrix4& lightProjection);
+    void shadowMapDepthPass(DistantLight& lightSource);
     void shadowMapDepthPass(PointLight& lightSource);
     void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
