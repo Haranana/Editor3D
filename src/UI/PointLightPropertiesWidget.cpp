@@ -5,6 +5,10 @@ PointLightPropertiesWidget::PointLightPropertiesWidget(QWidget* parent)
 {
     auto layout = new QFormLayout(this);
 
+    posPropertiesWidget = new Vector3PropertiesWidget(this, posRangeMin, posRangeMax, posSpinStep, 1.0);
+    connect(posPropertiesWidget, &Vector3PropertiesWidget::valueChanged, this, &PointLightPropertiesWidget::onPosChanged);
+    layout->addRow(posPropertiesWidget);
+
     lightPropertiesWidget = new LightPropertiesWidget();
     layout->addRow(lightPropertiesWidget);
 
@@ -90,6 +94,9 @@ void PointLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     if (!light) return;
     lightPropertiesWidget->setObject(light);
 
+    posProxy = light->transform.getPosition();
+    posPropertiesWidget->setVector(posProxy);
+
     rangeSpin->blockSignals(true);
     rangeSpin->setValue(light->range);
     rangeSpin->blockSignals(false);
@@ -109,6 +116,12 @@ void PointLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     attenuationQuadraticSpin->blockSignals(true);
     attenuationQuadraticSpin->setValue(light->attenuationQuadratic);
     attenuationQuadraticSpin->blockSignals(false);
+}
+
+void PointLightPropertiesWidget::onPosChanged(){
+    if(!light) return;
+    light->transform.setPosition(posProxy);
+    emit objectChanged();
 }
 
 void PointLightPropertiesWidget::onRangeChanged(double v) {
