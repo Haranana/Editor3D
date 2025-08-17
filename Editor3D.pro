@@ -81,6 +81,7 @@ HEADERS += \
     include/Math/Vector3.h \
     include/Math/Vector4.h \
     include/Math/Vectors.h \
+    include/Rendering/BiasManager.h \
     include/Rendering/Buffer.h \
     include/Rendering/ClippingManager.h \
     include/Rendering/Color.h \
