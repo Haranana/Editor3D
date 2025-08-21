@@ -7,6 +7,23 @@
 class SpotLight : public Light{
 public:
 
+    Matrix4 getViewMatrix() const{
+        return viewMatrix;
+    }
+
+    void setViewMatrix(Vector3 up = defaultUp){
+        viewMatrix =  LightMatrices::lightView(this->transform.getPosition(), this->transform.getPosition() + direction, up);
+    }
+
+    void setProjectionMatrix(double near, double far){
+        projectionMatrix = LightMatrices::PerspectiveLightProjection(outerAngle*2 , near, far, ASPECT);
+    }
+
+
+    Matrix4 getProjectionMatrix(){
+        return projectionMatrix;
+    }
+
     static constexpr int defaultShadowMapSize = 512;
     static constexpr double ASPECT = 1.0;
     static constexpr Vector3 defaultUp = Vector3(0.0,1.0,0.0);
@@ -60,21 +77,7 @@ public:
         return 1/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance);
     }
 
-    void setViewMatrix(Vector3 up = defaultUp){
-        viewMatrix =  LightMatrices::lightView(this->transform.getPosition(), this->transform.getPosition() + direction, up);
-    }
 
-    void setProjectionMatrix(double near, double far){
-        projectionMatrix = LightMatrices::PerspectiveLightProjection(outerAngle*2 , near, far, ASPECT);
-    }
-
-    Matrix4 getViewMatrix(){
-        return viewMatrix;
-    }
-
-    Matrix4 getProjectionMatrix(){
-        return projectionMatrix;
-    }
 
 private:
 

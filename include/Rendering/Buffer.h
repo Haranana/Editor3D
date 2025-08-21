@@ -18,6 +18,8 @@ public:
 
     std::size_t getRows() const;
     std::size_t getCols() const;
+    std::size_t width() const;
+    std::size_t height() const;
     std::size_t size() const; //returns number of elements both default and non-default
     std::size_t nonEmptyElements() const; //returns nubmer of elements that are different than default v alue
     bool isEmpty() const;
@@ -58,6 +60,16 @@ std::size_t Buffer<T>::getRows() const {
 template<typename T>
 std::size_t Buffer<T>::getCols() const {
     return cols;
+}
+
+template<typename T>
+std::size_t Buffer<T>::width() const{
+    return getCols();
+}
+
+template<typename T>
+std::size_t Buffer<T>::height() const{
+    return getRows();
 }
 
 template<typename T>
