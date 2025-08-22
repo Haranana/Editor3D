@@ -1,5 +1,5 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef MATH_UTILITY_H
+#define MATH_UTILITY_H
 
 #include <Math/Vectors.h>
 #include <random>
@@ -35,4 +35,4 @@ Vector2 randomPointInDistance(Vector2 center, double minDist, double maxDist,
 Vector2 randomPointInRing(const Vector2& center, double r, std::mt19937& gen);
 
 }
-#endif // UTILITY_H
+#endif // MATH_UTILITY_H

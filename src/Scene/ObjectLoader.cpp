@@ -3,6 +3,7 @@
 #include <fstream>
 
 
+
 std::vector<std::shared_ptr<RenderableObject3D>> ObjectLoader::loadObject(std::string filePath){
 
     newObjects.clear();

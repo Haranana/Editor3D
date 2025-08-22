@@ -1,6 +1,9 @@
 #include "UI/LightPropertiesWidget.h"
 #include <QFormLayout>
 #include <cmath>
+#include "Rendering/Colors.h"
+#include "Math/Vectors.h"
+#include "Rendering/Utility.h"
 
 LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
     : ObjectPropertiesWidget(parent)
@@ -104,7 +107,7 @@ void LightPropertiesWidget::onBiasChanged(double v) {
 }
 
 void LightPropertiesWidget::onColorChanged(const Color& color) {
-    if (light) light->color = color;
+    if (light) light->color = Vectors::vector3ToColor(RendUt::sRGBToLinear(Vectors::colorToVector3(color)));
     emit objectChanged();
 }
 

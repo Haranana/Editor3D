@@ -41,6 +41,8 @@
 #include <QScrollArea>
 #include "SpotLightPropertiesWidget.h"
 #include "Scene/ObjectImporter.h"
+#include "FpsCounter.h"
+#include "HudOverlay.h"
 
 class MainWindow : public QMainWindow
 {
@@ -83,6 +85,7 @@ private:
 
     QVBoxLayout* rightLayout;
     QWidget* rightPanel;
+    FpsCounter fpsCounter;
 
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Camera> camera;

@@ -3,7 +3,7 @@
 #include "Scene/DistantLight.h"
 #include "Scene/SpotLight.h"
 #include "Scene/PointLight.h"
-
+#include "Rendering/Utility.h"
 
 Renderer::Renderer(
     std::shared_ptr<QImage> img,
@@ -445,7 +445,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             outColor.x = std::clamp(outColor.x ,0.0,1.0);
                             outColor.y = std::clamp(outColor.y,0.0,1.0);
                             outColor.z = std::clamp(outColor.z,0.0,1.0);
-                            finalColor = Vectors::vector3ToColor(outColor);
+                            finalColor = Vectors::vector3ToColor(RendUt::linearToSRGB(outColor));
                            // finalColor = Colors::Purple;
 
                         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&

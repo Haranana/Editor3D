@@ -230,13 +230,16 @@ void MainWindow::refreshScene()
     auto imgPtr = renderer->getRenderingSurface()->getImg();
     if (!imgPtr) return;
 
+    fpsCounter.frame();
+    drawFpsOverlay(*renderer->getRenderingSurface()->getImg(), fpsCounter.text(), Qt::TopLeftCorner);
+
     sceneDisplay->setImage(*imgPtr);
 }
 
 void MainWindow::loadTestScene(){
-    pointLightTestScene();
+    //pointLightTestScene();
     //pointLightShadowTestScene();
-    //simpleTestScene();
+    simpleTestScene();
     //distantLightTestScene();
     //distantLightTestScene();
     refreshScene();

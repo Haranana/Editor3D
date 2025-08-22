@@ -1,6 +1,7 @@
 #include "UI/MaterialPropertiesWidget.h"
 #include "UI/Vector3PropertiesWidget.h"
 #include <QFormLayout>
+#include "Rendering/Utility.h"
 #include <cmath>
 
 MaterialPropertiesWidget::MaterialPropertiesWidget(QWidget* parent)
@@ -134,28 +135,28 @@ void MaterialPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
 void MaterialPropertiesWidget::onAmbientChanged()
 {
     if (!obj) return;
-    obj->material.Ka = ambientProxy;
+    obj->material.Ka = RendUt::sRGBToLinear(ambientProxy);
     emit objectChanged();
 }
 
 void MaterialPropertiesWidget::onDiffuseChanged()
 {
     if (!obj) return;
-    obj->material.Kd = diffuseProxy;
+    obj->material.Kd = RendUt::sRGBToLinear(diffuseProxy);
     emit objectChanged();
 }
 
 void MaterialPropertiesWidget::onSpecularChanged()
 {
     if (!obj) return;
-    obj->material.Ks = specularProxy;
+    obj->material.Ks = RendUt::sRGBToLinear(specularProxy);
     emit objectChanged();
 }
 
 void MaterialPropertiesWidget::onEmissiveChanged()
 {
     if (!obj) return;
-    obj->material.Ke = emissiveProxy;
+    obj->material.Ke = RendUt::sRGBToLinear(emissiveProxy);
     emit objectChanged();
 }
 

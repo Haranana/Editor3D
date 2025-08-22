@@ -39,26 +39,27 @@ public:
 
     void loadTexturesFromPaths(const QString& sourceObjPath){
         QString pathKd = Texture::resolveMapPath(sourceObjPath, this->map_Kd);
-        if(pathKd!=""){
+        if (!pathKd.isEmpty()){
             albedoTexture = Texture::loadTextureCached(pathKd);
+            if (albedoTexture && !albedoTexture->isLinear()) albedoTexture->toLinear();
         }
 
         QString pathKs = Texture::resolveMapPath(sourceObjPath, this->map_Ks);
-        if(pathKs!=""){
+        if (!pathKs.isEmpty()){
             specularTexture = Texture::loadTextureCached(pathKs);
+            if (specularTexture && !specularTexture->isLinear()) specularTexture->toLinear();
         }
 
         QString pathD = Texture::resolveMapPath(sourceObjPath, this->map_d);
-        if(pathD!=""){
+        if (!pathD.isEmpty()){
             opacityTexture = Texture::loadTextureCached(pathD);
         }
 
         QString pathKe = Texture::resolveMapPath(sourceObjPath, this->map_Ke);
-        if(pathKe!=""){
+        if (!pathKe.isEmpty()){
             emissiveTexture = Texture::loadTextureCached(pathKe);
+            if (emissiveTexture && !emissiveTexture->isLinear()) emissiveTexture->toLinear();
         }
-
-
     }
 };
 

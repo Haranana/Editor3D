@@ -39,6 +39,7 @@ SOURCES += \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingSurface.cpp \
     src/Rendering/ShadingManager.cpp \
+    src/Rendering/Utility.cpp \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
     src/Scene/Cylinder.cpp \
@@ -98,6 +99,7 @@ HEADERS += \
     include/Rendering/RenderingSurface.h \
     include/Rendering/ShadingManager.h \
     include/Rendering/Texture.h \
+    include/Rendering/Utility.h \
     include/Rendering/ViewportDisplay.h \
     include/Scene/Camera.h \
     include/Scene/Cube.h \
@@ -120,6 +122,8 @@ HEADERS += \
     include/UI/ColorPreview.h \
     include/UI/DisplaySettingsPropertiesWidget.h \
     include/UI/DistantLightPropertiesWidget.h \
+    include/UI/FpsCounter.h \
+    include/UI/HudOverlay.h \
     include/UI/ImageLabel.h \
     include/UI/LightPropertiesWidget.h \
     include/UI/MaterialPropertiesWidget.h \

@@ -1,5 +1,7 @@
 #include "Scene/ObjectImporter.h"
 #include <filesystem>
+#include "Rendering/Utility.h"
+#include "Math/Utility.h"
 
 ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& opt){
 
@@ -214,6 +216,8 @@ void ObjImporter::parseKa(std::string_view& line){
     }else{
         currentMaterial->Ka = {0.0,0.0,0.0};
     }
+
+    //currentMaterial->Ka = RendUt::sRGBToLinear(currentMaterial->Ka);
 }
 
 void ObjImporter::parseKd(std::string_view& line){
@@ -230,6 +234,8 @@ void ObjImporter::parseKd(std::string_view& line){
     }else{
         currentMaterial->Kd = {1.0,1.0,1.0};
     }
+
+    //currentMaterial->Kd = RendUt::sRGBToLinear(currentMaterial->Kd);
 }
 
 void ObjImporter::parseKs(std::string_view& line ){
@@ -246,6 +252,8 @@ void ObjImporter::parseKs(std::string_view& line ){
     }else{
         currentMaterial->Ks = {0.0,0.0,0.0};
     }
+
+    //currentMaterial->Ks = RendUt::sRGBToLinear(currentMaterial->Ks);
 }
 
 void ObjImporter::parseKe(std::string_view& line){
@@ -262,6 +270,8 @@ void ObjImporter::parseKe(std::string_view& line){
     }else{
         currentMaterial->Ke = {0.0,0.0,0.0};
     }
+
+    //currentMaterial->Ke = RendUt::sRGBToLinear(currentMaterial->Ke);
 }
 
 void ObjImporter::parseNs(std::string_view& line){

@@ -7,10 +7,30 @@
 #include <QDir>
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
+#include "Rendering/Utility.h"
 class Texture{
 public:
     QImage image;
     QString path;
+
+    //converts each pixel in texture from sRGB to linear
+    void toLinear(){
+        unsigned char *ptr = image.bits();
+        int bytesPerLine = image.bytesPerLine();
+
+        for (int y = 0; y < image.height(); y++) {
+            for (int x = 0; x < image.width(); x++) {
+                int idx = bytesPerLine * y + x * 4;
+                ptr[idx] = 255.0*RendUt::sRGBToLinear(double(ptr[idx])/255.0);
+                ptr[idx+1] = 255.0*RendUt::sRGBToLinear(double(ptr[idx+1])/255.0);
+                ptr[idx+2] = 255.0*RendUt::sRGBToLinear(double(ptr[idx+2])/255.0);
+            }
+        }
+    }
+
+    bool isLinear() const { return linearFlag; }
+    void setLinearFlag(bool v){ linearFlag = v; }
+    bool linearFlag = false; // default w ctorze
 
     static Vector3 sampleRGB(const std::shared_ptr<Texture>& tex, const Vector2& uv){
 
