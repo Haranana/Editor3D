@@ -1,5 +1,5 @@
-#ifndef MATH_UTILITY_H
-#define MATH_UTILITY_H
+#ifndef UTILITY_H
+#define UTILITY_H
 
 #include <Math/Vectors.h>
 #include <random>
@@ -35,4 +35,15 @@ Vector2 randomPointInDistance(Vector2 center, double minDist, double maxDist,
 Vector2 randomPointInRing(const Vector2& center, double r, std::mt19937& gen);
 
 }
-#endif // MATH_UTILITY_H
+
+//any color conversions assume BGR standard, same as most things in engine
+//magical numbers in sRGB->linear(and reverse) are from IEC 61966-2-1
+namespace RendUt{
+
+Vector3 sRGBToLinear(const Vector3& sRGB);
+double sRGBToLinear(double sRGB);
+Vector3 linearToSRGB(const Vector3& linear);
+
+
+}
+#endif // UTILITY_H

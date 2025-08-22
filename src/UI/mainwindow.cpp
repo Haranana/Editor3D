@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QTimer>
 #include "UI/CameraPropertiesWidget.h"
+#include "Math/Utility.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {

@@ -7,7 +7,7 @@
 #include <QDir>
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
-#include "Rendering/Utility.h"
+#include "Math/Utility.h"
 class Texture{
 public:
     QImage image;

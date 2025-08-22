@@ -3,7 +3,7 @@
 #include "Scene/DistantLight.h"
 #include "Scene/SpotLight.h"
 #include "Scene/PointLight.h"
-#include "Rendering/Utility.h"
+
 
 Renderer::Renderer(
     std::shared_ptr<QImage> img,

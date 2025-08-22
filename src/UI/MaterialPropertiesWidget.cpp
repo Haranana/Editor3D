@@ -1,7 +1,7 @@
 #include "UI/MaterialPropertiesWidget.h"
 #include "UI/Vector3PropertiesWidget.h"
 #include <QFormLayout>
-#include "Rendering/Utility.h"
+
 #include <cmath>
 
 MaterialPropertiesWidget::MaterialPropertiesWidget(QWidget* parent)

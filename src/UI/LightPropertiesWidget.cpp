@@ -3,7 +3,8 @@
 #include <cmath>
 #include "Rendering/Colors.h"
 #include "Math/Vectors.h"
-#include "Rendering/Utility.h"
+#include "Math/Utility.h"
+
 
 LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
     : ObjectPropertiesWidget(parent)

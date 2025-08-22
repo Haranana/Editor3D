@@ -1,6 +1,6 @@
 #include "Scene/ObjectImporter.h"
 #include <filesystem>
-#include "Rendering/Utility.h"
+
 #include "Math/Utility.h"
 
 ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& opt){
