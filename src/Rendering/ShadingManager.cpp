@@ -1,4 +1,5 @@
 #include "Rendering/ShadingManager.h"
+#include "Math/Utility.h"
 
 ShadingManager::ShadingManager() {}
 
@@ -14,6 +15,44 @@ Vector3 ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3
             NdotL * albedo.z * lightEnergy.z,
             } ;
 }
+
+Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera,const Vector3& worldSpacePoint,
+                                             bool fresnel , bool normalizeSpecular ) {
+
+    double nDotL = normal.dotProduct(pointToLightDir);
+    if(nDotL <= 0) return Vector3();
+    nDotL = std::clamp(nDotL , 0.0, 1.0);
+
+    Vector3 specular = material.Ks;
+    Vector3 perfectRefDir = ( (normal*(2*(nDotL)))-pointToLightDir).normalize();
+    Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
+    double shininess = material.Ns;
+
+    double RdotV = std::clamp( perfectRefDir.dotProduct(pointToCameraDir) , 0.0 , 1.0);
+    Vector3 result= specular*( std::pow(RdotV , shininess));
+
+
+    if(fresnel){
+
+        double angleCos = RdotV;
+        result.x = result.x * schlickApproximation(angleCos);
+        result.y = result.y * schlickApproximation(angleCos);
+        result.z = result.z * schlickApproximation(angleCos);
+    }
+
+    if(normalizeSpecular){
+        double normalizeSpecularConst = (shininess+2.0)/(M_PI*2.0);
+        result=result*normalizeSpecularConst;
+    }
+
+    return result;
+}
+
+double ShadingManager::schlickApproximation(double angleCos, double normIncidenceReflaction){
+    if(MathUt::equal(normIncidenceReflaction , 0.0)) normIncidenceReflaction = 0.04;
+    return normIncidenceReflaction + (1-normIncidenceReflaction)*std::pow((1-angleCos),5);
+}
+
 
 Color ShadingManager::shadeColorFR(const Vector3& cameraPosition,
                    const Vector3& point,
