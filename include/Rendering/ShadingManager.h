@@ -20,6 +20,8 @@ public:
     Vector3 getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const;
     Vector3 illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
                                  bool fresnel = false, bool normalizeSpecular = false) ;
+    Vector3 illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
+                                 bool fresnel = false, bool normalizeSpecular = false) ;
     std::shared_ptr<Buffer<double>> shadowMap;
 private:
     //returns vector beetwen camera and specified point, used in calculating facing ratio

@@ -48,6 +48,43 @@ Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& n
     return result;
 }
 
+Vector3 ShadingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
+                                  bool fresnel, bool normalizeSpecular){
+
+    Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
+    Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();
+    if (pointToCameraDir <= 0.0) return Vector3();
+    if (halfwayVector <= 0.0) return Vector3();
+
+
+    double nDotHalfway = normal.dotProduct(halfwayVector);
+    nDotHalfway = std::max(0.0 , nDotHalfway);
+
+    Vector3 specular = material.Ks;
+    double shininess = material.Ns;
+    double blinnPhongShininess = 4*shininess;
+
+    Vector3 result= specular*( std::pow(nDotHalfway , blinnPhongShininess));
+
+
+    double angleCos = pointToCameraDir.dotProduct(halfwayVector);
+    angleCos = std::clamp(angleCos, 0.0, 1.0);
+    if(fresnel){
+
+        result.x = result.x * schlickApproximation(angleCos);
+        result.y = result.y * schlickApproximation(angleCos);
+        result.z = result.z * schlickApproximation(angleCos);
+    }
+
+    if(normalizeSpecular){
+        const double m = 4.0 * shininess; // Twoje mapowanie
+        const double normalizeSpecularConst = (m + 8.0) / (8.0 * M_PI);
+        result=result*normalizeSpecularConst;
+    }
+
+    return result;
+}
+
 double ShadingManager::schlickApproximation(double angleCos, double normIncidenceReflaction){
     if(MathUt::equal(normIncidenceReflaction , 0.0)) normIncidenceReflaction = 0.04;
     return normIncidenceReflaction + (1-normIncidenceReflaction)*std::pow((1-angleCos),5);
