@@ -51,11 +51,11 @@ Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& n
 Vector3 ShadingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
                                   bool fresnel, bool normalizeSpecular){
 
+    double nDotL = normal.dotProduct(pointToLightDir);
+    if(nDotL <= 0) return Vector3();
+
     Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
     Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();
-    if (pointToCameraDir <= 0.0) return Vector3();
-    if (halfwayVector <= 0.0) return Vector3();
-
 
     double nDotHalfway = normal.dotProduct(halfwayVector);
     nDotHalfway = std::max(0.0 , nDotHalfway);
@@ -77,8 +77,7 @@ Vector3 ShadingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vecto
     }
 
     if(normalizeSpecular){
-        const double m = 4.0 * shininess; // Twoje mapowanie
-        const double normalizeSpecularConst = (m + 8.0) / (8.0 * M_PI);
+        const double normalizeSpecularConst = (blinnPhongShininess + 8.0) / (8.0 * M_PI);
         result=result*normalizeSpecularConst;
     }
 

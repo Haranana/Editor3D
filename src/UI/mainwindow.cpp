@@ -585,6 +585,9 @@ void MainWindow::onSceneDisplayClicked(int x, int y){
     std::cout<<"    | vertexID: "<<el.vertexId<<" | edge: "<<el.edgeVertices.first<<" : "<<el.edgeVertices.second
               <<" | face: "<<el.faceId<<" | object: "<<el.objectId<<std::endl;
 
+    objectsList->setCurrentRow(el.objectId);
+    emit onObjectSelected();
+        /*
     if(el.objectId!=-1){
         switch(curSelectMode){
         case OBJECTS:
@@ -604,7 +607,7 @@ void MainWindow::onSceneDisplayClicked(int x, int y){
         default:
             break;
         }
-    }
+    }*/
 }
 
 void MainWindow::onSceneMenuAssignTectureToObject(){
