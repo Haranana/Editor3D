@@ -232,9 +232,7 @@ void MainWindow::refreshScene()
     auto imgPtr = renderer->getRenderingSurface()->getImg();
     if (!imgPtr) return;
 
-    fpsCounter.frame();
-    drawFpsOverlay(*renderer->getRenderingSurface()->getImg(), fpsCounter.text(), Qt::TopLeftCorner);
-    drawRenderStatsOverlay(*renderer->getRenderingSurface()->getImg() , renderer->stats.toQString());
+    drawOverlayPerFrame();
 
     sceneDisplay->setImage(*imgPtr);
 }
@@ -456,6 +454,15 @@ void MainWindow::pointLightShadowTestScene(){
     QString itemTextLight = QString("light");
     objectsList->addItem(itemTextLight);
 
+}
+
+void MainWindow::drawOverlayPerFrame(){
+    fpsCounter.frame();
+    drawFpsOverlay(*renderer->getRenderingSurface()->getImg(), fpsCounter.text(), Qt::TopLeftCorner);
+    drawRenderStatsOverlay(*renderer->getRenderingSurface()->getImg() , renderer->stats.toQString());
+    if(RenderableObject3D* obj = dynamic_cast<RenderableObject3D*>(currentObject.get())){
+        drawObjectStatsOverlay(*renderer->getRenderingSurface()->getImg() , obj->toQString());
+    }
 }
 
 void MainWindow::addImportedObjectsToScene(const ImportResult& import, const QString& sourcePath){

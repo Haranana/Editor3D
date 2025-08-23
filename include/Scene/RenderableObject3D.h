@@ -6,6 +6,7 @@
 #include "Rendering/DisplaySettings.h"
 #include "Scene/Material.h"
 #include "Math/Vector2.h"
+#include <QString>
 
 class BasicRenderStrategy;
 class RenderStrategy;
@@ -60,6 +61,10 @@ public:
         std::cout<<"vertexNormals: "<<vertexNormals.size()<<std::endl;
         std::cout<<"textureCoords: "<<textureCoords.size()<<std::endl;
         std::cout<<std::endl<<std::endl;
+    }
+
+    QString toQString(){
+        return QString("name: %1, vertices: %2, faces: %3").arg(QString::fromStdString(name)).arg((int)vertices.size()).arg((int)faceVertexIndices.size()/3);
     }
 };
 
