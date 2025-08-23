@@ -49,8 +49,12 @@ void PaintTool::drawLine3D(const Vector3& aScr, const Vector3& bScr,
     }
 }
 
-void PaintTool::drawLine3D(const Vector3& aScr, const Vector3& bScr, const Color& color)
+
+//returns false if no pixel was drawn, true otherwise
+bool PaintTool::drawLine3D(const Vector3& aScr, const Vector3& bScr, const Color& color)
 {
+    bool result = false;
+
     int x0 = int(std::round(aScr.x));
     int y0 = int(std::round(aScr.y));
     int x1 = int(std::round(bScr.x));
@@ -67,12 +71,16 @@ void PaintTool::drawLine3D(const Vector3& aScr, const Vector3& bScr, const Color
     {
         double t = steps ? double(i) / steps : 0.0;
         double depth = aScr.z + t * (bScr.z - aScr.z);
-        drawPixel(x, y, depth, color);
+        if(drawPixel(x, y, depth, color)){
+            result = true;
+        }
 
         int e2 = err << 1;
         if (e2 > -dy) { err -= dy; x += sx; }
         if (e2 <  dx) { err += dx; y += sy; }
     }
+
+    return result;
 }
 
 void PaintTool::drawCircle3D(const Vector3& v, IdBufferElement& idBufferElement, int radius, const Color& color){

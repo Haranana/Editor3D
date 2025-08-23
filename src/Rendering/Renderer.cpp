@@ -3,6 +3,7 @@
 #include "Scene/DistantLight.h"
 #include "Scene/SpotLight.h"
 #include "Scene/PointLight.h"
+#include "UI/HudOverlay.h"
 
 
 Renderer::Renderer(
@@ -27,15 +28,18 @@ void Renderer::renderScene(){
     updateCommonMatrices();
     updateShadowMaps();
     renderSceneObjects();
+
 }
 
 void Renderer::renderSceneObjects(){
 
     LinePainter linePainter = LinePainter(renderingSurface->getImg());
+    stats.clear();
 
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+            stats.objects++;
             renderObject(*curObject , objIt);
         }
     }
@@ -67,6 +71,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const Vector3 camPos = getCamera()->transform.getPosition();
     const Color baseColor = obj.viewportDisplay.color;
     Color finalColor = baseColor;
+    bool objDrawn = false; //whether there was any pixel of this object drawn on scene, used in statistics
+    //stats.objects++;
 
     //building clip-space for all vertices and depending on shading, getting color on vertices
     std::vector<ClippingManager::ClippedVertex> clipVertices;
@@ -128,11 +134,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
         if(obj.displaySettings->backFaceCulling && shouldCullBackFace( Triangle3(modelToWorld(obj.vertices[obj.faceVertexIndices[face]],M),
                                                                                 modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]],M),
                                                                                 modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]],M) ))) continue;
+
+
         //clipping triangle
         std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({clipSpaceTriangle.v1,
                                                                                                  clipSpaceTriangle.v2,
                                                                                                  clipSpaceTriangle.v3});
         if (clippedPoly.size() < 3) continue;
+        //stats.faces++;
+        //stats.vertices+=clippedPoly.size();
 
         // clip -> ndc -> screen - > screen with normalized depth
         std::vector<Vector3> screenVerticesWithDepth;
@@ -146,6 +156,9 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
         //Fill-pass
         for (size_t k = 1; k + 1 < clippedPoly.size(); k++)
         {
+
+            bool triDrew = false; //whether any pixel in this triangle was drawn
+
             // Fan-triangulation
             Triangle3 fanTriangleScreenSpace(screenVerticesWithDepth[0],
                                       screenVerticesWithDepth[k],
@@ -465,6 +478,16 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             fillEl.objectId     = objId;
                             fillEl.faceId       = int(face/3);
                             (*idBuffer)[y][x] = fillEl;
+
+
+
+                            if (!triDrew) {
+                                stats.faces++;
+                                stats.vertices += 3;
+                                triDrew = true;
+                                objDrawn = true;
+                            }
+
                         }
                     }
                 }
@@ -493,8 +516,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 //edgeEl.edgeVertices = { idxA, idxB };
 
 
-                paintTool.drawLine3D(edgeVertex1, edgeVertex2,
-                                     obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color);
+                if(paintTool.drawLine3D(edgeVertex1, edgeVertex2,
+                                         obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color)){
+                    stats.edges++;
+                }
             }
 
         }

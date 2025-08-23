@@ -228,11 +228,13 @@ void MainWindow::refreshScene()
     renderer->clearRenderingSurface();
     renderer->renderScene();
 
+
     auto imgPtr = renderer->getRenderingSurface()->getImg();
     if (!imgPtr) return;
 
     fpsCounter.frame();
     drawFpsOverlay(*renderer->getRenderingSurface()->getImg(), fpsCounter.text(), Qt::TopLeftCorner);
+    drawRenderStatsOverlay(*renderer->getRenderingSurface()->getImg() , renderer->stats.toQString());
 
     sceneDisplay->setImage(*imgPtr);
 }

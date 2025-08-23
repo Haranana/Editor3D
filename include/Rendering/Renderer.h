@@ -27,6 +27,7 @@
 #include "Math/Triangle3.h"
 #include "Math/Utility.h"
 #include "Math/NoiseManager.h"
+#include <QString>
 
 class Renderer{
 public:
@@ -34,6 +35,31 @@ public:
     enum DebugMode{
         DEBUG_SHADOWMAP,
         NONE
+    };
+
+    struct RenderStatistics{
+        //count of every object for which at least 1 pixel was drawn on scene
+        int objects = 0;
+
+        //3 for each drawn face
+        int vertices = 0;
+
+        //count of each traingulated triangle which drawn at least 1 pixel
+        int faces = 0;
+
+        //for each edge where at least 1 pixel was drawn
+        int edges = 0;
+
+        void clear(){
+            objects = 0;
+            vertices = 0;
+            faces = 0;
+            edges = 0;
+        }
+
+        QString toQString(){
+            return QString("obj: %1, vert: %2, faces: %3, edges: %4").arg(objects).arg(vertices).arg(faces).arg(edges);
+        }
     };
 
     Renderer(
@@ -51,6 +77,7 @@ public:
     std::shared_ptr<Scene> getScene();
     std::shared_ptr<RenderingSurface> getRenderingSurface();
     std::shared_ptr<Buffer<IdBufferElement>> getIdBuffer();
+    RenderStatistics stats;
 
 private:
 
@@ -89,6 +116,7 @@ private:
     std::shared_ptr<LinePainter> linePainter;
     std::shared_ptr<ClippingManager> clippingManager;
     std::shared_ptr<ShadingManager> shadingManager;
+
 
     PaintTool paintTool;
     Matrix4 viewProjectionMatrix;

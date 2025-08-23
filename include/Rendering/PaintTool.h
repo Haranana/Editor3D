@@ -14,7 +14,7 @@ public:
     PaintTool(std::shared_ptr<QImage> img, std::shared_ptr<Buffer<double>> zBuffer, std::shared_ptr<Buffer<IdBufferElement>>);
 
     void drawLine3D(const Vector3& v1,  const Vector3& c2, IdBufferElement& idBufferElement, const Color& color = defaultDrawColor);
-    void drawLine3D(const Vector3& v1,  const Vector3& v2, const Color& color = defaultDrawColor);
+    bool drawLine3D(const Vector3& v1,  const Vector3& v2, const Color& color = defaultDrawColor);
     void drawCircle3D(const Vector3& v, IdBufferElement& idBufferElement,int radius, const Color& color = defaultDrawColor);
     void drawCircle3D(const Vector3& v,int radius, const Color& color = defaultDrawColor);
     void drawSquare3D(const Vector3& v,int radius, const Color& color = defaultDrawColor);
