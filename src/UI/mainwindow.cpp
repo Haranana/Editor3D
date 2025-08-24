@@ -238,12 +238,11 @@ void MainWindow::refreshScene()
 }
 
 void MainWindow::loadTestScene(){
-    distantLightTestScene();
+    //distantLightTestScene();
     //pointLightTestScene();
     //pointLightShadowTestScene();
+    pointLightRoomTestScene();
     //spotLightTestScene();
-    //distantLightTestScene();
-    //distantLightTestScene();
     refreshScene();
 }
 

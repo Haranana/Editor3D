@@ -8,14 +8,33 @@
 
 class PointLight : public Light{
 public:
+
+    enum ShadowMapFace{
+        POSITIVE_X = 0,
+        NEGATIVE_X = 1,
+        POSITIVE_Y = 2,
+        NEGATIVE_Y = 3,
+        POSITIVE_Z = 4,
+        NEGATIVE_Z = 5,
+    };
+
+    static ShadowMapFace pickFace(const Vector3& v){
+        double ax = std::fabs(v.x), ay = std::fabs(v.y), az = std::fabs(v.z);
+        if (ax > ay && ax > az) return (v.x >= 0 ? POSITIVE_X : NEGATIVE_X);
+        if (ay > az)            return (v.y >= 0 ? POSITIVE_Y : NEGATIVE_Y);
+        return                      (v.z >= 0 ? POSITIVE_Z : NEGATIVE_Z);
+    }
+
     static constexpr double FOV = M_PI/2;
     static constexpr double ASPECT = 1.0;
     static constexpr int defaultShadowMapSize = 512;
 
-    double range = 200.0;
+    double range = 400.0;
     double attenuationConstant = 1.0f;
-    double attenuationLinear = 0.09f;
-    double attenuationQuadratic = 0.032f;
+    //double attenuationLinear = 0.09f;
+    //double attenuationQuadratic = 0.032f;
+    double attenuationLinear = 0.00f;
+    double attenuationQuadratic = 0.000f;
 
     std::vector<std::shared_ptr<Buffer<double>>> shadowMaps;
     std::vector<Matrix4> viewMatrices = std::vector(6, Matrices4::identity());
@@ -37,12 +56,14 @@ public:
 
     void setViewMatrices(){
 
-        static const Vector3 dirs[6] = { {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} }; //+X, -X, +Y, -Y, +Z, -Z
-        static const Vector3 ups[6]  = { {0,1,0},{0,1,0},{0,0,1},{0,0,1},{1,0,0},{1,0,0} };    //+Y, +Y, +Z, +Z, +X, +X
-
-        for(size_t face = 0; face < 6; face++){
-            viewMatrices[face] = LightMatrices::lightView(this->transform.getPosition(), (this->transform.getPosition() + dirs[face]), ups[face]);
-        }
+        const Vector3 L = transform.getPosition();
+        // kanoniczne up-y; ważne – to one determinują orientację UV
+        viewMatrices[POSITIVE_X] = LightMatrices::lightView(L, L + Vector3{+1, 0, 0}, Vector3{0, -1, 0});
+        viewMatrices[NEGATIVE_X] = LightMatrices::lightView(L, L + Vector3{-1, 0, 0}, Vector3{0, -1, 0});
+        viewMatrices[POSITIVE_Y] = LightMatrices::lightView(L, L + Vector3{0, +1, 0}, Vector3{0, 0, +1});
+        viewMatrices[NEGATIVE_Y] = LightMatrices::lightView(L, L + Vector3{0, -1, 0}, Vector3{0, 0, -1});
+        viewMatrices[POSITIVE_Z] = LightMatrices::lightView(L, L + Vector3{0, 0, +1}, Vector3{0, -1, 0});
+        viewMatrices[NEGATIVE_Z] = LightMatrices::lightView(L, L + Vector3{0, 0, -1}, Vector3{0, -1, 0});
     }
 
     std::vector<Matrix4> getViewMatrices(){
@@ -54,7 +75,8 @@ public:
     }
 
     void setProjectionMatrix(double near, double far){
-        projectionMatrix = LightMatrices::PerspectiveLightProjection(FOV , near, far, ASPECT);
+        const double fovOffset = 0.5;
+        projectionMatrix = LightMatrices::PerspectiveLightProjection(FOV+fovOffset , near, far, ASPECT);
     }
 
     Matrix4 getProjectionMatrix(){

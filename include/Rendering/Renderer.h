@@ -100,6 +100,7 @@ private:
     Vector2 ndcToScreen(const Vector3& v);
     Vector3 getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool inverse = false);
     Vector3 normalToWorld( Transform3D objTransform, const Vector3& normal);
+    std::pair<int,int> ndcToShadowMapTexel(const Vector2& ndc, Buffer<double>shadowMap);
 
     void clearBuffers();
     void updateCommonMatrices();

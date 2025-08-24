@@ -334,8 +334,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                         //checking which face should be checked for shadows
                                         Vector3 lightVector = interpolatedWorldSpaceCoords - pointLight->transform.getPosition();
-                                        double absX = std::fabs(lightVector.x), absY = std::fabs(lightVector.y), absZ = std::fabs(lightVector.z);
-                                        int face = 0;
+                                        //double absX = std::fabs(lightVector.x), absY = std::fabs(lightVector.y), absZ = std::fabs(lightVector.z);
+                                        PointLight::ShadowMapFace face;
+
+                                        face = PointLight::pickFace(lightVector);
+
+                                        /*
                                         if(absX >= absY && absX >= absZ){
                                             if(lightVector.x >= 0){
                                                 face = 0;
@@ -354,7 +358,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             }else{
                                                 face = 5;
                                             }
-                                        }
+                                        }*/
 
                                         isInShadow = true;
                                         Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
@@ -376,8 +380,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                             //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
                                             float depthInLightView = (interpolatedWorldSpaceCoords - pointLight->transform.getPosition()).length();
-                                            int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
-                                            int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
+                                            //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
+                                            //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
+                                            auto [sx, sy] = ndcToShadowMapTexel(Vector2(lightNdcCoord.x, lightNdcCoord.y) , (*pointLight->shadowMaps[face]));
+
                                             float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
                                             if (normalizedDepth <= (*pointLight->shadowMaps[face])[sy][sx] + pointLight->bias){
                                                 isInShadow = false;
@@ -1310,6 +1316,13 @@ Vector3 Renderer::getFaceNormal(Vector3 v0, Vector3 v1, Vector3 v2, bool inverse
 
 Vector3 Renderer::normalToWorld(Transform3D objTransform, const Vector3& normal){
     return ((Matrices4::Matrix4To3(objTransform.getTransMatrix()).getInversion().transpose())*normal).normalize();
+}
+
+std::pair<int,int> Renderer::ndcToShadowMapTexel(const Vector2& ndc, Buffer<double>shadowMap){
+    std::pair<int,int> result;
+    result.first = std::clamp(int((ndc.x*0.5 + 0.5) * (shadowMap.getCols()-1) + 0.5), 0, int(shadowMap.getCols()-1));
+    result.second = std::clamp(int((1.0 - (ndc.y*0.5 + 0.5)) * (shadowMap.getRows()-1) + 0.5), 0, int(shadowMap.getRows()-1));
+    return result;
 }
 
 
