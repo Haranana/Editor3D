@@ -46,7 +46,7 @@ public:
     void setViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
         if(up.isParallel(direction)) up = secondChoiceUp;
         Vector3 normDir = direction.normalize();
-        viewMatrix = LightMatrices::lightView(bboxCenter+normDir,bboxCenter, up);
+        viewMatrix = LightMatrices::lightView(bboxCenter-normDir,bboxCenter, up);
     }
 
 

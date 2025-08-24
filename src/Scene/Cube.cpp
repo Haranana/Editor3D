@@ -35,7 +35,7 @@ Cube::Cube(int sideLength) :RenderableObject3D(), sideLength(sideLength){
         Vector3 v1 = vertices[faceVertexIndices[face+1]];
         Vector3 v2 = vertices[faceVertexIndices[face+2]];
 
-        normals.push_back(((v1-v0).crossProduct(v2-v0)*(-1.0)).normalize()); //vertices are declare clockwise so we multiply by -1 to make normal positive
+        normals.push_back(((v1-v0).crossProduct(v2-v0)).normalize()); //vertices are declare clockwise so we multiply by -1 to make normal positive
     }
 
     displaySettings = std::make_unique<DisplaySettings>();
