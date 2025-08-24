@@ -10,7 +10,7 @@
 class DistantLight : public Light{
 public:
 
-    static constexpr Vector3 defaultUp = Vector3(0,0,1);
+    static constexpr Vector3 defaultUp = Vector3(0,1,0);
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
     static constexpr size_t defaultShadowMapSize = 2048; //in pixels
 
@@ -45,7 +45,8 @@ public:
 
     void setViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){
         if(up.isParallel(direction)) up = secondChoiceUp;
-        viewMatrix = LightMatrices::lightView(bboxCenter+direction,bboxCenter, up);
+        Vector3 normDir = direction.normalize();
+        viewMatrix = LightMatrices::lightView(bboxCenter+normDir,bboxCenter, up);
     }
 
 

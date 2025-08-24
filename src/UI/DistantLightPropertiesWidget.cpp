@@ -33,6 +33,6 @@ void DistantLightPropertiesWidget::onDirectionChanged()
     if (!light) return;
     Vector3 d = dirProxy;
     if (d.length() > 0.0001)
-        light->direction = d.normalize();
+        light->direction = d.normalize() * (-1.0);
     emit objectChanged();
 }
