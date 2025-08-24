@@ -389,8 +389,9 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         }
                                     }
                                 }else if(lightSource->lightType == Light::LightType::SPOT){
-                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
 
+                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+                                        //std::cout<<"Pos: "<<spotLight->transform.getPosition()<<"  dir: "<<spotLight->direction<<std::endl;
                                         isInShadow = true;
                                         Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
@@ -404,9 +405,16 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             isInShadow = false;
 
                                             Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
+                                            Vector3 lightToPointVector = pointToLightVector * (-1.0);
                                             pointToLightDirection = (pointToLightVector).normalize();
-                                            double distanceAttenuation = spotLight->getDistanceAttenuation(pointToLightVector.length());
-                                            double coneAttenuation = spotLight->getConeAttenuation(pointToLightVector*(-1.0));
+
+                                            double  lightToPointDistance = lightToPointVector.length();
+
+                                            double coneAttenuation     = (lightToPointDistance <= spotLight->range)
+                                                                 ? spotLight->getConeAttenuation(lightToPointVector)
+                                                                 : 0.0;
+                                            double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
+
 
                                             attenuation = distanceAttenuation*coneAttenuation;
                                             attenuation = std::clamp(attenuation, 0.0, 1.0);
@@ -422,9 +430,16 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                 isInShadow = false;
 
                                                 Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
+                                                Vector3 lightToPointVector = pointToLightVector * (-1.0);
                                                 pointToLightDirection = (pointToLightVector).normalize();
-                                                double distanceAttenuation = spotLight->getDistanceAttenuation(pointToLightVector.length());
-                                                double coneAttenuation = spotLight->getConeAttenuation(pointToLightVector*(-1.0));
+
+                                                double  lightToPointDistance = lightToPointVector.length();
+
+                                                double coneAttenuation     = (lightToPointDistance <= spotLight->range)
+                                                                             ? spotLight->getConeAttenuation(lightToPointVector)
+                                                                             : 0.0;
+                                                double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
+
 
                                                 attenuation = distanceAttenuation*coneAttenuation;
                                                 attenuation = std::clamp(attenuation, 0.0, 1.0);

@@ -12,7 +12,8 @@ public:
     }
 
     void setViewMatrix(Vector3 up = defaultUp){
-        viewMatrix =  LightMatrices::lightView(this->transform.getPosition(), this->transform.getPosition() + direction, up);
+        const Vector3 normDir = direction.normalize();
+        viewMatrix =  LightMatrices::lightView(this->transform.getPosition(), this->transform.getPosition() + normDir, up);
     }
 
     void setProjectionMatrix(double near, double far){
@@ -40,7 +41,7 @@ public:
     static constexpr double defaultAttQuadMedium = 0.2;
     static constexpr double defaultAttQuadLarge = 0.032;
 
-    static constexpr double deafultRange = 200.0;
+    static constexpr double deafultRange = 500.0;
     static constexpr double defaultOuterAngle = 1.047; //60 degrees
     static constexpr double defaultInnerAngle = 0.785; //45 degrees
     static constexpr Vector3 defaultDirection = Vector3(1.0,0.0,0.0);
@@ -66,18 +67,18 @@ public:
 
         double outerAngleCos = getOuterAngleCos();
         double innerAngleCos = getInnerAngleCos();
-        double lightToPointCos = (lightToPoint.normalize()*(-1.0)).dotProduct(direction.normalize());
+        Vector3 normDir = direction.normalize();
+        Vector3 lightToPointDir = lightToPoint.normalize();
+        double lightToPointCos = (lightToPointDir).dotProduct(normDir);
 
         double denom = MathUt::safePositiveDenom(innerAngleCos - outerAngleCos);
-        return std::clamp((lightToPointCos-outerAngleCos)/denom, 0.0, 1.0);
+        return std::clamp( ((lightToPointCos-outerAngleCos)/denom), 0.0, 1.0);
 
     }
 
     double getDistanceAttenuation(double distance){
         return 1/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance);
     }
-
-
 
 private:
 
