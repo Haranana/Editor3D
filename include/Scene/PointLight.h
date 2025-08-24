@@ -5,6 +5,7 @@
 #include <cmath>
 #include <QImage>
 #include <memory>
+#include "Math/Utility.h"
 
 class PointLight : public Light{
 public:
@@ -75,7 +76,7 @@ public:
     }
 
     void setProjectionMatrix(double near, double far){
-        const double fovOffset = 0.5;
+        const double fovOffset = MathUt::degreeToRadian(0.5);
         projectionMatrix = LightMatrices::PerspectiveLightProjection(FOV+fovOffset , near, far, ASPECT);
     }
 

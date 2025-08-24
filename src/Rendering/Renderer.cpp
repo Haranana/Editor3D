@@ -1318,7 +1318,7 @@ Vector3 Renderer::normalToWorld(Transform3D objTransform, const Vector3& normal)
     return ((Matrices4::Matrix4To3(objTransform.getTransMatrix()).getInversion().transpose())*normal).normalize();
 }
 
-std::pair<int,int> Renderer::ndcToShadowMapTexel(const Vector2& ndc, Buffer<double>shadowMap){
+std::pair<int,int> Renderer::ndcToShadowMapTexel(const Vector2& ndc, const Buffer<double>& shadowMap){
     std::pair<int,int> result;
     result.first = std::clamp(int((ndc.x*0.5 + 0.5) * (shadowMap.getCols()-1) + 0.5), 0, int(shadowMap.getCols()-1));
     result.second = std::clamp(int((1.0 - (ndc.y*0.5 + 0.5)) * (shadowMap.getRows()-1) + 0.5), 0, int(shadowMap.getRows()-1));
