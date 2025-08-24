@@ -203,7 +203,7 @@ void MainWindow::setupScene()
     scene = std::make_shared<Scene>();
     objectLoader = std::make_shared<ObjectLoader>();
     objectSaver = std::make_shared<ObjectSaver>();
-    camera = std::make_shared<Camera>();
+    camera = std::make_shared<Camera>(800,800);
 
     auto img = std::make_shared<QImage>(800, 800, QImage::Format_ARGB32);
     PixelPainter pixelPainter = PixelPainter(img);
@@ -211,7 +211,7 @@ void MainWindow::setupScene()
 
     renderer = std::make_shared<Renderer>(img, scene, camera);
 
-    std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>();
+    std::shared_ptr<Camera> defaultCamera = std::make_shared<Camera>(800,800);
     defaultCamera->transform.setPosition({ 0.0, 0.0, 0.0 });
     defaultCamera->visibleInScene = false;
 
