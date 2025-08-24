@@ -76,10 +76,13 @@ private:
     void loadTestScene();
 
     void distantLightTestScene();
+    void spotLightTestScene();
     void pointLightTestScene();
     void simpleTestScene(); //single cube with no lighting
     void pointLightRoomTestScene();
     void pointLightShadowTestScene();
+
+
     void drawOverlayPerFrame();
 
     void addImportedObjectsToScene(const ImportResult& import, const QString& sourcePath);

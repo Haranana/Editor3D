@@ -39,7 +39,7 @@ void Renderer::renderSceneObjects(){
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
         if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
-            stats.objects++;
+
             renderObject(*curObject , objIt);
         }
     }
@@ -485,6 +485,9 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 stats.faces++;
                                 stats.vertices += 3;
                                 triDrew = true;
+                                if(!objDrawn){
+                                    stats.objects++;
+                                }
                                 objDrawn = true;
                             }
 
