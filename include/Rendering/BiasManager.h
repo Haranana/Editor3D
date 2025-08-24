@@ -14,24 +14,26 @@ class BiasManager{
 public:
 
     //p0,p1,p2 are triangle vertices and should be in lightSpace
-    double getSlopeScaled(const Buffer<double>& shadowMap,
+    static double getSlopeScaled(const Buffer<double>& shadowMap,
                          const Vector3& p0, const Vector3& p1, const Vector3& p2,
-                         double alphaConst = 1.5,int pcfKernelSize = 0){
+                         bool bilinear = false, int pcfKernelSize = 0, double alphaConst = 1.5){
         double kSlope = getSsdbKSlope();
         double slope = getSsdbSlope(p0,p1,p2);
-        double kConst = getSsdbKConst(alphaConst, pcfKernelSize, int(std::min(shadowMap.getRows() , shadowMap.getCols())));
+        double kConst = getSsdbKConst(alphaConst, pcfKernelSize, int(std::min(shadowMap.getRows() , shadowMap.getCols())) , bilinear);
 
         return kSlope * slope + kConst;
     }
 
-    Vector3 getNormalAngleDistant(const Buffer<double>& shadowMap,
+    static Vector3 getNormalAngleDistant(const Buffer<double>& shadowMap,
                                  const DistantLight& light,
                                  const Vector3& normal,
                                  const Vector3& point,
+                                 bool bilinear,
                                  int pcfKernelSize = 0){
+
         double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelDistantLight(shadowMap,
                                 light.oRight,light.oLeft,light.oTop, light.oBottom)
-                            , pcfKernelSize);
+                            , pcfKernelSize , bilinear);
         Vector3 pointToLightVector = (light.direction*(-1.0)).normalize();
 
         double angleFactors = (1+getNaAngleFactor()*getNaAngleBias(normal, pointToLightVector));
@@ -40,18 +42,19 @@ public:
         return (normal*moveDistance)+point;
     }
 
-    Vector3 getNormalAnglePoint(const Buffer<double>& shadowMap,
+    static Vector3 getNormalAnglePoint(const Buffer<double>& shadowMap,
                                 const PointLight& light,
                                 int face,
                                 const Vector3& normal,
                                 const Vector3& pointToLightVector,
                                 const Vector3& point,
+                                bool bilinear = false,
                                 int pcfKernelSize = 0){
 
         Vector4 pointInLightView = (light.viewMatrices[face] * Vectors::vector3to4(point));
         double zLS = -pointInLightView.z;
 
-        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelPointLight(zLS , shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize);
+        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelPointLight(zLS , shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize, bilinear);
 
         double angleFactors = (1+getNaAngleFactor()*getNaAngleBias(normal, pointToLightVector));
         double moveDistance = getNaNormalFactor()*worldUnits*angleFactors;
@@ -59,18 +62,19 @@ public:
         return (normal*moveDistance)+point;
     }
 
-    Vector3 getNormalAngleSpot(const Buffer<double>& shadowMap,
+    static Vector3 getNormalAngleSpot(const Buffer<double>& shadowMap,
                                const SpotLight& light,
                                const Vector3& normal,
                                const Vector3& pointToLightVector,
                                const Vector3& point,
+                               bool bilinear = false,
                                int pcfKernelSize = 0){
         double fovY = light.outerAngle*2;
 
         Vector4 pointInLightView = (light.getViewMatrix() * Vectors::vector3to4(point));
         double zLS = -pointInLightView.z;
 
-        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelSpotLight(fovY , zLS, shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize);
+        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelSpotLight(fovY , zLS, shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize , bilinear);
         double angleFactors = (1+getNaAngleFactor()*getNaAngleBias(normal, pointToLightVector));
         double moveDistance = getNaNormalFactor()*worldUnits*angleFactors;
 
@@ -80,11 +84,11 @@ public:
 private:
 
     //SSDB
-    double getSsdbKSlope(){
+    static double getSsdbKSlope(){
         return defaultSsdbKSlope;
     }
 
-    double getSsdbSlope(const Vector3& p0, const Vector3& p1, const Vector3& p2){
+    static double getSsdbSlope(const Vector3& p0, const Vector3& p1, const Vector3& p2){
         Vector3 e1{p1 - p0};
         Vector3 e2{p2-p0};
 
@@ -97,8 +101,12 @@ private:
         return std::max(abs(a) , abs(b));
     }
 
-    double getSsdbKConst(double alphaConst,int pcfKernelSize,int minHeightWidth){
-        return alphaConst*std::max(1, pcfKernelSize)/minHeightWidth;
+    static double getSsdbKConst(double alphaConst,int pcfKernelSize,int minHeightWidth, bool bilinear){
+        if (minHeightWidth <= 0) return 0.0;
+        if (pcfKernelSize <= 1)  return alphaConst / double(minHeightWidth);
+        const double r = double((pcfKernelSize - 1) / 2);
+        const double eff = bilinear ? (r + 0.5) : r;
+        return alphaConst * eff / double(minHeightWidth);
     }
 
     static constexpr double defaultSsdbKSlope = 1.0;
@@ -107,20 +115,20 @@ private:
     //Normal Angle
 
 
-    double getNaNormalFactor(){
+    static double getNaNormalFactor(){
         return defaultNaNormalFactor;
     }
 
-    double getNaAngleFactor(){
+    static double getNaAngleFactor(){
         return defaultNaAngleFactor;
     }
 
-    double getNaWorldUnitsPerTexelDistantLight(const Buffer<double>& shadowMap, double right, double left, double top, double bottom){
+    static double getNaWorldUnitsPerTexelDistantLight(const Buffer<double>& shadowMap, double right, double left, double top, double bottom){
         return std::max( (right-left)/shadowMap.width() , (top-bottom)/shadowMap.height());
     }
 
     //in point light FovY = 90, tan(45) = 1
-    double getNaWorldUnitsPerTexelPointLight(double depth, int shadowMapWidth, int shadowMapHeight){
+    static double getNaWorldUnitsPerTexelPointLight(double depth, int shadowMapWidth, int shadowMapHeight){
         static constexpr double fovYTan = 1.0;
         const double fovX = 2*atan(fovYTan);
         const double fovXTan = tan(fovX/2.0);
@@ -130,7 +138,7 @@ private:
         return std::max(tX,tY);
     }
 
-    double getNaWorldUnitsPerTexelSpotLight(double fovY, double depth, int shadowMapWidth, int shadowMapHeight){
+    static double getNaWorldUnitsPerTexelSpotLight(double fovY, double depth, int shadowMapWidth, int shadowMapHeight){
 
         const double fovYTan = tan(fovY/2.0);
         const double fovX = 2*atan(fovYTan);
@@ -141,12 +149,14 @@ private:
         return std::max(tX,tY);
     }
 
-    double pcfCorrect(double wupt, int kernel){
-        int radius = (kernel - 1) / 2;
-        return wupt*(double(std::max(1 , radius)));
+    static double pcfCorrect(double wupt, int kernel, bool bilinear){
+        if (kernel <= 1) return wupt;
+        const double r = double((kernel - 1) / 2);
+        const double eff = bilinear ? (r + 0.5) : r;
+        return wupt * eff;
     }
 
-    double getNaAngleBias(const Vector3& normal, const Vector3& lightVector){
+    static double getNaAngleBias(const Vector3& normal, const Vector3& lightVector){
         Vector3 normalizedNormal = normal.normalize();
         Vector3 normalizedLightVector3 = lightVector.normalize();
         return (1-std::max(0.0 , normalizedNormal.dotProduct(normalizedLightVector3)));

@@ -3,6 +3,7 @@
 #include "Scene/DistantLight.h"
 #include "Scene/SpotLight.h"
 #include "Scene/PointLight.h"
+#include "Rendering/BiasManager.h"
 #include "UI/HudOverlay.h"
 
 
@@ -179,6 +180,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             double area = fanTriangleScreenSpace.area();
             if(area == 0.0) continue;
 
+            //calculating raw world coordinates for dynamic bias calculations
+            //yes it's ugly, probably should just store raw parameters in ClippedVertex
+            Triangle3 fanTriangleRawWorldSpace((fanTriangleClipped.v1.worldSpaceVertexOverW)/(fanTriangleClipped.v1.invW),
+                                               fanTriangleClipped.v1.worldSpaceVertexOverW/fanTriangleClipped.v1.invW,
+                                               fanTriangleClipped.v1.worldSpaceVertexOverW/fanTriangleClipped.v1.invW);
+
             //if flat shading is used we calculateColor once using normal at middle of triangle
             if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
                 obj.displaySettings->shadingMode == DisplaySettings::Shading::FLAT){
@@ -286,8 +293,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
 
                             const double SHADOW_INTENSITY = 0.2;
-                            Vector3 outColor = Ke; //we start with emission because it's not dependant on the shadows
+                            Vector3 outColor = Ke; //we start with emission because it's not dependant on the shadow
 
+
+                            //choosing bias etc.
 
                             for(std::shared_ptr<Light>&lightSource : scene->lightSources){
 
@@ -1174,70 +1183,66 @@ bool Renderer::shouldCullBackFace(const Triangle3& face){
     return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
 }
 
-//POPRAWIC NA WIERSZ | KOLUMNA [Y|X] KURWA!!!!!!!!
-double Renderer::pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
-   // Vector2 centralTexel(std::floor(shadowMapUV.x) , std::floor(shadowMapUV.y));
-    int shadowedTexels = 0;
-   int texelsInRange = 0;
-    for(int shadowMapY = std::max(0.0, std::floor(shadowMapUV.y)-1) ; shadowMapY <= std::floor(shadowMapUV.y)+1; shadowMapY++){
-        for(int shadowMapX = std::max(0.0, std::floor(shadowMapUV.x)-1) ; shadowMapX <= std::min((int)shadowMap.getCols()-1 ,(int)std::floor(shadowMapUV.x)+1); shadowMapX++){
-            texelsInRange++;
-            if(shadowMap[shadowMapY][shadowMapX] + bias < distance) shadowedTexels++;
+Vector3 Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3& point,
+                                const Vector3& normal, Vector3& pointForDepthCheck, double& biasAddition,
+                                Triangle3& fanWorldCoords, int pcfKernelSize){
+    using BT = Light::BiasType;
+    switch (light->biasType) {
+
+    case BT::NORMAL_ANGLE: {
+        if (light->lightType == Light::LightType::DISTANT) {
+
+            auto dl = std::static_pointer_cast<DistantLight>(light);
+            pointForDepthCheck = BiasManager::getNormalAngleDistant(dl->shadowMap, *dl, normal, point, pcfKernelSize, light->bilinearFiltering);
+            biasAddition = Renderer::doubleBias;        // tylko epsilon
+
+        } else if (light->lightType == Light::LightType::SPOT) {
+
+            auto sl = std::static_pointer_cast<SpotLight>(light);
+            Vector3 toL = (sl->transform.getPosition() - point).normalize();
+            pointForDepthCheck = BiasManager::getNormalAngleSpot(sl->shadowMap, *sl, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
+            biasAddition = Renderer::doubleBias;
+
+        } else { //POINT
+
+            auto pl = std::static_pointer_cast<PointLight>(light);
+            Vector3 toL = (pl->transform.getPosition() - point).normalize();
+            PointLight::ShadowMapFace face = PointLight::pickFace(point - pl->transform.getPosition());
+            pointForDepthCheck = BiasManager::getNormalAnglePoint(*pl->shadowMaps[face], *pl, face, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
+            biasAddition = Renderer::doubleBias;
+
         }
-    }
-    return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
-}
-
-bool Renderer::bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
-
-    int shadowMapLastRow = shadowMap.getRows()-1;
-    int shadowMapLastCol = shadowMap.getCols()-1;
-    Vector2 leftUpTexel = Vector2(std::max(0.0, std::floor(shadowMapUV.x)) , std::max(0.0, std::floor(shadowMapUV.y)) );
-    Vector2 rightUpTexel = Vector2(std::min(shadowMapLastCol, (int)std::ceil(shadowMapUV.x)) , std::max(0.0, std::floor(shadowMapUV.y)) );
-    Vector2 leftDownTexel = Vector2(std::max(0.0, std::floor(shadowMapUV.x)) , std::min(shadowMapLastCol, (int)std::ceil(shadowMapUV.y)) );
-    Vector2 rightDownTexel = Vector2(std::max(shadowMapLastCol, (int)std::ceil(shadowMapUV.x)) ,std::max(shadowMapLastRow, (int)std::ceil(shadowMapUV.y)) );
-
-    const double u = shadowMapUV.x - std::floor(shadowMapUV.x);
-    const double v = shadowMapUV.y - std::floor(shadowMapUV.y);
-    double interpolatedUVDepthValue = (1-u)*(1-v)*shadowMap[(int)leftUpTexel.y][(int)leftUpTexel.x]
-                                    + u*(1-v)*shadowMap[(int)rightUpTexel.y][(int)rightUpTexel.x]
-                                    + u*v*shadowMap[(int)rightDownTexel.y][(int)rightDownTexel.x]
-                                    + (1-u)*v*shadowMap[(int)leftDownTexel.y][(int)leftDownTexel.x];
-
-    return (interpolatedUVDepthValue + bias < distance);
-}
-
-double Renderer::pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias, int offsetSize, double texelSize, double kernelRadius){
-    std::vector<Vector2> offset;
-    if(offsetSize<=8){
-        offset = NoiseManager::getPoissonOffset8();
-    }else if(offsetSize<=12){
-        offset = NoiseManager::getPoissonOffset12();
-    }else{
-        offset = NoiseManager::getPoissonOffset16();
+        break;
     }
 
-    int shadowedTexels = 0;
-    int texelsInRange = 0;
-    for(size_t i = 0; i < offset.size(); i++){
-        Vector2 testUV = Vector2(offset[i].x * texelSize * kernelRadius,
-                                 offset[i].y * texelSize * kernelRadius);
+    //should be used only for Distant, if perspective light is used: fallback to Constant
+    case BT::SLOPE_SCALED: {
+        if (light->lightType == Light::LightType::DISTANT) {
 
-        double u = ((testUV.x + shadowMapUV.x)+1.0)/2.0;
-        double v = ((testUV.y + shadowMapUV.y)+1.0)/2.0;
+            auto dl = std::static_pointer_cast<DistantLight>(light);
+            // transformuj wierzchołki trójkąta do light-view (XY,Z)
+            auto toLV = [&](const Vector3& W){
+                Vector4 v = dl->getViewMatrix() * Vectors::vector3to4(W);
+                return Vector3{v.x, v.y, v.z};
+            };
+            Vector3 p0 = toLV(fanWorldCoords.v1), p1 = toLV(fanWorldCoords.v2), p2 = toLV(fanWorldCoords.v3);
+            biasAddition = BiasManager::getSlopeScaled(dl->shadowMap, p0, p1, p2, light->bilinearFiltering, pcfKernelSize);
 
-        int shadowMapCoordX = u * shadowMap.getCols();
-        int shadowMapCoordY = v * shadowMap.getRows();
-        if(shadowMap.exists(shadowMapCoordY,shadowMapCoordX)){
-            texelsInRange++;
-            if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
-                shadowedTexels++;
-            }
+        } else {
+
+            biasAddition = light->bias;
         }
+
+        pointForDepthCheck = point;
+        break;
     }
 
-    return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
-
+    case BT::CONSTANT:
+    default:
+        pointForDepthCheck = point;
+        biasAddition = light->bias;
+        break;
+    }
 }
 
 void Renderer::clearRenderingSurface(){
@@ -1271,9 +1276,6 @@ std::shared_ptr<RenderingSurface> Renderer::getRenderingSurface(){
 std::shared_ptr<Buffer<IdBufferElement>> Renderer::getIdBuffer(){
     return idBuffer;
 }
-
-
-
 
 Vector4 Renderer::modelToClip(const Vector3& v, const Matrix4& modelMatrix){
     Vector4 result = camera->getProjectionMatrix() * camera->getViewMatrix() * modelMatrix * Vector4(v.x,v.y,v.z, 1.0);
@@ -1324,7 +1326,6 @@ std::pair<int,int> Renderer::ndcToShadowMapTexel(const Vector2& ndc, const Buffe
     result.second = std::clamp(int((1.0 - (ndc.y*0.5 + 0.5)) * (shadowMap.getRows()-1) + 0.5), 0, int(shadowMap.getRows()-1));
     return result;
 }
-
 
 void Renderer::clearBuffers(){
     zBuffer->clear();

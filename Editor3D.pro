@@ -87,6 +87,7 @@ HEADERS += \
     include/Rendering/Color.h \
     include/Rendering/Colors.h \
     include/Rendering/DisplaySettings.h \
+    include/Rendering/FilteringManager.h \
     include/Rendering/HitDetectionManager.h \
     include/Rendering/IdBufferElement.h \
     include/Rendering/LinePainter.h \

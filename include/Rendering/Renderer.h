@@ -88,9 +88,9 @@ private:
     void shadowMapDepthPass(PointLight& lightSource);
     void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
-    double pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
-    bool bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias);
-    double pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias, int offsetSize = 8, double texelSize = 1.0/2048.0, double kernelRadiu = 1.5);
+
+    Vector3 calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal, Vector3& pointForDepthCheck,
+                          double& biasAddition, Triangle3& fanWorldCoords, int pcfKernelSize = 0);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);
