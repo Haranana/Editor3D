@@ -69,8 +69,10 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
 
 void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
 {
+
     light = std::dynamic_pointer_cast<Light>(object);
     if (!light) return;
+
 
     intensitySpin->blockSignals(true);
     intensitySpin->setValue(light->intensity);

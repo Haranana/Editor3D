@@ -277,7 +277,6 @@ void MainWindow::distantLightTestScene(){
     std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
     light->color = Colors::White;
     light->intensity = 2.0;
-    light->bias = 0.003;
     light->castsShadow = true;
     scene->addObject(light);
     QString itemTextLight = QString("light");
@@ -323,7 +322,6 @@ void MainWindow::pointLightTestScene(){
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
     light->color = Colors::White;
     light->intensity = 2.0;
-    light->bias = 0.003;
     light->castsShadow = true;
     scene->addObject(light);
     QString itemTextLight = QString("light");
@@ -343,7 +341,6 @@ void MainWindow::simpleTestScene(){
     std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
     light->color = Colors::White;
     light->intensity = 3.0;
-    light->bias = 0.0015;
     light->castsShadow = true;
     scene->addObject(light);
     QString itemTextLight = QString("light");
@@ -400,7 +397,6 @@ void MainWindow::pointLightRoomTestScene(){
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
     light->color = Colors::White;
     light->intensity = 2.0;
-    light->bias = 0.003;
     light->castsShadow = true;
     scene->addObject(light);
     QString itemTextLight = QString("light");
@@ -448,7 +444,6 @@ void MainWindow::pointLightShadowTestScene(){
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
     light->color = Colors::White;
     light->intensity = 2.0;
-    light->bias = 0.003;
     light->castsShadow = true;
     scene->addObject(light);
     QString itemTextLight = QString("light");
@@ -644,8 +639,6 @@ void MainWindow::onSceneMenuAssignTectureToObject(){
 void MainWindow::onObjectMenuCreateDistantLight(){
     std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>(Vector3(1,0,0));
     light->color = Colors::White;
-    light->intensity = 3.0;
-    light->bias = 0.0015;
     light->castsShadow = true;
 
     scene->addObject(light);
@@ -658,8 +651,6 @@ void MainWindow::onObjectMenuCreateDistantLight(){
 void MainWindow::onObjectMenuCreatePointLight(){
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
     light->color = Colors::White;
-    light->intensity = 3.0;
-    light->bias = 0.0015;
     light->castsShadow = true;
 
     scene->addObject(light);
@@ -672,8 +663,6 @@ void MainWindow::onObjectMenuCreatePointLight(){
 void MainWindow::onObjectMenuCreateSpotLight(){
     std::shared_ptr<SpotLight> light = std::make_shared<SpotLight>( );
     light->color = Colors::White;
-    light->intensity = 3.0;
-    light->bias = 0.0015;
     light->castsShadow = true;
 
     scene->addObject(light);
