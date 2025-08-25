@@ -307,9 +307,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 //DISTANT LIGHT
                                 if(lightSource->lightType == Light::LightType::DISTANT){
                                     if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+                                        Vector3 pointForDepthCheck;
+                                        double biasAddition;
+                                        calculateBias(distantLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, 0);
 
-                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+
+                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
 
                                         //check if we are not trying to get element from outside the buffer
                                         float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
@@ -328,7 +334,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
                                             //std::cout<<depthInLightView<<std::endl;
-                                            if (depthInLightView <= distantLight->shadowMap[sy][sx] + distantLight->bias){ //0.05
+                                            if (depthInLightView <= distantLight->shadowMap[sy][sx] + biasAddition){ //0.05
                                                 isInShadow = false;
                                                 pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
                                                 attenuation = 1.0;
@@ -340,9 +346,14 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 //POINT LIGHT
                                 }else if(lightSource->lightType == Light::LightType::POINT){
                                     if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
+                                        Vector3 pointForDepthCheck;
+                                        double biasAddition;
+                                        calculateBias(pointLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, 0);
+
 
                                         //checking which face should be checked for shadows
-                                        Vector3 lightVector = interpolatedWorldSpaceCoords - pointLight->transform.getPosition();
+                                        Vector3 lightVector = pointForDepthCheck - pointLight->transform.getPosition();
                                         //double absX = std::fabs(lightVector.x), absY = std::fabs(lightVector.y), absZ = std::fabs(lightVector.z);
                                         PointLight::ShadowMapFace face;
 
@@ -370,7 +381,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         }*/
 
                                         isInShadow = true;
-                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(pointForDepthCheck);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
 
                                         float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
@@ -388,13 +399,13 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         }else{
 
                                             //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-                                            float depthInLightView = (interpolatedWorldSpaceCoords - pointLight->transform.getPosition()).length();
+                                            float depthInLightView = (pointForDepthCheck - pointLight->transform.getPosition()).length();
                                             //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (pointLight->shadowMaps[face]->getCols() - 1)));
                                             //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (pointLight->shadowMaps[face]->getRows() - 1)));
                                             auto [sx, sy] = ndcToShadowMapTexel(Vector2(lightNdcCoord.x, lightNdcCoord.y) , (*pointLight->shadowMaps[face]));
 
                                             float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
-                                            if (normalizedDepth <= (*pointLight->shadowMaps[face])[sy][sx] + pointLight->bias){
+                                            if (normalizedDepth <= (*pointLight->shadowMaps[face])[sy][sx] + biasAddition){
                                                 isInShadow = false;
                                                 Vector3 pointToLightVector = (pointLight->transform.getPosition() - interpolatedWorldSpaceCoords);
                                                 pointToLightDirection = (pointToLightVector).normalize();
@@ -404,11 +415,16 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         }
                                     }
                                 }else if(lightSource->lightType == Light::LightType::SPOT){
-
                                     if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
-                                        //std::cout<<"Pos: "<<spotLight->transform.getPosition()<<"  dir: "<<spotLight->direction<<std::endl;
+
+                                        Vector3 pointForDepthCheck;
+                                        double biasAddition;
+                                        calculateBias(spotLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, 0);
+
+
                                         isInShadow = true;
-                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(interpolatedWorldSpaceCoords);
+                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
 
                                         float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
@@ -436,12 +452,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         }else{
 
                                             //float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-                                            float depthInLightView = (interpolatedWorldSpaceCoords - spotLight->transform.getPosition()).length();
+                                            float depthInLightView = (pointForDepthCheck - spotLight->transform.getPosition()).length();
                                             int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1)));
                                             int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1)));
                                             float normalizedDepth =std::clamp((depthInLightView-lightSource->near)/(spotLight->range-lightSource->near),0.0,1.0);
 
-                                            if (normalizedDepth <= spotLight->shadowMap[sy][sx] + spotLight->bias){
+                                            if (normalizedDepth <= spotLight->shadowMap[sy][sx] + biasAddition){
                                                 isInShadow = false;
 
                                                 Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
@@ -1183,32 +1199,32 @@ bool Renderer::shouldCullBackFace(const Triangle3& face){
     return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
 }
 
-Vector3 Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3& point,
+void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3& point,
                                 const Vector3& normal, Vector3& pointForDepthCheck, double& biasAddition,
                                 Triangle3& fanWorldCoords, int pcfKernelSize){
     using BT = Light::BiasType;
-    switch (light->biasType) {
 
+    switch (light->biasType) {
     case BT::NORMAL_ANGLE: {
         if (light->lightType == Light::LightType::DISTANT) {
 
-            auto dl = std::static_pointer_cast<DistantLight>(light);
-            pointForDepthCheck = BiasManager::getNormalAngleDistant(dl->shadowMap, *dl, normal, point, pcfKernelSize, light->bilinearFiltering);
-            biasAddition = Renderer::doubleBias;        // tylko epsilon
+            auto distantLight = std::static_pointer_cast<DistantLight>(light);
+            pointForDepthCheck = BiasManager::getNormalAngleDistant(distantLight->shadowMap, *distantLight, normal, point, pcfKernelSize, light->bilinearFiltering);
+            biasAddition = Renderer::doubleBias;
 
         } else if (light->lightType == Light::LightType::SPOT) {
 
-            auto sl = std::static_pointer_cast<SpotLight>(light);
-            Vector3 toL = (sl->transform.getPosition() - point).normalize();
-            pointForDepthCheck = BiasManager::getNormalAngleSpot(sl->shadowMap, *sl, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
+            auto spotLigt = std::static_pointer_cast<SpotLight>(light);
+            Vector3 toL = (spotLigt->transform.getPosition() - point).normalize();
+            pointForDepthCheck = BiasManager::getNormalAngleSpot(spotLigt->shadowMap, *spotLigt, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
             biasAddition = Renderer::doubleBias;
 
         } else { //POINT
 
-            auto pl = std::static_pointer_cast<PointLight>(light);
-            Vector3 toL = (pl->transform.getPosition() - point).normalize();
-            PointLight::ShadowMapFace face = PointLight::pickFace(point - pl->transform.getPosition());
-            pointForDepthCheck = BiasManager::getNormalAnglePoint(*pl->shadowMaps[face], *pl, face, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
+            auto pointLight = std::static_pointer_cast<PointLight>(light);
+            Vector3 toL = (pointLight->transform.getPosition() - point).normalize();
+            PointLight::ShadowMapFace face = PointLight::pickFace(point - pointLight->transform.getPosition());
+            pointForDepthCheck = BiasManager::getNormalAnglePoint(*pointLight->shadowMaps[face], *pointLight, face, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
             biasAddition = Renderer::doubleBias;
 
         }
@@ -1219,14 +1235,11 @@ Vector3 Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vecto
     case BT::SLOPE_SCALED: {
         if (light->lightType == Light::LightType::DISTANT) {
 
-            auto dl = std::static_pointer_cast<DistantLight>(light);
-            // transformuj wierzchołki trójkąta do light-view (XY,Z)
-            auto toLV = [&](const Vector3& W){
-                Vector4 v = dl->getViewMatrix() * Vectors::vector3to4(W);
-                return Vector3{v.x, v.y, v.z};
-            };
-            Vector3 p0 = toLV(fanWorldCoords.v1), p1 = toLV(fanWorldCoords.v2), p2 = toLV(fanWorldCoords.v3);
-            biasAddition = BiasManager::getSlopeScaled(dl->shadowMap, p0, p1, p2, light->bilinearFiltering, pcfKernelSize);
+            auto distantLight = std::static_pointer_cast<DistantLight>(light);
+            Vector3 p0 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v1)),
+                p1 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v2)),
+                p2 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v3));
+            biasAddition = BiasManager::getSlopeScaled(distantLight->shadowMap, p0, p1, p2, light->bilinearFiltering, pcfKernelSize);
 
         } else {
 
@@ -1243,6 +1256,8 @@ Vector3 Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vecto
         biasAddition = light->bias;
         break;
     }
+
+    return Vector3(0,0,0);
 }
 
 void Renderer::clearRenderingSurface(){
