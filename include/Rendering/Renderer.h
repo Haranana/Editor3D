@@ -89,8 +89,9 @@ private:
     void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
 
-    void calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal, Vector3& pointForDepthCheck,
-                          double& biasAddition, Triangle3& fanWorldCoords, int pcfKernelSize = 0);
+    void calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
+                       Vector3& pointForDepthCheck, double& biasAddition, Triangle3& fanWorldCoords,
+                        PointLight::ShadowMapFace* outFace = nullptr, int pcfKernelSize = 0);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

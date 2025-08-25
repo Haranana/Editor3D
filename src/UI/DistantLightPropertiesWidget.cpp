@@ -34,6 +34,11 @@ void DistantLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     light = std::dynamic_pointer_cast<DistantLight>(object);
     if (!light) return;
     lightPropertiesWidget->setObject(light);
+    if(light->biasType == Light::BiasType::CONSTANT){
+        dynamicBiasCheckBox->setCheckState(Qt::CheckState::Unchecked);
+    }else{
+        dynamicBiasCheckBox->setCheckState(Qt::CheckState::Checked);
+    }
 
     dirProxy = light->direction;
     dirWidget->setVector(dirProxy);

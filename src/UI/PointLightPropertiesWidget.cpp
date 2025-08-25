@@ -103,6 +103,12 @@ void PointLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     if (!light) return;
     lightPropertiesWidget->setObject(light);
 
+    if(light->biasType == Light::BiasType::CONSTANT){
+        dynamicBiasCheckBox->setCheckState(Qt::CheckState::Unchecked);
+    }else{
+        dynamicBiasCheckBox->setCheckState(Qt::CheckState::Checked);
+    }
+
     posProxy = light->transform.getPosition();
     posPropertiesWidget->setVector(posProxy);
 

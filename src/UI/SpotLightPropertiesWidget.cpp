@@ -190,6 +190,12 @@ void SpotLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     lightPropertiesWidget->setObject(object);
     transform3DPropertiesWidget->setObject(object);
 
+    if(light->biasType == Light::BiasType::CONSTANT){
+        dynamicBiasCheckBox->setCheckState(Qt::CheckState::Unchecked);
+    }else{
+        dynamicBiasCheckBox->setCheckState(Qt::CheckState::Checked);
+    }
+
     dirXSpin->blockSignals(true); dirYSpin->blockSignals(true); dirZSpin->blockSignals(true);
     dirXSlider->blockSignals(true); dirYSlider->blockSignals(true); dirZSlider->blockSignals(true);
     dirXSpin->setValue(light->direction.x);

@@ -348,16 +348,17 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
                                         Vector3 pointForDepthCheck;
                                         double biasAddition;
+                                        PointLight::ShadowMapFace face;
                                         calculateBias(pointLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, 0);
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,&face, 0);
 
 
                                         //checking which face should be checked for shadows
                                         Vector3 lightVector = pointForDepthCheck - pointLight->transform.getPosition();
                                         //double absX = std::fabs(lightVector.x), absY = std::fabs(lightVector.y), absZ = std::fabs(lightVector.z);
-                                        PointLight::ShadowMapFace face;
+                                        //PointLight::ShadowMapFace face;
 
-                                        face = PointLight::pickFace(lightVector);
+                                        //face = PointLight::pickFace(lightVector);
 
                                         /*
                                         if(absX >= absY && absX >= absZ){
@@ -420,7 +421,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         Vector3 pointForDepthCheck;
                                         double biasAddition;
                                         calculateBias(spotLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, 0);
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,nullptr, 0);
 
 
                                         isInShadow = true;
@@ -1201,7 +1202,7 @@ bool Renderer::shouldCullBackFace(const Triangle3& face){
 
 void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3& point,
                                 const Vector3& normal, Vector3& pointForDepthCheck, double& biasAddition,
-                                Triangle3& fanWorldCoords, int pcfKernelSize){
+                                Triangle3& fanWorldCoords,  PointLight::ShadowMapFace* outFace, int pcfKernelSize){
     using BT = Light::BiasType;
 
     switch (light->biasType) {
@@ -1225,6 +1226,17 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
             Vector3 toL = (pointLight->transform.getPosition() - point).normalize();
             PointLight::ShadowMapFace face = PointLight::pickFace(point - pointLight->transform.getPosition());
             pointForDepthCheck = BiasManager::getNormalAnglePoint(*pointLight->shadowMaps[face], *pointLight, face, normal, toL, point, pcfKernelSize, light->bilinearFiltering);
+
+            auto faceAfter = PointLight::pickFace(pointForDepthCheck - pointLight->transform.getPosition());
+            if (faceAfter != face) {
+                face = faceAfter;
+                pointForDepthCheck = BiasManager::getNormalAnglePoint(*pointLight->shadowMaps[face], *pointLight, face,
+                                                            normal, toL, point,
+                                                            pcfKernelSize, light->bilinearFiltering);
+            }
+
+            if (outFace) *outFace = face;
+
             biasAddition = Renderer::doubleBias;
 
         }
