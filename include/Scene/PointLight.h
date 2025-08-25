@@ -36,6 +36,7 @@ public:
     //double attenuationQuadratic = 0.032f;
     double attenuationLinear = 0.00f;
     double attenuationQuadratic = 0.000f;
+    double emitterRadiusWorld = 0.05;
 
     std::vector<std::shared_ptr<Buffer<double>>> shadowMaps;
     std::vector<Matrix4> viewMatrices = std::vector(6, Matrices4::identity());

@@ -63,6 +63,8 @@ public:
         lightType = LightType::SPOT;
     }
 
+    double emitterRadiusWorld = 0.05;
+
     double getConeAttenuation(const Vector3& lightToPoint){
 
         double outerAngleCos = getOuterAngleCos();

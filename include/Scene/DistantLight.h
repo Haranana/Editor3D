@@ -3,6 +3,7 @@
 
 #include "Light.h"
 #include <QImage>
+#include "Math/Utility.h"
 //despite having position because of inheritance DistantLight<-Light<-Object3D
 //its position should never be accessed due to definiton of distant light only its direction should ever be used
 //in any calculatins
@@ -14,6 +15,7 @@ public:
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
     static constexpr size_t defaultShadowMapSize = 2048; //in pixels
 
+    double angularRadiusRad = MathUt::degreeToRadian(0.27); //about sun to earth
 
     //used in projectionMatrix and normalAngleBias
     double oLeft = 0.0;

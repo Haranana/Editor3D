@@ -64,9 +64,13 @@ std::vector<Vector2> NoiseManager::generatePoissonDisk(double minDistanceBeetwen
     Buffer<GridCell> pointsGrid(gridCellsAmount,gridCellsAmount,GridCell());
     Vector2 centralPoint = Vector2( MathUt::randomInRangeHard(planeMin, planeMax, gen), MathUt::randomInRangeHard(planeMin, planeMax, gen) );
 
+    int gx = (int)((centralPoint.x - planeMin)/gridCellSize);
+    int gy = (int)((centralPoint.y - planeMin)/gridCellSize);
+    gx = std::clamp(gx, 0, gridCellsAmount-1);
+    gy = std::clamp(gy, 0, gridCellsAmount-1);
     activePoints.push(centralPoint);
     points.push_back(centralPoint);
-    pointsGrid[(int)((centralPoint.y - planeMin)/gridCellSize)][(int)((centralPoint.x - planeMin)/gridCellSize)].fill(points.size()-1);
+    pointsGrid[gy][gx].fill((int)points.size()-1);
 
     while(!activePoints.empty()){
         centralPoint = activePoints.front();
@@ -91,6 +95,7 @@ std::vector<Vector2> NoiseManager::generatePoissonDisk(double minDistanceBeetwen
                 if(!pointIsCorrect) break;
             }
             if(!pointIsCorrect) continue;
+            if(!pointsGrid.exists(randomizedPointGridYId,randomizedPointGridXId)) continue;
 
             activePoints.push(randomizedPointRange);
             points.push_back(randomizedPointRange);

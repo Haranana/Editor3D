@@ -7,15 +7,15 @@
 #include <cmath>
 
 class FilteringManager{
-
-    static double pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
+public:
+    static double pcf3x3(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias){
         int shadowedTexels = 0;
         int texelsInRange = 0;
 
-        int begY = std::max(0.0, std::floor(shadowMapUV.y)-1);
-        int begX = std::max(0.0, std::floor(shadowMapUV.x)-1);
-        int endY = std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapUV.y)+1);
-        int endX = std::min((int)shadowMap.getCols()-1 ,(int)std::floor(shadowMapUV.x)+1);
+        int begY = std::max(0.0, std::floor(shadowMapCoords.y)-1);
+        int begX = std::max(0.0, std::floor(shadowMapCoords.x)-1);
+        int endY = std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapCoords.y)+1);
+        int endX = std::min((int)shadowMap.getCols()-1 ,(int)std::floor(shadowMapCoords.x)+1);
 
         for(int shadowMapY = begY ; shadowMapY <= endY; shadowMapY++){
             for(int shadowMapX = begX ; shadowMapX <= endX; shadowMapX++){
@@ -26,14 +26,14 @@ class FilteringManager{
         return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
     }
 
-    static double pcf5x5(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
+    static double pcf5x5(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias){
         int shadowedTexels = 0;
         int texelsInRange = 0;
 
-        int begY = std::max(0.0, std::floor(shadowMapUV.y)-2);
-        int begX = std::max(0.0, std::floor(shadowMapUV.x)-2);
-        int endY = std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapUV.y)+2);
-        int endX = std::min((int)shadowMap.getCols()-1 ,(int)std::floor(shadowMapUV.x)+2);
+        int begY = std::max(0.0, std::floor(shadowMapCoords.y)-2);
+        int begX = std::max(0.0, std::floor(shadowMapCoords.x)-2);
+        int endY = std::min((int)shadowMap.getRows()-1 ,(int)std::floor(shadowMapCoords.y)+2);
+        int endX = std::min((int)shadowMap.getCols()-1 ,(int)std::floor(shadowMapCoords.x)+2);
 
         for(int shadowMapY = begY ; shadowMapY <= endY; shadowMapY++){
             for(int shadowMapX = begX ; shadowMapX <= endX; shadowMapX++){
@@ -44,27 +44,33 @@ class FilteringManager{
         return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
     }
 
-    static bool bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias){
-        int shadowMapLastRow = shadowMap.getRows()-1;
-        int shadowMapLastCol = shadowMap.getCols()-1;
-        Vector2 leftUpTexel = Vector2(std::max(0.0, std::floor(shadowMapUV.x)) , std::max(0.0, std::floor(shadowMapUV.y)) );
-        Vector2 rightUpTexel = Vector2(std::min(shadowMapLastCol, (int)std::ceil(shadowMapUV.x)) , std::max(0.0, std::floor(shadowMapUV.y)) );
-        Vector2 leftDownTexel = Vector2(std::max(0.0, std::floor(shadowMapUV.x)) , std::min(shadowMapLastCol, (int)std::ceil(shadowMapUV.y)) );
-        Vector2 rightDownTexel = Vector2(std::max(shadowMapLastCol, (int)std::ceil(shadowMapUV.x)) ,std::max(shadowMapLastRow, (int)std::ceil(shadowMapUV.y)) );
+    static double bilinearFiltering(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias){
 
-        const double u = shadowMapUV.x - std::floor(shadowMapUV.x);
-        const double v = shadowMapUV.y - std::floor(shadowMapUV.y);
-        double interpolatedUVDepthValue = (1-u)*(1-v)*shadowMap[(int)leftUpTexel.y][(int)leftUpTexel.x]
-                                          + u*(1-v)*shadowMap[(int)rightUpTexel.y][(int)rightUpTexel.x]
-                                          + u*v*shadowMap[(int)rightDownTexel.y][(int)rightDownTexel.x]
-                                          + (1-u)*v*shadowMap[(int)leftDownTexel.y][(int)leftDownTexel.x];
+        const int leftUpX = std::clamp(int(std::floor(shadowMapCoords.x)), 0, (int)shadowMap.width()-1);
+        const int leftUpY = std::clamp(int(std::floor(shadowMapCoords.y)), 0, (int)shadowMap.height()-1);
+        const int rightDownX = std::min(leftUpX + 1, (int)shadowMap.width()-1);
+        const int rightDownY = std::min(leftUpY + 1, (int)shadowMap.height()-1);
 
-        return (interpolatedUVDepthValue + bias < distance);
+        const double u = shadowMapCoords.x - leftUpX;
+        const double v = shadowMapCoords.y - leftUpY;
+
+        auto depthCheck = [&](int cx,int cy){
+            return (shadowMap[cy][cx] + bias < distance) ? 1.0 : 0.0;
+        };
+
+        const double result00 = depthCheck(leftUpX,leftUpY);
+        const double result10 = depthCheck(rightDownX,leftUpY);
+        const double result11 = depthCheck(rightDownX,rightDownY);
+        const double result01 = depthCheck(leftUpX,rightDownY);
+
+        return (1-u)*(1-v)*result00 + u*(1-v)*result10 + u*v*result11 + (1-u)*v*result01;
 
     }
 
-    static double pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapUV, double distance, double bias,
+    static double pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias,
                              int offsetSize = 8, double texelSize = 1.0/2048.0, double kernelRadius = 1.5){
+
+
         std::vector<Vector2> offset;
         if(offsetSize<=8){
             offset = NoiseManager::getPoissonOffset8();
@@ -77,14 +83,14 @@ class FilteringManager{
         int shadowedTexels = 0;
         int texelsInRange = 0;
         for(size_t i = 0; i < offset.size(); i++){
+            /*
             Vector2 testUV = Vector2(offset[i].x * texelSize * kernelRadius,
                                      offset[i].y * texelSize * kernelRadius);
+            */
 
-            double u = ((testUV.x + shadowMapUV.x)+1.0)/2.0;
-            double v = ((testUV.y + shadowMapUV.y)+1.0)/2.0;
+            const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * kernelRadius)), 0, (int)shadowMap.width()-1);
+            const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * kernelRadius)), 0, (int)shadowMap.height()-1);
 
-            int shadowMapCoordX = u * shadowMap.getCols();
-            int shadowMapCoordY = v * shadowMap.getRows();
             if(shadowMap.exists(shadowMapCoordY,shadowMapCoordX)){
                 texelsInRange++;
                 if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
@@ -94,6 +100,15 @@ class FilteringManager{
         }
 
         return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
+    }
+
+private:
+
+    std::pair<int,int>  ndcToPixel(const Vector2& ndc, int width, int height){
+        int px = (ndc.x*0.5 + 0.5) * (width - 1);
+        int py = (1.0 - (ndc.y*0.5 + 0.5)) * (height - 1); // flip Y
+
+        return std::pair<int,int>(px,py);
     }
 };
 
