@@ -309,6 +309,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
                                         Vector3 pointForDepthCheck;
                                         double biasAddition;
+
                                         calculateBias(distantLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
                                                       pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, 0);
 
@@ -1247,11 +1248,25 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
     case BT::SLOPE_SCALED: {
         if (light->lightType == Light::LightType::DISTANT) {
 
+
+
+
             auto distantLight = std::static_pointer_cast<DistantLight>(light);
             Vector3 p0 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v1)),
                 p1 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v2)),
                 p2 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v3));
-            biasAddition = BiasManager::getSlopeScaled(distantLight->shadowMap, p0, p1, p2, light->bilinearFiltering, pcfKernelSize);
+
+
+            auto eff = (pcfKernelSize <= 1) ? 1.0
+                                            : double((pcfKernelSize - 1) / 2) + (light->bilinearFiltering ? 0.5 : 0.0);
+            int minDim = std::min(distantLight->shadowMap.getRows(), distantLight->shadowMap.getCols());
+            double alphaConst = light->bias * std::max(1, minDim) / std::max(1e-6, eff);
+
+            biasAddition = BiasManager::getSlopeScaled(distantLight->shadowMap, p0, p1, p2,
+                                                       light->bilinearFiltering, pcfKernelSize, alphaConst);
+            //biasAddition = BiasManager::getSlopeScaled(distantLight->shadowMap, p0, p1, p2, light->bilinearFiltering, pcfKernelSize);
+
+            std::cout<<"Bias addition : "<<biasAddition<<"|  bias: "<<distantLight->bias<<std::endl;
 
         } else {
 
