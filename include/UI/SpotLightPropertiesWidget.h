@@ -23,6 +23,7 @@ private slots:
 
 
     void onDirectionChanged();
+    void onDynamicBiasChanged();
     void onOuterAngleChanged();
     void onInnerAngleChanged();
     void onRangeChanged(double v);
@@ -45,6 +46,7 @@ private:
     QSlider* dirXSlider;
     QSlider* dirYSlider;
     QSlider* dirZSlider;
+    QCheckBox* dynamicBiasCheckBox;
 
     static constexpr double outerAngleMin = 0.0;
     static constexpr double outerAngleMax = 360.0;

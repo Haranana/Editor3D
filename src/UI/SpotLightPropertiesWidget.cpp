@@ -70,6 +70,15 @@ SpotLightPropertiesWidget::SpotLightPropertiesWidget(QWidget* parent)
     bindDir(dirYSpin, dirYSlider);
     bindDir(dirZSpin, dirZSlider);
 
+    auto dynamicBiasRow = new QWidget(this);
+    auto dynamicBiasCheckBoxLayout = new QHBoxLayout(dynamicBiasRow);
+    dynamicBiasCheckBox = new QCheckBox(this);
+    dynamicBiasCheckBoxLayout->addWidget(dynamicBiasCheckBox);
+    layout->addRow("Dynamic bias: ", dynamicBiasRow);
+    connect(dynamicBiasCheckBox, QOverload<bool>::of(&QCheckBox::clicked), [this](){
+        onDynamicBiasChanged();
+    });
+
     auto outerRow = new QWidget(this);
     auto outerLayout = new QHBoxLayout(outerRow);
     outerAngleSpin = new QDoubleSpinBox(this);
@@ -231,6 +240,16 @@ void SpotLightPropertiesWidget::onDirectionChanged() {
     Vector3 d(dirXSpin->value(), dirYSpin->value(), dirZSpin->value());
     if (d.length() > 1e-6) d = d.normalize();
     light->direction = d;
+    emit objectChanged();
+}
+
+void SpotLightPropertiesWidget::onDynamicBiasChanged(){
+    if(!light) return;
+    if(dynamicBiasCheckBox->checkState() == Qt::CheckState::Checked){
+        light->biasType = Light::BiasType::NORMAL_ANGLE;
+    }else{
+        light->biasType = Light::BiasType::CONSTANT;
+    }
     emit objectChanged();
 }
 

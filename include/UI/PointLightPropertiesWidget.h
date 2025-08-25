@@ -12,6 +12,7 @@
 #include <QHBoxLayout>
 #include <QSlider>
 
+
 class PointLightPropertiesWidget : public ObjectPropertiesWidget {
     Q_OBJECT
 public:
@@ -23,6 +24,7 @@ private slots:
 
     void onPosChanged();
     void onRangeChanged(double v);
+    void onDynamicBiasChanged();
     void onAttenuationConstantChanged(double v);
     void onAttenuationLinearChanged(double v);
     void onAttenuationQuadraticChanged(double v);
@@ -58,6 +60,7 @@ private:
 
     QDoubleSpinBox* rangeSpin;
     QSlider* rangeSlider;
+    QCheckBox* dynamicBiasCheckBox;
     QDoubleSpinBox* attenuationConstantSpin;
     QDoubleSpinBox* attenuationLinearSpin;
     QDoubleSpinBox* attenuationQuadraticSpin;

@@ -1256,8 +1256,6 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
         biasAddition = light->bias;
         break;
     }
-
-    return Vector3(0,0,0);
 }
 
 void Renderer::clearRenderingSurface(){

@@ -22,7 +22,7 @@ public:
 
 private slots:
     void onDirectionChanged();
-
+    void onDynamicBiasChanged();
 private:
     static constexpr double dirMin = -1.0;
     static constexpr double dirMax = 1.0;
@@ -30,7 +30,7 @@ private:
 
     LightPropertiesWidget* lightPropertiesWidget;
     std::shared_ptr<DistantLight> light;
-
+    QCheckBox* dynamicBiasCheckBox;
     Vector3PropertiesWidget* dirWidget;
     Vector3 dirProxy;
 };

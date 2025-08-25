@@ -37,6 +37,15 @@ PointLightPropertiesWidget::PointLightPropertiesWidget(QWidget* parent)
     });
 
 
+    auto dynamicBiasRow = new QWidget(this);
+    auto dynamicBiasCheckBoxLayout = new QHBoxLayout(dynamicBiasRow);
+    dynamicBiasCheckBox = new QCheckBox(this);
+    dynamicBiasCheckBoxLayout->addWidget(dynamicBiasCheckBox);
+    layout->addRow("Dynamic bias: ", dynamicBiasRow);
+    connect(dynamicBiasCheckBox, QOverload<bool>::of(&QCheckBox::clicked), [this](){
+        onDynamicBiasChanged();
+    });
+
     auto attConstantRow = new QWidget(this);
     auto attConstantLayout = new QHBoxLayout(attConstantRow);
 
@@ -126,6 +135,16 @@ void PointLightPropertiesWidget::onPosChanged(){
 
 void PointLightPropertiesWidget::onRangeChanged(double v) {
     if (light) light->range = v;
+    emit objectChanged();
+}
+
+void PointLightPropertiesWidget::onDynamicBiasChanged(){
+    if(!light) return;
+    if(dynamicBiasCheckBox->checkState() == Qt::CheckState::Checked){
+        light->biasType = Light::BiasType::NORMAL_ANGLE;
+    }else{
+        light->biasType = Light::BiasType::CONSTANT;
+    }
     emit objectChanged();
 }
 void PointLightPropertiesWidget::onAttenuationConstantChanged(double v) {
