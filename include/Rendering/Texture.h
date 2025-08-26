@@ -7,6 +7,7 @@
 #include <QDir>
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
+#include <QHash>
 #include "Math/Utility.h"
 class Texture{
 public:
@@ -26,11 +27,19 @@ public:
                 ptr[idx+2] = 255.0*RendUt::sRGBToLinear(double(ptr[idx+2])/255.0);
             }
         }
+
+        linearFlag = true;
     }
 
-    bool isLinear() const { return linearFlag; }
-    void setLinearFlag(bool v){ linearFlag = v; }
-    bool linearFlag = false; // default w ctorze
+    bool isLinear() const {
+        return linearFlag;
+    }
+
+    void setLinearFlag(bool v){
+        linearFlag = v;
+    }
+
+    bool linearFlag = false;
 
     static Vector3 sampleRGB(const std::shared_ptr<Texture>& tex, const Vector2& uv){
 
@@ -71,23 +80,20 @@ public:
         const QImage& img = tex->image;
         if (img.isNull() || img.width() <= 0 || img.height() <= 0) return 1.0;
 
-        double u = std::clamp(uv.x, 0.0, 1.0);
-        double v = std::clamp(uv.y , 0.0 , 1.0);
+        const double u = std::clamp(uv.x, 0.0, 1.0);
+        const double v = std::clamp(uv.y, 0.0, 1.0);
+        const int x = int(u * (img.width()  - 1) + 0.5);
+        const int y = int(v * (img.height() - 1) + 0.5);
 
-
-        //flipV should be at import so its not needed here
-        int x = int(u * (img.width()  - 1) + 0.5);
-        int y = int(v * (img.height() - 1) + 0.5);
-
-        QRgb px = img.pixel(x, y);
-        // jeśli masz map_d jako grayscale PNG bez alfy – bierz kanał R:
-        const double aFromAlphaChannel = qAlpha(px) / 255.0;
-        const double aFromLuma         = qRed(px) / 255.0;
-        return (qAlpha(px) == 255 && qRed(px) != qGreen(px) ? aFromLuma : aFromAlphaChannel);
+        const QRgb px = img.pixel(x, y);
+        const int A = qAlpha(px);
+        if (A < 255) return A / 255.0;               // prawdziwy kanał alfa -> używamy
+        // fallback: obraz bez alfy -> traktuj jasność jako maskę
+        return qGray(px) / 255.0;
     }
 
     static std::shared_ptr<Texture> loadTextureCached(const QString& path){
-        static std::unordered_map<QString, std::weak_ptr<Texture>> textures;
+        static QHash<QString, std::weak_ptr<Texture>> textures;
 
         //get path (canonical, if not possible then absolute)
         QFileInfo info(path);
@@ -98,13 +104,13 @@ public:
 
         //if texture already in map, just return it
         if(auto it = textures.find(canonical); it!=textures.end() ){
-            if(auto txt = it->second.lock()){
+            if(auto txt = it.value().lock()){
                 return txt;
             }
         }
 
         //load texture from file
-        QImage img(path);
+        QImage img(!canonical.isEmpty() ? canonical : path);
         if(img.isNull()){
             return nullptr;
         }
@@ -124,6 +130,10 @@ public:
 
 
         QString rawPath = QString::fromStdString(mapPathFromMtl);
+
+        if (rawPath.startsWith('"') && rawPath.endsWith('"') && rawPath.size() >= 2){
+            rawPath = rawPath.mid(1, rawPath.size()-2);
+        }
 
         QFileInfo fileInfo(rawPath);
         if (fileInfo.isAbsolute())
