@@ -110,10 +110,10 @@ void ObjImporter::parseV(std::string_view& line){
 
     if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
         Vector3 pos{x,y,z};
-        Vector3 convertedPosititon = importOptions.axisConversionMatrix * pos;
+        pos = importOptions.axisConversionMatrix * pos;
         pos = pos * importOptions.globalScale;
 
-        vPositions.emplace_back(convertedPosititon);
+        vPositions.emplace_back(pos);
     }
 }
 
@@ -144,7 +144,7 @@ void ObjImporter::parseVn(std::string_view& line){
 
     if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
         Vector3 normal{x,y,z};
-        normal = importOptions.axisConversionMatrix * normal;
+        normal = (importOptions.axisConversionMatrix * normal).normalize();
         vNormals.emplace_back(normal);
     }
 }
@@ -375,19 +375,15 @@ void ObjImporter::splitMeshTriplet(std::string_view& triplet, std::string_view& 
 
 
 MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& vStringView, std::string_view& vtStringView, std::string_view& vnStringView){
-    int v;
+
     MeshTriplet result {-1,-1,-1};
 
-    if(!parseInt(vStringView, v) || v==0 ){
-        return result;
-    }
-
-    v = MathUt::OnetoZeroBased(v , vPositions.size());
-    if(v < 0 || v >= (int)vPositions.size()){
-        v = -1;
-    }
-    result.v = v;
-
+    int vId = -1;
+    if (!parseInt(vStringView, vId) || vId == 0) return {-1,-1,-1};
+    if (!importOptions.supportNegativeIndices && vId < 0) return {-1,-1,-1};
+    vId = MathUt::OnetoZeroBased(vId, (int)vPositions.size());
+    if (vId < 0 || vId >= (int)vPositions.size()) return {-1,-1,-1};
+    result.v = vId;
 
     if (!vtStringView.empty()) {
         int vtId = -1;
@@ -506,7 +502,7 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
             if (len2 > 1e-20f) {
                 normalizedFaceNormal = faceNormal / std::sqrt(len2);
             } else {
-                normalizedFaceNormal = Vector3{0,0,1};
+                normalizedFaceNormal = Vector3{0,0,0};
                 faceNormal = Vector3{0,0,0};
             }
 
@@ -541,7 +537,7 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
         }
 
         int curMeshBuilderMatId = meshBuilder.materialId;
-        if(curMeshBuilderMatId>=0 && curMeshBuilderMatId<materials.size()){
+        if(curMeshBuilderMatId>=0 && curMeshBuilderMatId<(int)materials.size()){
             obj->material = materials[meshBuilder.materialId];
         }else{
             obj->material = Material();
