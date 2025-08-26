@@ -183,8 +183,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             //calculating raw world coordinates for dynamic bias calculations
             //yes it's ugly, probably should just store raw parameters in ClippedVertex
             Triangle3 fanTriangleRawWorldSpace((fanTriangleClipped.v1.worldSpaceVertexOverW)/(fanTriangleClipped.v1.invW),
-                                               fanTriangleClipped.v1.worldSpaceVertexOverW/fanTriangleClipped.v1.invW,
-                                               fanTriangleClipped.v1.worldSpaceVertexOverW/fanTriangleClipped.v1.invW);
+                                               fanTriangleClipped.v2.worldSpaceVertexOverW/fanTriangleClipped.v2.invW,
+                                               fanTriangleClipped.v3.worldSpaceVertexOverW/fanTriangleClipped.v3.invW);
 
             //if flat shading is used we calculateColor once using normal at middle of triangle
             if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::FACE_RATIO &&
