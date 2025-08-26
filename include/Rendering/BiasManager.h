@@ -9,17 +9,17 @@
 #include "Math/Vectors.h"
 #include <cmath>
 
-//possible should be modified to work better with bilinear filtering
+
 class BiasManager{
 public:
 
     //p0,p1,p2 are triangle vertices and should be in lightSpace
     static double getSlopeScaled(const Buffer<double>& shadowMap,
                          const Vector3& p0, const Vector3& p1, const Vector3& p2,
-                         bool bilinear = false, int pcfKernelSize = 0, double alphaConst = 1.5){
+                         int pcfKernelSize = 0, double alphaConst = 1.5){
         double kSlope = getSsdbKSlope();
         double slope = getSsdbSlope(p0,p1,p2);
-        double kConst = getSsdbKConst(alphaConst, pcfKernelSize, int(std::min(shadowMap.getRows() , shadowMap.getCols())) , bilinear);
+        double kConst = getSsdbKConst(alphaConst, pcfKernelSize, int(std::min(shadowMap.getRows() , shadowMap.getCols())));
 
         return kSlope * slope + kConst;
     }
@@ -28,12 +28,11 @@ public:
                                  const DistantLight& light,
                                  const Vector3& normal,
                                  const Vector3& point,
-                                 bool bilinear,
                                  int pcfKernelSize = 0){
 
         double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelDistantLight(shadowMap,
                                 light.oRight,light.oLeft,light.oTop, light.oBottom)
-                            , pcfKernelSize , bilinear);
+                            , pcfKernelSize);
         Vector3 pointToLightVector = (light.direction*(-1.0)).normalize();
 
         double angleFactors = (1+getNaAngleFactor()*getNaAngleBias(normal, pointToLightVector));
@@ -48,13 +47,12 @@ public:
                                 const Vector3& normal,
                                 const Vector3& pointToLightVector,
                                 const Vector3& point,
-                                bool bilinear = false,
                                 int pcfKernelSize = 0){
 
         Vector4 pointInLightView = (light.viewMatrices[face] * Vectors::vector3to4(point));
         double zLS = -pointInLightView.z;
 
-        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelPointLight(zLS , shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize, bilinear);
+        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelPointLight(zLS , shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize);
 
         double angleFactors = (1+getNaAngleFactor()*getNaAngleBias(normal, pointToLightVector));
         double moveDistance = getNaNormalFactor()*worldUnits*angleFactors;
@@ -67,14 +65,13 @@ public:
                                const Vector3& normal,
                                const Vector3& pointToLightVector,
                                const Vector3& point,
-                               bool bilinear = false,
                                int pcfKernelSize = 0){
         double fovY = light.outerAngle*2;
 
         Vector4 pointInLightView = (light.getViewMatrix() * Vectors::vector3to4(point));
         double zLS = -pointInLightView.z;
 
-        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelSpotLight(fovY , zLS, shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize , bilinear);
+        double worldUnits = pcfCorrect(getNaWorldUnitsPerTexelSpotLight(fovY , zLS, shadowMap.getCols(), shadowMap.getRows()), pcfKernelSize);
         double angleFactors = (1+getNaAngleFactor()*getNaAngleBias(normal, pointToLightVector));
         double moveDistance = getNaNormalFactor()*worldUnits*angleFactors;
 
@@ -101,12 +98,11 @@ private:
         return std::max(abs(a) , abs(b));
     }
 
-    static double getSsdbKConst(double alphaConst,int pcfKernelSize,int minHeightWidth, bool bilinear){
+    static double getSsdbKConst(double alphaConst,int pcfKernelSize,int minHeightWidth){
         if (minHeightWidth <= 0) return 0.0;
         if (pcfKernelSize <= 1)  return alphaConst / double(minHeightWidth);
         const double r = double((pcfKernelSize - 1) / 2);
-        const double eff = bilinear ? (r + 0.5) : r;
-        return alphaConst * eff / double(minHeightWidth);
+        return alphaConst * r / double(minHeightWidth);
     }
 
     static constexpr double defaultSsdbKSlope = 1.0;
@@ -149,11 +145,10 @@ private:
         return std::max(tX,tY);
     }
 
-    static double pcfCorrect(double wupt, int kernel, bool bilinear){
+    static double pcfCorrect(double wupt, int kernel){
         if (kernel <= 1) return wupt;
         const double r = double((kernel - 1) / 2);
-        const double eff = bilinear ? (r + 0.5) : r;
-        return wupt * eff;
+        return wupt * r;
     }
 
     static double getNaAngleBias(const Vector3& normal, const Vector3& lightVector){

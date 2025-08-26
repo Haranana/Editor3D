@@ -5,6 +5,7 @@
 #include "Math/NoiseManager.h"
 #include <algorithm>
 #include <cmath>
+#include "Scene/Light.h"
 
 class FilteringManager{
 public:
@@ -100,6 +101,22 @@ public:
         }
 
         return texelsInRange == 0 ? 0.0 : static_cast<double>(shadowedTexels) / texelsInRange;
+    }
+
+    static inline int kernelSideFor(const Light& light){
+        using FT = Light::FilteringType;
+        switch (light.filteringType){
+        case FT::BILINEAR:    return 2;             // 2x2
+        case FT::PCF_3x3:     return 3;
+        case FT::PCF_5x5:     return 5;
+        case FT::PCF_POISSON: {
+            int r = std::max(1, (int)std::ceil(light.pcfPoissonRadiusTexels));
+            return 2*r + 1;  //
+        }
+        case FT::PCSS:        return 5;             // placeholder
+        case FT::NONE:
+        default:              return 1;             // 1x1 single-tap
+        }
     }
 
 private:

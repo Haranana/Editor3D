@@ -28,6 +28,7 @@
 #include "Math/Utility.h"
 #include "Math/NoiseManager.h"
 #include <QString>
+#include "Rendering/FilteringManager.h"
 
 class Renderer{
 public:
@@ -92,6 +93,8 @@ private:
     void calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
                        Vector3& pointForDepthCheck, double& biasAddition, Triangle3& fanWorldCoords,
                         PointLight::ShadowMapFace* outFace = nullptr, int pcfKernelSize = 0);
+    double calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
+                                 double receiverDepth, double bias, const Light& light);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

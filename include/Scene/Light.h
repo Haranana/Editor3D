@@ -15,12 +15,15 @@ public:
         POINT
     };
 
-    enum class PcfType{
+    enum class FilteringType{
         NONE,
+        BILINEAR,
         PCF_3x3,
         PCF_5x5,
+        PCF_POISSON,
         PCSS
     };
+    FilteringType filteringType = FilteringType::NONE;
 
     enum class BiasType{
         CONSTANT,
@@ -28,9 +31,10 @@ public:
         NORMAL_ANGLE
     };
 
+    int    pcfPoissonSamples      = 12;   // 8/12/16
+    double pcfPoissonRadiusTexels = 1.8;  // 1.5–2.5 should be good
+
     BiasType biasType = BiasType::CONSTANT;
-    PcfType pcfType = PcfType::NONE;
-    bool bilinearFiltering = false;
 
     Color color = Colors::White;
     double bias = 0.03;
