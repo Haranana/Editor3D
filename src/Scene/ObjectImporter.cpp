@@ -5,8 +5,6 @@
 
 ImportResult ObjImporter::load(const std::string& objPath, const ImportOptions& opt){
 
-
-
     clearData();
 
     importOptions = opt;
@@ -111,10 +109,11 @@ void ObjImporter::parseV(std::string_view& line){
     if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
 
     if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
-        //in future there should be scale and axis conversion
-        vPositions.emplace_back(x,y,z);
-    }else{
-        //in fututre maybe some warning
+        Vector3 pos{x,y,z};
+        Vector3 convertedPosititon = importOptions.axisConversionMatrix * pos;
+        pos = pos * importOptions.globalScale;
+
+        vPositions.emplace_back(convertedPosititon);
     }
 }
 
@@ -144,10 +143,9 @@ void ObjImporter::parseVn(std::string_view& line){
     if(xStringView.empty() || yStringView.empty() || zStringView.empty()) return;
 
     if(parseDouble(xStringView, x) && parseDouble(yStringView, y) && parseDouble(zStringView, z)){
-        //in future there should be scale and axis conversion
-        vNormals.emplace_back(x,y,z);
-    }else{
-        //in fututre maybe some warning
+        Vector3 normal{x,y,z};
+        normal = importOptions.axisConversionMatrix * normal;
+        vNormals.emplace_back(normal);
     }
 }
 
@@ -178,13 +176,14 @@ void ObjImporter::parseF(std::string_view& line){
 }
 
 void ObjImporter::parseO(std::string_view& line){
-    //assuming that object name can have spaces we use everything beside 'o'
+    //assuming that object name can have spaces we use everything beside 'o' as a name
     setCurrentObject(line);
     currentMaterialId = -1;
 
 }
 
 void ObjImporter::parseMtllib(std::string_view& line){
+    if(!importOptions.loadMtl) return;
     while(!line.empty()){
         std::string_view fileName = nextToken(line);
         if(fileName.empty()){
@@ -198,7 +197,16 @@ void ObjImporter::parseUsemtl(std::string_view& line){
     trimEdges(line);
     if(line.empty()) return;
     currentMaterialId = getMaterialIdByName(std::string(line));
-    startNewBuilderForCurrent();
+
+    if (importOptions.splitPerUsemtlAsObjects) {
+        startNewBuilderForCurrent();
+    } else {
+        if (!currentMeshBuilder) {
+            setCurrentObject();
+            startNewBuilderForCurrent();
+        }
+        currentMeshBuilder->materialId = currentMaterialId;
+    }
 
 }
 
@@ -367,7 +375,7 @@ void ObjImporter::splitMeshTriplet(std::string_view& triplet, std::string_view& 
 
 
 MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& vStringView, std::string_view& vtStringView, std::string_view& vnStringView){
-    int v,vt,vn;
+    int v;
     MeshTriplet result {-1,-1,-1};
 
     if(!parseInt(vStringView, v) || v==0 ){
@@ -380,32 +388,27 @@ MeshTriplet ObjImporter::parseMeshTriplet(std::string_view& vStringView, std::st
     }
     result.v = v;
 
-    int vtId = -1;
-    if(!vtStringView.empty()){
-        parseInt(vtStringView ,vt);
-        if(vt >= (int)vTextureUVs.size() || vt ==0){
-            vtId = -1;
-        }else{
-            vtId = MathUt::OnetoZeroBased(vt , vTextureUVs.size());
-            if(vtId < 0 || vtId >= (int)vTextureUVs.size()){
-                vtId = -1;
+
+    if (!vtStringView.empty()) {
+        int vtId = -1;
+        if (parseInt(vtStringView, vtId) && vtId != 0) {
+            if (importOptions.supportNegativeIndices || vtId > 0) {
+                vtId = MathUt::OnetoZeroBased(vtId, (int)vTextureUVs.size());
+                if (vtId >= 0 && vtId < (int)vTextureUVs.size())
+                    result.vt = vtId;
             }
         }
-        result.vt =  vtId;
     }
 
-    int vnId = -1;
-    if(!vnStringView.empty()){
-        parseInt(vnStringView ,vn);
-        if(vn >= (int)vNormals.size() || vn == 0){
-            vnId = -1;
-        }else{
-            vnId = MathUt::OnetoZeroBased(vn , vNormals.size());
-            if(vnId < 0 || vnId >= (int)vNormals.size()){
-                vnId = -1;
+    if (!vnStringView.empty()) {
+        int vnId = -1;
+        if (parseInt(vnStringView, vnId) && vnId != 0) {
+            if (importOptions.supportNegativeIndices || vnId > 0) {
+                vnId = MathUt::OnetoZeroBased(vnId, (int)vNormals.size());
+                if (vnId >= 0 && vnId < (int)vNormals.size())
+                    result.vn = vnId;
             }
         }
-        result.vn =  vnId;
     }
 
     return result;
@@ -736,7 +739,6 @@ void ObjImporter::clearData(){
     vPositions.clear();
     vTextureUVs.clear();
     vNormals.clear();
-    startedNewObject = false;
     meshBuilders.clear();
     currentMeshBuilder = nullptr;
     importOptions = ImportOptions();

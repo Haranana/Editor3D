@@ -29,6 +29,10 @@ struct ImportOptions {
     // true - convert every submesh into new object which uses correct material
     bool splitPerUsemtlAsObjects = true;
 
+    //UNSTABLE
+    //can produce problem when det<0
+    //importer should reverse plane (and reverse triangles orientation)
+    //but it's not implemented so should probably remain as identity or without negatives
     Matrix3 axisConversionMatrix = Matrices3::identity();
     double  globalScale = 1.0;
 };
@@ -121,11 +125,6 @@ private:
     MeshBuilder* currentMeshBuilder = nullptr;
     std::string currentObjectBaseName;
     ImportOptions importOptions;
-
-    //whether new MeshBuilder was built,
-    //turn to true when calling startNewObject()
-    //if startedNewObject = false when parsing face then startNewObject() is to be called
-    bool startedNewObject = false;
 };
 
 #endif // OBJECTIMPORTER_H
