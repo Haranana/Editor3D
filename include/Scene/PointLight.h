@@ -28,7 +28,7 @@ public:
 
     static constexpr double FOV = M_PI/2;
     static constexpr double ASPECT = 1.0;
-    static constexpr int defaultShadowMapSize = 512;
+    static constexpr int defaultShadowMapSize = 2048;
 
     double range = 400.0;
     double attenuationConstant = 1.0f;

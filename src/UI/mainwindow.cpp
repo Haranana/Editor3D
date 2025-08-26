@@ -8,7 +8,7 @@
 #include <QTimer>
 #include "UI/CameraPropertiesWidget.h"
 #include "Math/Utility.h"
-
+#include "Scene/TestScenes.h"
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     setupUI();
@@ -238,7 +238,8 @@ void MainWindow::refreshScene()
 }
 
 void MainWindow::loadTestScene(){
-    distantLightTestScene();
+    TestScenes::loadDistantLightTestScene2(*scene , *objectsList);
+    //distantLightTestScene();
     //pointLightTestScene();
     //pointLightShadowTestScene();
     //pointLightRoomTestScene();

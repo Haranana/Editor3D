@@ -13,7 +13,7 @@ public:
 
     static constexpr Vector3 defaultUp = Vector3(0,1,0);
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
-    static constexpr size_t defaultShadowMapSize = 2048; //in pixels
+    static constexpr size_t defaultShadowMapSize = 512; //in pixels
 
     double angularRadiusRad = MathUt::degreeToRadian(0.27); //about sun to earth
 
