@@ -7,6 +7,7 @@
 #include "Math/Matrices.h"
 #include "Rendering/Colors.h"
 
+
 class Light : public Object3D{
 public:
     enum class LightType{

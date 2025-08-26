@@ -2,6 +2,7 @@
 #define LIGHTPROPERTIESWIDGET_H
 
 #include "UI/ObjectPropertiesWidget.h"
+#include "UI/LightFilteringPropertiesWidget.h"
 #include "Scene/Light.h"
 #include "ColorPicker.h"
 #include <QFormLayout>
@@ -34,6 +35,8 @@ private:
 
     static constexpr int intensitySliderFactor = int(1.0/intensityStep);
     static constexpr int biasSliderFactor = int(1.0/biasStep);
+
+    LightFilteringPropertiesWidget* filteringPropertiesWidget;
 
     std::shared_ptr<Light> light;
 

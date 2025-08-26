@@ -54,6 +54,7 @@ SOURCES += \
     src/UI/DisplaySettingsPropertiesWidget.cpp \
     src/UI/DistantLightPropertiesWidget.cpp \
     src/UI/ImageLabel.cpp \
+    src/UI/LightFilteringPropertiesWidget.cpp \
     src/UI/LightPropertiesWidget.cpp \
     src/UI/MaterialPropertiesWidget.cpp \
     src/UI/PointLightPropertiesWidget.cpp \
@@ -124,6 +125,7 @@ HEADERS += \
     include/UI/FpsCounter.h \
     include/UI/HudOverlay.h \
     include/UI/ImageLabel.h \
+    include/UI/LightFilteringPropertiesWidget.h \
     include/UI/LightPropertiesWidget.h \
     include/UI/MaterialPropertiesWidget.h \
     include/UI/ObjectPropertiesWidget.h \

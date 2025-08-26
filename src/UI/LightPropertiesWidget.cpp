@@ -56,6 +56,9 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
             biasSpin->setValue(dv);
     });
 
+    filteringPropertiesWidget = new LightFilteringPropertiesWidget(this);
+    layout->addRow("Filter: " , filteringPropertiesWidget);
+
     colorPicker = new ColorPicker(this);
     layout->addRow("Color", colorPicker);
     connect(colorPicker, &ColorPicker::colorChanged, this, &LightPropertiesWidget::onColorChanged);
@@ -73,6 +76,7 @@ void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     light = std::dynamic_pointer_cast<Light>(object);
     if (!light) return;
 
+    filteringPropertiesWidget->setObject(light);
 
     intensitySpin->blockSignals(true);
     intensitySpin->setValue(light->intensity);
