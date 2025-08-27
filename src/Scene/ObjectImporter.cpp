@@ -441,8 +441,6 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
         obj->vertexNormals.resize(verticesAmount);
         obj->vertexHasNormal.resize(verticesAmount);
         obj->vertexHasUV.resize(verticesAmount);
-        std::vector<Vector3> accum(verticesAmount, Vector3{0,0,0});
-
 
         //vertices loop
         for(size_t i = 0; i < verticesAmount; i++){
@@ -468,7 +466,6 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
                 obj->vertexNormals[i] = Vector3{0,0,0};
                 obj->vertexHasNormal[i] = false;
             }
-
         }
 
         //copy vertex indices for each face
@@ -488,36 +485,6 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
             const int i1 = obj->faceVertexIndices[3*f + 1];
             const int i2 = obj->faceVertexIndices[3*f + 2];
 
-            const Vector3& p0 = obj->vertices[i0];
-            const Vector3& p1 = obj->vertices[i1];
-            const Vector3& p2 = obj->vertices[i2];
-
-            //calculate face normals
-            const Vector3 e1 = p1 - p0;
-            const Vector3 e2 = p2 - p0;
-            Vector3 faceNormal = e1.crossProduct(e2); //not normalized normal
-            float len2      = faceNormal.dotProduct(faceNormal);
-
-            Vector3 normalizedFaceNormal;
-            if (len2 > 1e-20f) {
-                normalizedFaceNormal = faceNormal / std::sqrt(len2);
-            } else {
-                normalizedFaceNormal = Vector3{0,0,0};
-                faceNormal = Vector3{0,0,0};
-            }
-
-            obj->normals[f] = normalizedFaceNormal;
-
-            //fill vertexToFace normals;
-            obj->vertexToFaceNormals[i0].push_back((int)f);
-            obj->vertexToFaceNormals[i1].push_back((int)f);
-            obj->vertexToFaceNormals[i2].push_back((int)f);
-
-            //used for calculating vertex normals
-            if (!obj->vertexHasNormal[i0]) accum[i0] = accum[i0] + faceNormal;
-            if (!obj->vertexHasNormal[i1]) accum[i1] = accum[i1] + faceNormal;
-            if (!obj->vertexHasNormal[i2]) accum[i2] = accum[i2] + faceNormal;
-
             //check which faces do not have UV and fill the list
             if(!obj->vertexHasUV[i0] || !obj->vertexHasUV[i1] || !obj->vertexHasUV[i2]){
                 obj->faceHasUV[f] = false;
@@ -525,15 +492,6 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
                 obj->faceHasUV[f] = true;
             }
 
-        }
-
-         //calculate missing vertex normals and normalize each vertex normal (just to be sure)
-        for (size_t vi = 0; vi < verticesAmount; ++vi) {
-            if(!obj->vertexHasNormal[vi]){
-            obj->vertexNormals[vi]= accum[vi].normalize() ;
-            }else{
-                obj->vertexNormals[vi] = obj->vertexNormals[vi].normalize();
-            }
         }
 
         int curMeshBuilderMatId = meshBuilder.materialId;
@@ -544,6 +502,7 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
         }
         obj->name = meshBuilder.name;
 
+        obj->sanitize();
         loadedObjects.push_back(obj);
     }
 
@@ -747,4 +706,5 @@ void ObjImporter::clearData(){
     uniqueNameCounter.clear();
     currentMaterial = nullptr;
 }
+
 

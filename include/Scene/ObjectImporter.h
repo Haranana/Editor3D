@@ -106,6 +106,8 @@ private:
     MeshBuilder& startNewBuilderForCurrent();
     void clearData();
 
+
+
     int currentMaterialId = -1;
     std::vector<Material> materials;
     Material* currentMaterial = nullptr;

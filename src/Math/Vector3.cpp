@@ -1,7 +1,8 @@
 #include "Math/Vector3.h"
+#include "Math/Utility.h"
 
 Vector3 Vector3::normalize() const{
-    return this->length()==0? Vector3{0,0,0} : *this/this->length();
+    return MathUt::equal(this->length(),0.0)? Vector3{0,0,0} : *this/this->length();
 }
 
 double Vector3::length() const{

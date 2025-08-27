@@ -66,6 +66,13 @@ public:
     QString toQString(){
         return QString("name: %1, vertices: %2, faces: %3").arg(QString::fromStdString(name)).arg((int)vertices.size()).arg((int)faceVertexIndices.size()/3);
     }
+
+    //post creation object sanitization and missing data calculations;
+    void sanitize();
+
+    void removeDegenerateFaces();
+    void fixFaceNormals();
+    void fixVertexNormals();
 };
 
 #endif // RENDERABLEOBJECT3D_H
