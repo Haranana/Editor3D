@@ -620,32 +620,44 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                 const double visibility = 1.0 - shadowAmount;
                                 Vector3 combinedLight = Vectors::colorToVector3(lightSource->color) * lightSource->intensity * attenuation;
+                                Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{};
 
-                                    outColor = outColor + Vector3{
+                                shadowTintModifier = Vector3{
                                     kd.x * Ka.x * SHADOW_INTENSITY * combinedLight.x * shadowAmount,
                                     kd.y * Ka.y * SHADOW_INTENSITY * combinedLight.y * shadowAmount,
                                     kd.z * Ka.z * SHADOW_INTENSITY * combinedLight.z * shadowAmount,
-                                               };
+                                };
 
+
+                                //only lambert, no specular
                                 if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::LAMBERT){
-                                    Vector3 LambertModifier = shadingManager->getReflectedLightLambert(
-                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd);
-                                    outColor = outColor + LambertModifier * visibility;
+                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                                          pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
 
+
+                                //phong specular, lambert diffuse
                                 }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
-                                    Vector3 phongModifier = shadingManager->illuminatePointPhong(
+                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
+
+                                    specularModifier = shadingManager->illuminatePointPhong(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        );
-                                    outColor = outColor + phongModifier * visibility;
+                                        ) * visibility;
+
                                 }
+
+                                //blinn phong specular, lambert diffuse
                                 else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
-                                    Vector3 BlinnPhongModifier = shadingManager->illuminatePointBlinnPhong(
+                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
+
+                                    specularModifier = shadingManager->illuminatePointBlinnPhong(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        );
-                                    outColor = outColor + BlinnPhongModifier * visibility;
+                                        ) * visibility;
+
                                 }
 
-
+                                outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                             }
 
                         }else if(obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
