@@ -43,6 +43,7 @@ public:
     bool castsShadow = true;
     LightType lightType;// = LightType::DISTANT;
     double near = 0.1;
+    double emitterRadiusWorld{};
 
 };
 

@@ -9,6 +9,8 @@ namespace MathUt{
 
 bool equal(double d1, double d2, double epsilon = 1e-6);
 
+double mean(std::vector<double> v);
+
 int OnetoZeroBased(int i, int size);
 
 double safeDenom(double denom, double safe = 1e-6);

@@ -15,7 +15,6 @@ public:
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
     static constexpr size_t defaultShadowMapSize = 512; //in pixels
 
-    double angularRadiusRad = MathUt::degreeToRadian(0.27); //about sun to earth
 
     //used in projectionMatrix and normalAngleBias
     double oLeft = 0.0;
@@ -30,7 +29,14 @@ public:
     DistantLight(Vector3 direction) :
         direction(direction.normalize()) ,
         shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
-    {lightType = LightType::DISTANT;}
+    {
+        lightType = LightType::DISTANT;
+        emitterRadiusWorld = MathUt::degreeToRadian(0.27);
+    }
+
+    double getWorldUnitsPerTexel(){
+        return std::max( (oRight-oLeft)/shadowMap.width() , (oTop-oBottom)/shadowMap.height());
+    }
 
     void printShadowMatrix(){
         QImage img(shadowMap.getCols(), shadowMap.getRows(), QImage::Format_Grayscale8);

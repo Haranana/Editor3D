@@ -5,6 +5,14 @@ bool MathUt::equal(double d1, double d2, double epsilon){
     return std::abs(d1 - d2) <= epsilon;
 }
 
+double MathUt::mean(std::vector<double> v){
+    double result{};
+    for(const auto& it : v){
+        result+=it;
+    }
+    return result/v.size();
+}
+
 //i == 0 is illegal, should be validate before function call
 int MathUt::OnetoZeroBased(int i, int size){
     if(i > 0) return i-1;

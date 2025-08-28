@@ -36,7 +36,6 @@ public:
     //double attenuationQuadratic = 0.032f;
     double attenuationLinear = 0.00f;
     double attenuationQuadratic = 0.000f;
-    double emitterRadiusWorld = 0.05;
 
     std::vector<std::shared_ptr<Buffer<double>>> shadowMaps;
     std::vector<Matrix4> viewMatrices = std::vector(6, Matrices4::identity());
@@ -49,7 +48,18 @@ public:
             shadowMaps[i] = std::make_shared<Buffer<double>>(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity());
         }
         lightType = LightType::POINT;
+        emitterRadiusWorld = 0.05;
 
+    }
+
+    double getWorldUnitsPerTexel(double depth){
+        static constexpr double fovYTan = 1.0;
+        const double fovX = 2*atan(fovYTan);
+        const double fovXTan = tan(fovX/2.0);
+
+        double tY = 2*depth*fovYTan/shadowMaps[0]->size();
+        double tX = 2*depth*fovXTan/shadowMaps[0]->size(); //assuming aspect is 1, which it always is
+        return std::max(tX,tY);
     }
 
     double getAttenuation(double distance){

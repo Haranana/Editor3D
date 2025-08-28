@@ -25,6 +25,8 @@ public:
         return projectionMatrix;
     }
 
+
+
     static constexpr int defaultShadowMapSize = 512;
     static constexpr double ASPECT = 1.0;
     static constexpr Vector3 defaultUp = Vector3(0.0,1.0,0.0);
@@ -61,9 +63,19 @@ public:
     SpotLight() : shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
     {
         lightType = LightType::SPOT;
+        emitterRadiusWorld = 0.05;
     }
 
-    double emitterRadiusWorld = 0.05;
+    double getWorldUnitsPerTexel(double depth){
+        const double fovY = outerAngle*2;
+        const double fovYTan = tan(fovY/2.0);
+        const double fovX = 2*atan(fovYTan);
+        const double fovXTan = tan(fovX/2.0);
+
+        double tY = 2 * depth * fovYTan/defaultShadowMapSize;
+        double tX = 2*depth*fovXTan/defaultShadowMapSize;
+        return std::max(tX,tY);
+    }
 
     double getConeAttenuation(const Vector3& lightToPoint){
 
