@@ -82,8 +82,25 @@ public:
 
 private:
 
+    struct GouraudShadingVertexData{
+        std::vector<Vector3> combinedLightOverW{};
+        std::vector<Vector3> diffuseNoAlbedoOverW{};
+        std::vector<Vector3> specularOverW{};
+
+        Vector3 normal{};
+    };
+
+    struct GouraudShadingFaceData{
+        Triangle<GouraudShadingVertexData> face;
+        Vector3 faceNormal;
+        Vector3 centroid;
+    };
+
     void renderSceneObjects();
     void renderObject( RenderableObject3D& obj, int objId);
+    GouraudShadingFaceData collectGouraudPerFaceData(Triangle<ClippingManager::ClippedVertex> fanTriangleClipped,
+                                                     const Triangle3& fanTriangleRawWorldSpace,
+                                                     const RenderableObject3D& obj);
     void updateShadowMaps();
     void shadowMapDepthPass(DistantLight& lightSource);
     void shadowMapDepthPass(PointLight& lightSource);

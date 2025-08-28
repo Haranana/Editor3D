@@ -260,13 +260,21 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 }
             }
 
+
+            //Gouraud shading data collecting
+            GouraudShadingFaceData gouraudShadingFaceData;
+            if(obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
+                gouraudShadingFaceData = collectGouraudPerFaceData(
+                        fanTriangleClipped, fanTriangleRawWorldSpace,obj);
+            }
+
             // raster fill
             if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
                 for (int y = minY; y <= maxY; y++) {
                     for (int x = minX; x <= maxX; x++) {
 
                         double px = x + 0.5, py = y + 0.5; //middle of current pixel
-                         Triangle<double> baricentricFactor = fanTriangleScreenSpace.baricentricCoords(Vector2(px, py));
+                        Triangle<double> baricentricFactor = fanTriangleScreenSpace.baricentricCoords(Vector2(px, py));
 
                         //checking if pixel is withing triangle using baricentric coordinates
                         if(!fanTriangleScreenSpace.isInTriangle2D(Vector2(px,py))) continue;
@@ -662,16 +670,147 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                         }else if(obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
 
-                            //TODO
+                            interpolatedWorldSpaceCoords = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
+                                                            + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
+                                                            + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
+                            size_t lightId = 0;
+                            //choosing bias etc.
+                            for(std::shared_ptr<Light>&lightSource : scene->lightSources){
+                                Vector3 gouraudFaceNormal = gouraudShadingFaceData.faceNormal;
+                                double shadowAmount = 0.0;
 
-                            /*
-                            double invDenom = baricentricFactor.v1 * fanTriangleClipped.v1.invW
-                                              + baricentricFactor.v2 * fanTriangleClipped.v2.invW
-                                              + baricentricFactor.v3 * fanTriangleClipped.v3.invW;
-                            Vector3 interpolatedColor = (fanTriangleClipped.v1.colorOverW*baricentricFactor.v1
-                                                         + fanTriangleClipped.v2.colorOverW*baricentricFactor.v2
-                                                         + fanTriangleClipped.v3.colorOverW*baricentricFactor.v3)/invDenom;
-                            finalColor = Vectors::vector3ToColor(interpolatedColor);*/
+                                //DISTANT LIGHT
+                                if(lightSource->lightType == Light::LightType::DISTANT){
+                                    if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+                                        Vector3 pointForDepthCheck;
+                                        double biasAddition;
+
+                                        calculateBias(distantLight , interpolatedWorldSpaceCoords, gouraudFaceNormal,
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, nullptr,  FilteringManager::kernelSideFor(*distantLight));
+
+                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
+                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
+
+                                        //check if we are not trying to get element from outside the buffer
+                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+
+                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+                                            float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
+                                            //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1)));
+                                            //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
+                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1);
+                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1);
+
+                                            shadowAmount  = calculateShadowAmount(distantLight->shadowMap, Vector2(sx,sy),
+                                                                                 depthInLightView, biasAddition, *distantLight);
+                                        }
+                                    }
+                                    //POINT LIGHT
+                                }else if(lightSource->lightType == Light::LightType::POINT){
+                                    if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
+                                        Vector3 pointForDepthCheck;
+                                        double biasAddition;
+                                        PointLight::ShadowMapFace face;
+                                        face = PointLight::pickFace(interpolatedWorldSpaceCoords - pointLight->transform.getPosition());
+                                        calculateBias(pointLight , interpolatedWorldSpaceCoords, gouraudFaceNormal,
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,&face, FilteringManager::kernelSideFor(*pointLight));
+
+                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(pointForDepthCheck);
+                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
+                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+
+                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+
+                                            float depthInLightView = (pointForDepthCheck - pointLight->transform.getPosition()).length();
+
+                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * ((*pointLight->shadowMaps[face]).getCols() - 1);
+                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * ((*pointLight->shadowMaps[face]).getRows() - 1);
+
+                                            float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
+
+                                            shadowAmount  = calculateShadowAmount(*pointLight->shadowMaps[face], Vector2(sx,sy),
+                                                                                 normalizedDepth, biasAddition, *pointLight);
+
+                                        }
+                                    }
+                                }else if(lightSource->lightType == Light::LightType::SPOT){
+                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+
+                                        Vector3 pointForDepthCheck;
+                                        double biasAddition;
+                                        calculateBias(spotLight , interpolatedWorldSpaceCoords, gouraudFaceNormal,
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,nullptr,  FilteringManager::kernelSideFor(*spotLight));
+
+                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
+                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+
+                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
+                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+
+                                        if(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
+                                            float depthInLightView = (pointForDepthCheck - spotLight->transform.getPosition()).length();
+
+                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1);
+                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1);
+
+                                            float normalizedDepth =std::clamp((depthInLightView-lightSource->near)/(spotLight->range-lightSource->near),0.0,1.0);
+
+                                            shadowAmount  = calculateShadowAmount(spotLight->shadowMap, Vector2(sx,sy),
+                                                                                 normalizedDepth, biasAddition, *spotLight);
+                                        }
+                                    }
+                                }
+
+                                const double visibility = 1.0 - shadowAmount;
+
+                                Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{};
+
+
+                                Triangle3 gouraudCombLightOverW = {gouraudShadingFaceData.face.v1.combinedLightOverW[lightId],
+                                                                gouraudShadingFaceData.face.v2.combinedLightOverW[lightId],
+                                                                gouraudShadingFaceData.face.v3.combinedLightOverW[lightId]};
+
+                                Vector3 combinedLight = (gouraudCombLightOverW.v1 * baricentricFactor.v1 +
+                                                        gouraudCombLightOverW.v2 * baricentricFactor.v2 +
+                                                        gouraudCombLightOverW.v3 * baricentricFactor.v3)/invDenom;
+
+                                shadowTintModifier = Vector3{
+                                    kd.x * Ka.x * SHADOW_INTENSITY * combinedLight.x * shadowAmount,
+                                    kd.y * Ka.y * SHADOW_INTENSITY * combinedLight.y * shadowAmount,
+                                    kd.z * Ka.z * SHADOW_INTENSITY * combinedLight.z * shadowAmount,
+                                };
+
+                                Triangle3 gouraudDiffuseOverW = {gouraudShadingFaceData.face.v1.diffuseNoAlbedoOverW[lightId],
+                                                                   gouraudShadingFaceData.face.v2.diffuseNoAlbedoOverW[lightId],
+                                                                   gouraudShadingFaceData.face.v3.diffuseNoAlbedoOverW[lightId]};
+
+                                Vector3 InterpolatedDiffuseNoAlbedo = (gouraudDiffuseOverW.v1 * baricentricFactor.v1 +
+                                                           gouraudDiffuseOverW.v2 * baricentricFactor.v2 +
+                                                           gouraudDiffuseOverW.v3 * baricentricFactor.v3)/invDenom;
+
+                                diffuseModifier = Vector3{InterpolatedDiffuseNoAlbedo.x * kd.x,
+                                                   InterpolatedDiffuseNoAlbedo.y * kd.y,
+                                                   InterpolatedDiffuseNoAlbedo.z * kd.z} * visibility;
+
+                                Triangle3 gouraudSpecularOverW = {gouraudShadingFaceData.face.v1.specularOverW[lightId],
+                                                                 gouraudShadingFaceData.face.v2.specularOverW[lightId],
+                                                                 gouraudShadingFaceData.face.v3.specularOverW[lightId]};
+
+                                Vector3 InterpolatedSpecular = (gouraudSpecularOverW.v1 * baricentricFactor.v1 +
+                                                                       gouraudSpecularOverW.v2 * baricentricFactor.v2 +
+                                                                       gouraudSpecularOverW.v3 * baricentricFactor.v3)/invDenom;
+
+                                specularModifier = Vector3{InterpolatedSpecular.x,
+                                                          InterpolatedSpecular.y,
+                                                          InterpolatedSpecular.z} * visibility;
+
+                                outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
+                                lightId++;
+                            }
                         }
 
                         outColor.x = std::clamp(outColor.x ,0.0,1.0);
@@ -736,6 +875,131 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     }
 }
 
+Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
+            Triangle<ClippingManager::ClippedVertex> fanTriangleClipped,
+            const Triangle3& fanTriangleRawWorldSpace,
+            const RenderableObject3D& obj){
+
+    GouraudShadingFaceData result{};
+
+    // --- Face: pozycje+normalna płaska ---
+    const Vector3 P1 = fanTriangleRawWorldSpace.v1;
+    const Vector3 P2 = fanTriangleRawWorldSpace.v2;
+    const Vector3 P3 = fanTriangleRawWorldSpace.v3;
+
+    result.faceNormal = ((P2 - P1).crossProduct(P3 - P1)).normalize();
+    result.centroid   = (P1 + P2 + P3) / 3.0;
+
+    // --- Per-vertex world normal (gładka) + invW ---
+    const double wInv1 = fanTriangleClipped.v1.invW;
+    const double wInv2 = fanTriangleClipped.v2.invW;
+    const double wInv3 = fanTriangleClipped.v3.invW;
+
+    Vector3 N1 = (fanTriangleClipped.v1.worldSpaceNormalOverW * wInv1).normalize();
+    Vector3 N2 = (fanTriangleClipped.v2.worldSpaceNormalOverW * wInv2).normalize();
+    Vector3 N3 = (fanTriangleClipped.v3.worldSpaceNormalOverW * wInv3).normalize();
+
+    // --- Przygotuj kontenery per-vertex ---
+    auto initGV = [&](GouraudShadingVertexData& gv, const Vector3& P, const Vector3& N, double invW) {
+        const size_t L = scene->lightSources.size();
+        gv.combinedLightOverW.resize(L, Vector3{});
+        gv.diffuseNoAlbedoOverW.resize(L, Vector3{});
+        gv.specularOverW.resize(L, Vector3{});
+        //gv.worldPos = P; gv.normal = N; gv.invW = invW;
+    };
+
+    initGV(result.face.v1, P1, N1, wInv1);
+    initGV(result.face.v2, P2, N2, wInv2);
+    initGV(result.face.v3, P3, N3, wInv3);
+
+    // --- Funkcja pomocnicza: policz per-vertex wkład dla jednego światła ---
+    auto evalOneLightAtVertex = [&](const std::shared_ptr<Light>& Ls,
+                                    const Vector3& P, const Vector3& N, double invW,
+                                    Vector3& outCombinedOverW,
+                                    Vector3& outDiffuseNoAlbOverW,
+                                    Vector3& outSpecWithLightOverW)
+    {
+        Vector3 Ldir{};
+        double  atten = 1.0;
+
+        if (Ls->lightType == Light::LightType::DISTANT) {
+            auto d = std::dynamic_pointer_cast<DistantLight>(Ls);
+            Ldir  = (d->direction * (-1.0)).normalize();
+            atten = 1.0;
+
+        } else if (Ls->lightType == Light::LightType::POINT) {
+            auto p = std::dynamic_pointer_cast<PointLight>(Ls);
+            Vector3 toL = p->transform.getPosition() - P;
+            Ldir  = toL.normalize();
+            atten = std::max(0.0, p->getAttenuation(toL.length()));
+
+        } else { // SPOT
+            auto s = std::dynamic_pointer_cast<SpotLight>(Ls);
+            Vector3 toL = s->transform.getPosition() - P;
+            Vector3 l2p = toL * (-1.0);
+            Ldir  = toL.normalize();
+            const double d = l2p.length();
+            const double cone = (d <= s->range) ? s->getConeAttenuation(l2p) : 0.0;
+            const double dist = s->getDistanceAttenuation(d);
+            atten = std::clamp(cone * dist, 0.0, 1.0);
+        }
+
+        const Vector3 lightRGB = Vectors::colorToVector3(Ls->color) * Ls->intensity;
+        const Vector3 combined  = lightRGB * atten; // kolor/intens*atenuacja
+        const double  ndotl     = std::max(0.0, N.dotProduct(Ldir));
+
+        // diffuse (bez albedo)
+        const Vector3 diffNoAlb = combined * ndotl;
+
+        // spec (opcjonalnie) – Twoje funkcje zwracają Ks*… (bez koloru światła)
+        Vector3 specNoLight{};
+        if (obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG) {
+                specNoLight = shadingManager->illuminatePointPhong(
+                    const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
+                    obj.material, *camera, P
+                    );
+        } else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG) { // BLINN_PHONG
+                specNoLight = shadingManager->illuminatePointBlinnPhong(
+                    const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
+                    obj.material, *camera, P
+                );
+
+        }else{
+            specNoLight = {};
+        }
+        const Vector3 specWithLight = { specNoLight.x * combined.x,
+                                       specNoLight.y * combined.y,
+                                       specNoLight.z * combined.z };
+
+        // zapisujemy w wersji overW (perspective-correct)
+        outCombinedOverW      = combined      * invW;
+        outDiffuseNoAlbOverW  = diffNoAlb     * invW;
+        outSpecWithLightOverW = specWithLight * invW;
+    };
+
+    // --- Główna pętla po światłach: wypełnij 3 wierzchołki ---
+    for (size_t i = 0; i < scene->lightSources.size(); ++i) {
+        auto& Ls = scene->lightSources[i];
+
+        evalOneLightAtVertex(Ls, P1, N1, wInv1,
+                             result.face.v1.combinedLightOverW[i],
+                             result.face.v1.diffuseNoAlbedoOverW[i],
+                             result.face.v1.specularOverW[i]);
+
+        evalOneLightAtVertex(Ls, P2, N2, wInv2,
+                             result.face.v2.combinedLightOverW[i],
+                             result.face.v2.diffuseNoAlbedoOverW[i],
+                             result.face.v2.specularOverW[i]);
+
+        evalOneLightAtVertex(Ls, P3, N3, wInv3,
+                             result.face.v3.combinedLightOverW[i],
+                             result.face.v3.diffuseNoAlbedoOverW[i],
+                             result.face.v3.specularOverW[i]);
+    }
+
+    return result;
+}
+
 void Renderer::updateShadowMaps(){
 
     if(debugMode == DEBUG_SHADOWMAP){
@@ -745,7 +1009,7 @@ void Renderer::updateShadowMaps(){
     std::vector<Vector3> cameraFrustum = camera->getFrustum();
 
     //filling shadow maps of light sources
-    for(std::shared_ptr<Light>lightSource : scene->lightSources){
+    for(std::shared_ptr<Light>&lightSource : scene->lightSources){
         if(debugMode == DEBUG_SHADOWMAP){
             //   std::cout << "if start" <<std::endl;
         }
