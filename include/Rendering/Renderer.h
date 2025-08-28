@@ -122,7 +122,7 @@ private:
                        Triangle3& fanWorldCoords, PointLight::ShadowMapFace face = PointLight::ShadowMapFace::NEGATIVE_X, int pcfKernelSize = 0);
 
     double calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
-                                 double receiverDepth, double bias, const Light& light);
+                                 double receiverDepth, double bias, Light& light);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

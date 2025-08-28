@@ -1776,7 +1776,7 @@ Renderer::Bias Renderer::calculateBias(const std::shared_ptr<Light>& light, cons
 }
 
 double Renderer::calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
-                             double receiverDepth, double bias, const Light& light){
+                             double receiverDepth, double bias,  Light& light){
     using FT = Light::FilteringType;
     switch (light.filteringType){
     case FT::NONE: {
@@ -1793,7 +1793,8 @@ double Renderer::calculateShadowAmount(const Buffer<double>& shadowMap, const Ve
     case FT::PCF_POISSON:
         return FilteringManager::pcfPoisson(shadowMap, point, receiverDepth, bias,
                                             light.pcfPoissonSamples, light.pcfPoissonRadiusTexels);
-    case FT::PCSS: // placeholder — na razie zachowuj się jak 5x5
+    case FT::PCSS:
+        return FilteringManager::pcssPoisson(shadowMap, point, receiverDepth, bias, light);
     default:
         return FilteringManager::pcf5x5(shadowMap, point, receiverDepth, bias);
     }
