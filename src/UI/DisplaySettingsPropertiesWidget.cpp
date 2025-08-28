@@ -19,7 +19,6 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
     connect(objectRasterModeComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onRasterModeChanged);
 
     objectShadingComboBox = new QComboBox(this);
-    objectShadingComboBox->addItem(QString("None"));
     objectShadingComboBox->addItem(QString("Flat"));
     objectShadingComboBox->addItem(QString("Gouraud"));
     objectShadingComboBox->addItem(QString("Phong"));
@@ -27,9 +26,10 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
     connect(objectShadingComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onShadingChanged);
 
     objectLightingModelComboBox = new QComboBox(this);
-    objectLightingModelComboBox->addItem(QString("None"));
-    objectLightingModelComboBox->addItem(QString("Face ratio"));
+    objectLightingModelComboBox->addItem(QString("Unlit"));
     objectLightingModelComboBox->addItem(QString("Lambert"));
+    objectLightingModelComboBox->addItem(QString("Phong"));
+    objectLightingModelComboBox->addItem(QString("Blinn Phong"));
     layout->addRow("Lighting model",objectLightingModelComboBox);
     connect(objectLightingModelComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onlightingModelChanged);
 
@@ -69,28 +69,28 @@ void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object
     }
 
     switch(obj->displaySettings->shadingMode){
-    case DisplaySettings::Shading::NONE:
+    case DisplaySettings::Shading::FLAT:
         objectShadingComboBox->setCurrentIndex(0);
         break;
-    case DisplaySettings::Shading::FLAT:
+    case DisplaySettings::Shading::GOURAUD:
         objectShadingComboBox->setCurrentIndex(1);
         break;
-    case DisplaySettings::Shading::GOURAUD:
-        objectShadingComboBox->setCurrentIndex(2);
-        break;
     case DisplaySettings::Shading::PHONG:
-        objectShadingComboBox->setCurrentIndex(3);
+        objectShadingComboBox->setCurrentIndex(2);
         break;
     }
 
     switch(obj->displaySettings->lightingMode){
-    case DisplaySettings::LightingModel::NONE:
+    case DisplaySettings::LightingModel::UNLIT:
         objectLightingModelComboBox->setCurrentIndex(0);
         break;
-    case DisplaySettings::LightingModel::FACE_RATIO:
+    case DisplaySettings::LightingModel::LAMBERT:
         objectLightingModelComboBox->setCurrentIndex(1);
         break;
-    case DisplaySettings::LightingModel::LAMBERT:
+    case DisplaySettings::LightingModel::PHONG:
+        objectLightingModelComboBox->setCurrentIndex(2);
+        break;
+    case DisplaySettings::LightingModel::BLINN_PHONG:
         objectLightingModelComboBox->setCurrentIndex(2);
         break;
     }
@@ -137,19 +137,16 @@ void DisplaySettingsPropertiesWidget::onRasterModeChanged(){
 void DisplaySettingsPropertiesWidget::onShadingChanged(){
     switch (objectShadingComboBox->currentIndex()) {
     case 0:
-        obj->displaySettings->shadingMode = DisplaySettings::Shading::NONE;
-        break;
-    case 1:
         obj->displaySettings->shadingMode = DisplaySettings::Shading::FLAT;
         break;
-    case 2:
+    case 1:
         obj->displaySettings->shadingMode = DisplaySettings::Shading::GOURAUD;
         break;
-    case 3:
+    case 2:
         obj->displaySettings->shadingMode = DisplaySettings::Shading::PHONG;
         break;
     default:
-        obj->displaySettings->shadingMode = DisplaySettings::Shading::NONE;
+        obj->displaySettings->shadingMode = DisplaySettings::Shading::FLAT;
         break;
     }
     emit objectChanged();
@@ -158,16 +155,16 @@ void DisplaySettingsPropertiesWidget::onShadingChanged(){
 void DisplaySettingsPropertiesWidget::onlightingModelChanged(){
     switch (objectLightingModelComboBox->currentIndex()) {
     case 0:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::NONE;
+        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::UNLIT;
         break;
     case 1:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::FACE_RATIO;
-        break;
-    case 2:
         obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
         break;
+    case 2:
+        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::PHONG;
+        break;
     default:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::NONE;
+        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
         break;
     }
     emit objectChanged();

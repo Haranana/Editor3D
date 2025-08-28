@@ -24,7 +24,7 @@ Vector3 ShadingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& norma
             } ;
 }
 
-Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera,const Vector3& worldSpacePoint,
+Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material, Camera& camera,const Vector3& worldSpacePoint,
                                              bool fresnel , bool normalizeSpecular ) {
 
     double nDotL = normal.dotProduct(pointToLightDir);
