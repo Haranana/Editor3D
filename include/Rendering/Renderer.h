@@ -90,9 +90,20 @@ private:
     void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
 
+    struct Bias{
+        double biasAddition{};
+        Vector3 pointForDepthCheck{};
+        PointLight::ShadowMapFace face;
+    };
+
     void calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
                        Vector3& pointForDepthCheck, double& biasAddition, Triangle3& fanWorldCoords,
                         PointLight::ShadowMapFace* outFace = nullptr, int pcfKernelSize = 0);
+
+
+    Bias calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
+                       Triangle3& fanWorldCoords, PointLight::ShadowMapFace face = PointLight::ShadowMapFace::NEGATIVE_X, int pcfKernelSize = 0);
+
     double calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
                                  double receiverDepth, double bias, const Light& light);
 

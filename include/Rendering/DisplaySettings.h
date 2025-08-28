@@ -17,16 +17,16 @@ public:
     };
 
     enum class Shading{
-        NONE,
         FLAT,
         GOURAUD,
         PHONG
     };
 
     enum class LightingModel{
-        NONE,
-        FACE_RATIO,
+        UNLIT,
         LAMBERT,
+        PHONG,
+        BLINN_PHONG,
     };
 
     bool hideUnseenWireframes = false; //not implemented!
@@ -34,7 +34,7 @@ public:
     bool backFaceCulling = true;
     RenderMode renderMode = RenderMode::RASTER;
     RasterMode rasterMode = RasterMode::COLOR ;
-    Shading shadingMode = Shading::NONE;
+    Shading shadingMode = Shading::FLAT;
     LightingModel lightingMode = LightingModel::LAMBERT;
     void print() const {
         std::cout << "DisplaySettings:" << std::endl;
@@ -64,7 +64,6 @@ private:
     }
     static const char* shadingModeToString(Shading m) {
         switch(m) {
-        case Shading::NONE:    return "NONE";
         case Shading::FLAT:    return "FLAT";
         case Shading::GOURAUD: return "GOURAUD";
         case Shading::PHONG:   return "PHONG";
@@ -73,9 +72,10 @@ private:
     }
     static const char* lightingModeToString(LightingModel m) {
         switch(m) {
-        case LightingModel::NONE:       return "NONE";
-        case LightingModel::FACE_RATIO: return "FACE_RATIO";
+        case LightingModel::UNLIT:       return "NONE";
         case LightingModel::LAMBERT:    return "LAMBERT";
+        case LightingModel::PHONG:    return "PHONG";
+        case LightingModel::BLINN_PHONG:    return "BLINN_PHONG";
         default:                       return "UNKNOWN";
         }
     }

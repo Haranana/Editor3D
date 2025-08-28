@@ -12,7 +12,7 @@ public:
     //vector parameters
     Vector3 Ka{0,0,0}; //ambient, "minimal light"
     Vector3 Kd{1,1,1}; //diffuse/albedo used in Lambert
-    Vector3 Ks{0,0,0}; //specular used in Blinn/Phong
+    Vector3 Ks{1,1,1}; //specular used in Blinn/Phong
     Vector3 Ke{0,0,0}; //emissive (object own light)
 
     // parameters

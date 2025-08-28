@@ -16,6 +16,14 @@ Vector3 ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3
             } ;
 }
 
+Vector3 ShadingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightColor) const{
+    double NdotL = std::max(0.0, normal.dotProduct(lightDirection));
+    return {NdotL * lightColor.x,
+            NdotL * lightColor.y,
+            NdotL * lightColor.z,
+            } ;
+}
+
 Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera,const Vector3& worldSpacePoint,
                                              bool fresnel , bool normalizeSpecular ) {
 
