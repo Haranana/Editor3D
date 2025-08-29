@@ -26,6 +26,8 @@ private slots:
     void onEmissiveChanged();
     void onShininessChanged(double v);
     void onIorChanged(double v);
+    void onRoughnessChanged(double v);
+    void onMetallicChanged(double v);
     void onOpacityChanged(double v);
 
 private:
@@ -38,6 +40,14 @@ private:
     static constexpr double shininessMin = 1.0;
     static constexpr double shininessMax = 512.0;
     static constexpr double shininessStep = 1.0;
+
+    static constexpr double roughnessMin = 0.05;
+    static constexpr double roughnessMax = 1.0;
+    static constexpr double roughnessStep = 0.01;
+
+    static constexpr double metallicMin = 0.0;
+    static constexpr double metallicMax = 1.0;
+    static constexpr double metallicStep = 0.01;
 
     static constexpr double iorMin = 1.0;
     static constexpr double iorMax = 2.5;
@@ -64,6 +74,12 @@ private:
 
     QDoubleSpinBox* iorSpin;
     QSlider* iorSlider;
+
+    QDoubleSpinBox* roughnessSpin;
+    QSlider* roughnessSlider;
+
+    QDoubleSpinBox* metallicSpin;
+    QSlider* metallicSlider;
 
     QDoubleSpinBox* opacitySpin;
     QSlider* opacitySlider;

@@ -69,6 +69,53 @@ MaterialPropertiesWidget::MaterialPropertiesWidget(QWidget* parent)
             iorSpin->setValue(dv);
     });
 
+    auto roughnessRow = new QWidget(this);
+    auto roughnessLayout = new QHBoxLayout(roughnessRow);
+    roughnessSpin = new QDoubleSpinBox(this);
+    roughnessSpin->setDecimals(2);
+    roughnessSpin->setRange(roughnessMin, roughnessMax);
+    roughnessSpin->setSingleStep(roughnessStep);
+    roughnessSlider = new QSlider(Qt::Horizontal, this);
+    roughnessSlider->setRange(int(roughnessMin*100), int(roughnessMax*100));
+    roughnessLayout->addWidget(roughnessSpin);
+    roughnessLayout->addWidget(roughnessSlider);
+    layout->addRow("Roughness", roughnessRow);
+    connect(roughnessSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double v){
+        int iv = int(v*100);
+        if (roughnessSlider->value() != iv)
+            roughnessSlider->setValue(iv);
+        onRoughnessChanged(v);
+    });
+    connect(roughnessSlider, &QSlider::valueChanged, [this](int v){
+        double dv = v/100.0;
+        if (std::abs(roughnessSpin->value() - dv) > 1e-6)
+            roughnessSpin->setValue(dv);
+    });
+
+
+    auto metallicRow = new QWidget(this);
+    auto metallicLayout = new QHBoxLayout(metallicRow);
+    metallicSpin = new QDoubleSpinBox(this);
+    metallicSpin->setDecimals(2);
+    metallicSpin->setRange(metallicMin, metallicMax);
+    metallicSpin->setSingleStep(metallicStep);
+    metallicSlider = new QSlider(Qt::Horizontal, this);
+    metallicSlider->setRange(int(metallicMin*100), int(metallicMax*100));
+    metallicLayout->addWidget(metallicSpin);
+    metallicLayout->addWidget(metallicSlider);
+    layout->addRow("Metallic", metallicRow);
+    connect(metallicSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double v){
+        int iv = int(v*100);
+        if (metallicSlider->value() != iv)
+            metallicSlider->setValue(iv);
+        onMetallicChanged(v);
+    });
+    connect(metallicSlider, &QSlider::valueChanged, [this](int v){
+        double dv = v/100.0;
+        if (std::abs(metallicSpin->value() - dv) > 1e-6)
+            metallicSpin->setValue(dv);
+    });
+
     auto opacityRow = new QWidget(this);
     auto opacityLayout = new QHBoxLayout(opacityRow);
     opacitySpin = new QDoubleSpinBox(this);
@@ -171,6 +218,18 @@ void MaterialPropertiesWidget::onIorChanged(double v)
 {
     if (!obj) return;
     obj->material.Ni = v;
+    emit objectChanged();
+}
+
+void MaterialPropertiesWidget::onRoughnessChanged(double v){
+    if (!obj) return;
+    obj->material.roughness = v;
+    emit objectChanged();
+}
+
+void MaterialPropertiesWidget::onMetallicChanged(double v){
+    if (!obj) return;
+    obj->material.metallic = v;
     emit objectChanged();
 }
 
