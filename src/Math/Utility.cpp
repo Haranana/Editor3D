@@ -5,6 +5,10 @@ bool MathUt::equal(double d1, double d2, double epsilon){
     return std::abs(d1 - d2) <= epsilon;
 }
 
+double lerp(double a, double b, double t){
+    return (1-t)*a+t*b;
+}
+
 double MathUt::mean(std::vector<double> v){
     double result{};
     for(const auto& it : v){

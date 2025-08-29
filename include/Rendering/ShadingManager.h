@@ -23,6 +23,9 @@ public:
                                  bool fresnel = false, bool normalizeSpecular = false) ;
     Vector3 illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
                                  bool fresnel = false, bool normalizeSpecular = false) ;
+
+    Vector3 getSpecularCookTorrance(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint);
+
     std::shared_ptr<Buffer<double>> shadowMap;
 private:
     //returns vector beetwen camera and specified point, used in calculating facing ratio
@@ -31,6 +34,10 @@ private:
                           const Vector3& normal) const;
 
     double schlickApproximation(double angleCos, double normIncidenceReflaction = 0.04);
+    Vector3 schlickApproximationVector(double angleCos, Vector3 normIncidenceReflaction = Vector3{0.04,0.04,0.04});
+
+    double ndfGgx(double roughness, const Vector3& normal, const Vector3& halfwayVector);
+    double schlickGgx(double roughness, const Vector3& normal, const Vector3& pointToCameraDir, const Vector3& pointToLightDir);
 
     Vector3 getCameraPointVector(const Vector3& cameraPosition,
                                  const Vector3& point) const;

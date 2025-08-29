@@ -20,6 +20,8 @@ public:
     double Ni = 1.f; //Index of Refraction used in water/glass etc
     double d  = 1.f; //opacity
     int   illum = 2; //light model preset
+    double roughness = 0.3;//used in Cook-Torrence, should never be 0, maybe min = 0.045
+    double metallic = 0.3;//used in Cook-Torrence
 
     //maps
     std::string map_Kd;   // albedo

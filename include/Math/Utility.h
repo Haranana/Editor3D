@@ -9,6 +9,8 @@ namespace MathUt{
 
 bool equal(double d1, double d2, double epsilon = 1e-6);
 
+double lerp(double a, double b, double t);
+
 double mean(std::vector<double> v);
 
 int OnetoZeroBased(int i, int size);
