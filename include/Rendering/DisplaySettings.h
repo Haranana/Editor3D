@@ -27,6 +27,7 @@ public:
         LAMBERT,
         PHONG,
         BLINN_PHONG,
+        COOK_TORRANCE
     };
 
     bool hideUnseenWireframes = false; //not implemented!
@@ -34,7 +35,7 @@ public:
     bool backFaceCulling = true;
     RenderMode renderMode = RenderMode::RASTER;
     RasterMode rasterMode = RasterMode::COLOR ;
-    Shading shadingMode = Shading::FLAT;
+    Shading shadingMode = Shading::PHONG;
     LightingModel lightingMode = LightingModel::LAMBERT;
     void print() const {
         std::cout << "DisplaySettings:" << std::endl;

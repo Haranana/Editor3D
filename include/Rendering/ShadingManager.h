@@ -19,6 +19,8 @@ public:
     double getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo = defaultAlbedo) const;
     Vector3 getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const;
     Vector3 getDiffuseLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightColor) const;
+    Vector3 getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material, Camera& camera, const Vector3& worldSpacePoint);
+
     Vector3 illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
                                  bool fresnel = false, bool normalizeSpecular = false) ;
     Vector3 illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,

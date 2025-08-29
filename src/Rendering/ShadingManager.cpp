@@ -24,6 +24,22 @@ Vector3 ShadingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& norma
             } ;
 }
 
+Vector3 ShadingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material, Camera& camera, const Vector3& worldSpacePoint){
+    Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
+    Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();
+
+    double fresnelAngle = pointToCameraDir.dotProduct(halfwayVector);
+
+    Vector3 F0 = material.Kd * material.metallic
+                 + Vector3(0.04,0.04,0.04) * (1.0 - material.metallic);
+
+    Vector3 fresnel = schlickApproximationVector(fresnelAngle, F0);
+    Vector3 oneMinusFresnel = Vector3{1.0 - fresnel.x,
+                                      1.0 - fresnel.y,
+                                        1.0 - fresnel.z};
+    return (oneMinusFresnel)*(1.0 - material.metallic)*(1.0/M_PI);
+}
+
 Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material, Camera& camera,const Vector3& worldSpacePoint,
                                              bool fresnel , bool normalizeSpecular ) {
 
@@ -123,6 +139,7 @@ double ShadingManager::schlickApproximation(double angleCos, double normIncidenc
 }
 
 Vector3 ShadingManager::schlickApproximationVector(double angleCos, Vector3 normIncidenceReflaction ){
+    angleCos = std::clamp(angleCos, 0.0 , 1.0);
     return normIncidenceReflaction + (Vector3(1,1,1) - normIncidenceReflaction)*std::pow((1-angleCos),5);
 }
 
@@ -131,7 +148,7 @@ double ShadingManager::ndfGgx(double roughness, const Vector3& normal, const Vec
     double alphaSquared = alpha*alpha;
     double nDotH = normal.dotProduct(halfwayVector);
     nDotH = std::clamp(nDotH, 0.0, 1.0);
-    double nDotHSquared = normal.dotProduct(halfwayVector) * normal.dotProduct(halfwayVector);
+    double nDotHSquared = nDotH*nDotH;
     double alphaSquaredMinusOne = alpha*alpha-1;
     double ndfDenomMain = nDotHSquared * alphaSquaredMinusOne + 1;
     nDotHSquared = std::clamp(nDotHSquared , 0.0, 1.0);

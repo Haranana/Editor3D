@@ -15,6 +15,12 @@ Vector3 Vector3::crossProduct(const Vector3& otherVector) const{
                    this->x * otherVector.y - this->y * otherVector.x);
 }
 
+Vector3 Vector3::hadamard(const Vector3& otherVector) const{
+    return Vector3{this->x * otherVector.x,
+                   this->y * otherVector.y,
+                   this->z * otherVector.z};
+}
+
 double Vector3::dotProduct(const Vector3& otherVector) const{
     return this->x * otherVector.x+
                    this->y * otherVector.y+

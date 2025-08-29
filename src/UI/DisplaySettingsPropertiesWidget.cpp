@@ -1,4 +1,4 @@
-#include "UI/DisplaySettingsPropertiesWidget.h".h"
+#include "UI/DisplaySettingsPropertiesWidget.h"
 
 DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent) : ObjectPropertiesWidget(parent){
 
@@ -30,6 +30,7 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
     objectLightingModelComboBox->addItem(QString("Lambert"));
     objectLightingModelComboBox->addItem(QString("Phong"));
     objectLightingModelComboBox->addItem(QString("Blinn Phong"));
+    objectLightingModelComboBox->addItem(QString("Cook Torrance"));
     layout->addRow("Lighting model",objectLightingModelComboBox);
     connect(objectLightingModelComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onlightingModelChanged);
 
@@ -91,7 +92,10 @@ void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object
         objectLightingModelComboBox->setCurrentIndex(2);
         break;
     case DisplaySettings::LightingModel::BLINN_PHONG:
-        objectLightingModelComboBox->setCurrentIndex(2);
+        objectLightingModelComboBox->setCurrentIndex(3);
+        break;
+    case DisplaySettings::LightingModel::COOK_TORRANCE:
+        objectLightingModelComboBox->setCurrentIndex(4);
         break;
     }
 
@@ -146,7 +150,7 @@ void DisplaySettingsPropertiesWidget::onShadingChanged(){
         obj->displaySettings->shadingMode = DisplaySettings::Shading::PHONG;
         break;
     default:
-        obj->displaySettings->shadingMode = DisplaySettings::Shading::FLAT;
+        obj->displaySettings->shadingMode = DisplaySettings::Shading::PHONG;
         break;
     }
     emit objectChanged();
@@ -163,8 +167,14 @@ void DisplaySettingsPropertiesWidget::onlightingModelChanged(){
     case 2:
         obj->displaySettings->lightingMode = DisplaySettings::LightingModel::PHONG;
         break;
-    default:
+    case 3:
         obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
+        break;
+    case 4:
+        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::COOK_TORRANCE;
+        break;
+    default:
+        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
         break;
     }
     emit objectChanged();
