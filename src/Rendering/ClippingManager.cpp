@@ -34,7 +34,8 @@ ClippingManager::ClippedVertex ClippingManager::interpolateClippedVertices(const
         v1.invW      + (v2.invW      - v1.invW)      * t,
         v1.worldSpaceVertexOverW  + (v2.worldSpaceVertexOverW  - v1.worldSpaceVertexOverW)  * t,
         v1.worldSpaceNormalOverW   + (v2.worldSpaceNormalOverW   - v1.worldSpaceNormalOverW)   * t,
-        v1.colorOverW + (v2.colorOverW   - v1.colorOverW)   * t,
+        //v1.colorOverW + (v2.colorOverW   - v1.colorOverW)   * t,
+        Vector3{},
         v1.uvOverW + (v2.uvOverW - v1.uvOverW)*t,
         v1.hasUV && v2.hasUV // jeżeli oba końce miały UV, punkt pośredni też ma
     };

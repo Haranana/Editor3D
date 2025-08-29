@@ -19,7 +19,6 @@ Renderer::Renderer(
     paintTool(img, zBuffer)
 {
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
-    linePainter = std::make_shared<LinePainter>(renderingSurface->getImg());
     clippingManager = std::make_shared<ClippingManager>();
     shadingManager = std::make_shared<ShadingManager>();
 }
@@ -34,7 +33,7 @@ void Renderer::renderScene(){
 
 void Renderer::renderSceneObjects(){
 
-    LinePainter linePainter = LinePainter(renderingSurface->getImg());
+
     stats.clear();
 
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
@@ -76,22 +75,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
         Vector3 worldSpaceVertex = modelToWorld(localSpaceVertex, M);
         Vector3 worldSpaceNormal = normalToWorld(obj.transform , obj.vertexNormals[i]);
 
-        //calculate light at vertices, used in Gourand shading
-        Vector3 vertColor;
-        switch(obj.displaySettings->shadingMode){
-        case DisplaySettings::Shading::FLAT:
-            vertColor = Vectors::colorToVector3(shadingManager->shadeColorFR(
-                camPos,
-                worldSpaceVertex,
-                worldSpaceNormal,
-                baseColor
-                ));
-            break;
-        case DisplaySettings::Shading::GOURAUD:
-            break;
-        case DisplaySettings::Shading::PHONG:
-            break;
-        }
 
         Vector2 uv{};
         bool hasUV = false;
@@ -105,7 +88,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             invertedW,
             worldSpaceVertex * invertedW,
             worldSpaceNormal * invertedW,
-            vertColor * invertedW,
+            Vector3{}, //not used, should be removed in future
             uv*invertedW,
             hasUV
         });
@@ -650,7 +633,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                     specularModifier = shadingManager->illuminatePointPhong(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        ) * visibility;
+                                        );
 
                                 }
 
@@ -661,9 +644,15 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                     specularModifier = shadingManager->illuminatePointBlinnPhong(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        ) * visibility;
+                                        );
 
                                 }
+
+                                specularModifier = Vector3{
+                                    specularModifier.x * combinedLight.x,
+                                    specularModifier.y * combinedLight.y,
+                                    specularModifier.z * combinedLight.z
+                                } * visibility;
 
                                 outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                             }

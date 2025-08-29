@@ -146,7 +146,6 @@ private:
     std::shared_ptr<Buffer<double>>zBuffer;
     std::shared_ptr<Buffer<IdBufferElement>> idBuffer;
     std::shared_ptr<PixelPainter> pixelPainter;
-    std::shared_ptr<LinePainter> linePainter;
     std::shared_ptr<ClippingManager> clippingManager;
     std::shared_ptr<ShadingManager> shadingManager;
 
