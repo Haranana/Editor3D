@@ -76,13 +76,13 @@ public:
     }
 
     static double pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias,
-                             int offsetSize = 8, double texelSize = 1.0/2048.0, double kernelRadius = 1.5){
+                             int samples = 8, double kernelRadiusInTexels = 1.5){
 
 
         std::vector<Vector2> offset;
-        if(offsetSize<=8){
+        if(samples<=8){
             offset = NoiseManager::getPoissonOffset8();
-        }else if(offsetSize<=12){
+        }else if(samples<=12){
             offset = NoiseManager::getPoissonOffset12();
         }else{
             offset = NoiseManager::getPoissonOffset16();
@@ -91,13 +91,9 @@ public:
         int shadowedTexels = 0;
         int texelsInRange = 0;
         for(size_t i = 0; i < offset.size(); i++){
-            /*
-            Vector2 testUV = Vector2(offset[i].x * texelSize * kernelRadius,
-                                     offset[i].y * texelSize * kernelRadius);
-            */
 
-            const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * kernelRadius)), 0, (int)shadowMap.width()-1);
-            const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * kernelRadius)), 0, (int)shadowMap.height()-1);
+            const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * kernelRadiusInTexels)), 0, (int)shadowMap.width()-1);
+            const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * kernelRadiusInTexels)), 0, (int)shadowMap.height()-1);
 
             if(shadowMap.exists(shadowMapCoordY,shadowMapCoordX)){
                 texelsInRange++;
@@ -127,6 +123,7 @@ public:
     }
 
     static double pcssPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias, Light& lightSource){
+
         static const int pcfSample = 12;
         std::vector<Vector2> offset;
 
@@ -141,33 +138,75 @@ public:
         static const double baseSearchRadius = 1.5;
         double searchRadiusInTexels{};
 
+        double distanceWorld = distance;
+
         if(lightType == Light::LightType::DISTANT){
             if(auto distantLight = dynamic_cast<DistantLight*>(&lightSource)){
+                distanceWorld = distantLight->normalizedDepthToWorld(distance);
                 searchRadiusInTexels =baseSearchRadius * std::tan(lightSource.emitterRadiusWorld)/distantLight->getWorldUnitsPerTexel();
+
+
+                searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
+
+                for(size_t i = 0; i < offset.size(); i++){
+                    const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * searchRadiusInTexels)), 0, (int)shadowMap.width()-1);
+                    const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * searchRadiusInTexels)), 0, (int)shadowMap.height()-1);
+
+                        texelsInRange++;
+                        if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
+                            shadowedTexels++;
+                            double blockerDistanceWorld = distantLight->normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                            blockerDistances.push_back( blockerDistanceWorld);
+                        }
+
+                }
             }
         }else if(lightType == Light::LightType::POINT){
             if(auto pointLight = dynamic_cast<PointLight*>(&lightSource)){
-                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/pointLight->getWorldUnitsPerTexel(distance);
+                distanceWorld = pointLight->normalizedDepthToWorld(distance);
+                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/pointLight->getWorldUnitsPerTexel(distanceWorld);
+
+                searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
+
+                for(size_t i = 0; i < offset.size(); i++){
+                    const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * searchRadiusInTexels)), 0, (int)shadowMap.width()-1);
+                    const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * searchRadiusInTexels)), 0, (int)shadowMap.height()-1);
+
+
+                        texelsInRange++;
+                        if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
+                            shadowedTexels++;
+                            double blockerDistanceWorld = pointLight->normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                            blockerDistances.push_back( blockerDistanceWorld);
+                        }
+
+                }
             }
         }else if(lightType == Light::LightType::SPOT){
             if(auto spotLight = dynamic_cast<SpotLight*>(&lightSource)){
-                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/spotLight->getWorldUnitsPerTexel(distance);
-            }
-        }
-        searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
+                distanceWorld = spotLight->normalizedDepthToWorld(distance);
+                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/spotLight->getWorldUnitsPerTexel(distanceWorld);
 
-        for(size_t i = 0; i < offset.size(); i++){
-            const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * searchRadiusInTexels)), 0, (int)shadowMap.width()-1);
-            const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * searchRadiusInTexels)), 0, (int)shadowMap.height()-1);
 
-            if(shadowMap.exists(shadowMapCoordY,shadowMapCoordX)){
-                texelsInRange++;
-                if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
-                    shadowedTexels++;
-                    blockerDistances.push_back(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
+
+                for(size_t i = 0; i < offset.size(); i++){
+                    const int shadowMapCoordX = std::clamp(int(std::floor(shadowMapCoords.x + offset[i].x * searchRadiusInTexels)), 0, (int)shadowMap.width()-1);
+                    const int shadowMapCoordY = std::clamp(int(std::floor(shadowMapCoords.y + offset[i].y * searchRadiusInTexels)), 0, (int)shadowMap.height()-1);
+
+
+                        texelsInRange++;
+                        if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
+                            shadowedTexels++;
+                            double blockerDistanceWorld = spotLight->normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                            blockerDistances.push_back( blockerDistanceWorld);
+
+                        }
+
                 }
             }
         }
+
 
 
 
@@ -183,24 +222,24 @@ public:
 
         if(lightType == Light::LightType::DISTANT){
             if(auto distantLight = dynamic_cast<DistantLight*>(&lightSource)){
-                kernelSize = (distance - blockerDistanceMean) * std::tan(lightSource.emitterRadiusWorld);
+                kernelSize = (distanceWorld - blockerDistanceMean) * std::tan(lightSource.emitterRadiusWorld);
                 kernelSizeInTexels = kernelSize/distantLight->getWorldUnitsPerTexel();
             }
         }else if(lightType == Light::LightType::POINT){
             if(auto pointLight = dynamic_cast<PointLight*>(&lightSource)){
-                kernelSize = (distance - blockerDistanceMean) * (lightSource.emitterRadiusWorld/blockerDistanceMean);
-                kernelSizeInTexels = kernelSize/pointLight->getWorldUnitsPerTexel(distance);
+                kernelSize = (distanceWorld - blockerDistanceMean) * (lightSource.emitterRadiusWorld/MathUt::safeDenom(blockerDistanceMean));
+                kernelSizeInTexels = kernelSize/pointLight->getWorldUnitsPerTexel(distanceWorld);
             }
         }else if(lightType == Light::LightType::SPOT){
             if(auto spotLight = dynamic_cast<SpotLight*>(&lightSource)){
-                kernelSize = (distance - blockerDistanceMean) * (lightSource.emitterRadiusWorld/blockerDistanceMean);
-                kernelSizeInTexels = kernelSize/spotLight->getWorldUnitsPerTexel(distance);
+                kernelSize = (distanceWorld - blockerDistanceMean) * (lightSource.emitterRadiusWorld/MathUt::safeDenom(blockerDistanceMean));
+                kernelSizeInTexels = kernelSize/spotLight->getWorldUnitsPerTexel(distanceWorld);
             }
         }
 
         kernelSizeInTexels = std::clamp(kernelSizeInTexels, 1.0 , maxKernel);
 
-        return pcfPoisson(shadowMap, shadowMapCoords, distance, bias, pcfSample, 1/shadowMap.getRows(), kernelSizeInTexels);
+        return pcfPoisson(shadowMap, shadowMapCoords, distance, bias, pcfSample, kernelSizeInTexels);
 }
 
 

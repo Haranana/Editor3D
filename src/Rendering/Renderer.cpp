@@ -1652,14 +1652,14 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
 
             auto distantLight = std::static_pointer_cast<DistantLight>(light);
             pointForDepthCheck = BiasManager::getNormalAngleDistant(distantLight->shadowMap, *distantLight, normal, point, pcfKernelSize);
-            biasAddition = Renderer::doubleBias;
+            biasAddition = BiasManager::getMinBias(distantLight->shadowMap);
 
         } else if (light->lightType == Light::LightType::SPOT) {
 
             auto spotLigt = std::static_pointer_cast<SpotLight>(light);
             Vector3 toL = (spotLigt->transform.getPosition() - point).normalize();
             pointForDepthCheck = BiasManager::getNormalAngleSpot(spotLigt->shadowMap, *spotLigt, normal, toL, point, pcfKernelSize);
-            biasAddition = Renderer::doubleBias;
+            biasAddition = BiasManager::getMinBias(spotLigt->shadowMap);
 
         } else { //POINT
 
@@ -1677,7 +1677,7 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
 
             if (outFace) *outFace = face;
 
-            biasAddition = Renderer::doubleBias;
+            biasAddition = BiasManager::getMinBias( *pointLight->shadowMaps[0]);
 
         }
         break;
@@ -1687,24 +1687,110 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
     case BT::SLOPE_SCALED: {
         if (light->lightType == Light::LightType::DISTANT) {
 
-            auto distantLight = std::static_pointer_cast<DistantLight>(light);
-            Vector3 p0 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v1)),
-                p1 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v2)),
-                p2 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v3));
+                auto distantLight = std::static_pointer_cast<DistantLight>(light);
+
+                auto toTexel = [&](const Vector3& w) {
+                    Vector4 c = distantLight->getProjectionMatrix()*distantLight->getViewMatrix()*Vectors::vector3to4(w);
+                    Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
+                    return Vector3{
+                        (ndc.x*0.5 + 0.5) * (distantLight->shadowMap.getCols()-1),
+                        (1.0 - (ndc.y*0.5 + 0.5)) * (distantLight->shadowMap.getRows()-1),
+                        (ndc.z*0.5 + 0.5)
+                    };
+                };
+
+                /*
+                Vector3 p0 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v1)),
+                    p1 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v2)),
+                    p2 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v3));
+                */
+                Vector3 p0 = toTexel(fanWorldCoords.v1);
+                Vector3 p1 = toTexel(fanWorldCoords.v2);
+                Vector3 p2 = toTexel(fanWorldCoords.v3);
+
+                double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+                int minDim = std::min(distantLight->shadowMap.getRows(), distantLight->shadowMap.getCols());
+                double alphaConst;
+
+                //if r would be smaller than 0 we don't divide, otherwise bias would be too great
+                if(pcfKernelSize <= 1){
+                    alphaConst = light->bias * std::max(1, minDim);
+                }else{
+                    alphaConst = light->bias * std::max(1, minDim) / MathUt::safeDenom(r);
+                }
 
 
-            auto eff = (pcfKernelSize <= 1) ? 1.0 : double((pcfKernelSize - 1) / 2);
-            int minDim = std::min(distantLight->shadowMap.getRows(), distantLight->shadowMap.getCols());
-            double alphaConst = light->bias * std::max(1, minDim) / std::max(1e-6, eff);
 
-            biasAddition = BiasManager::getSlopeScaled(distantLight->shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
+                biasAddition = BiasManager::getSlopeScaled(distantLight->shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
 
-           // std::cout<<"Bias addition : "<<biasAddition<<"|  bias: "<<distantLight->bias<<std::endl;
+            } else if (light->lightType == Light::LightType::POINT) {
 
-        } else {
+                auto pointLight = std::static_pointer_cast<PointLight>(light);
 
-            biasAddition = light->bias;
-        }
+                PointLight::ShadowMapFace face = PointLight::pickFace(point - pointLight->transform.getPosition());
+                if (outFace) *outFace = face;
+
+                auto toTexel = [&](const Vector3& w) {
+                    Vector4 c = pointLight->getProjectionMatrix()*pointLight->getViewMatrix(face)*Vectors::vector3to4(w);
+                    Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
+                    return Vector3{
+                        (ndc.x*0.5 + 0.5) * (pointLight->shadowMaps[0]->getCols()-1),
+                        (1.0 - (ndc.y*0.5 + 0.5)) * (pointLight->shadowMaps[0]->getRows()-1),
+                        (ndc.z*0.5 + 0.5)
+                    };
+                };
+
+                Vector3 p0 = toTexel(fanWorldCoords.v1);
+                Vector3 p1 = toTexel(fanWorldCoords.v2);
+                Vector3 p2 = toTexel(fanWorldCoords.v3);
+
+                double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+                int minDim = std::min(pointLight->shadowMaps[face]->getRows(), pointLight->shadowMaps[face]->getCols());
+                double alphaConst;
+
+                //if r would be smaller than 0 we don't divide, otherwise bias would be too great
+                if(pcfKernelSize <= 1){
+                    alphaConst = light->bias * std::max(1, minDim);
+                }else{
+                    alphaConst = light->bias * std::max(1, minDim) / MathUt::safeDenom(r);
+                }
+
+                biasAddition = BiasManager::getSlopeScaled(*pointLight->shadowMaps[face], p0, p1, p2, pcfKernelSize, alphaConst);
+
+
+            } else if (light->lightType == Light::LightType::SPOT){
+                auto spotLight = std::static_pointer_cast<SpotLight>(light);
+                auto toTexel = [&](const Vector3& w) {
+                    Vector4 c = spotLight->getProjectionMatrix()*spotLight->getViewMatrix()*Vectors::vector3to4(w);
+                    Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
+                    return Vector3{
+                        (ndc.x*0.5 + 0.5) * (spotLight->shadowMap.getCols()-1),
+                        (1.0 - (ndc.y*0.5 + 0.5)) * (spotLight->shadowMap.getRows()-1),
+                        (ndc.z*0.5 + 0.5)
+                    };
+                };
+
+                Vector3 p0 = toTexel(fanWorldCoords.v1);
+                Vector3 p1 = toTexel(fanWorldCoords.v2);
+                Vector3 p2 = toTexel(fanWorldCoords.v3);
+
+                double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+                int minDim = std::min(spotLight->shadowMap.getRows(), spotLight->shadowMap.getCols());
+                double alphaConst;
+
+                //if r would be smaller than 0 we don't divide, otherwise bias would be too great
+                if(pcfKernelSize <= 1){
+                    alphaConst = light->bias * std::max(1, minDim);
+                }else{
+                    alphaConst = light->bias * std::max(1, minDim) / MathUt::safeDenom(r);
+                }
+
+                biasAddition = BiasManager::getSlopeScaled(spotLight->shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
+
+
+            }else{
+                biasAddition = light->bias;
+            }
 
         pointForDepthCheck = point;
         break;
@@ -1718,6 +1804,7 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
     }
 }
 
+/*
 Renderer::Bias Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
                    Triangle3& fanWorldCoords, PointLight::ShadowMapFace face, int pcfKernelSize){
 
@@ -1792,9 +1879,11 @@ Renderer::Bias Renderer::calculateBias(const std::shared_ptr<Light>& light, cons
         break;
     }
 }
+*/
 
 double Renderer::calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
                              double receiverDepth, double bias,  Light& light){
+
     using FT = Light::FilteringType;
     switch (light.filteringType){
     case FT::NONE: {

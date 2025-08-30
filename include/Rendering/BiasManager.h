@@ -78,6 +78,13 @@ public:
         return (normal*moveDistance)+point;
     }
 
+    //calculate small bias dependand on texel size, used as bias addition in Normal angle
+    static double getMinBias(const Buffer<double>& shadowMap){
+        constexpr static double biasBase = 1e-4;
+        const double texelZ = 1.0 / std::max(1, std::min((int)shadowMap.width(), (int)shadowMap.height()));
+        return std::max(biasBase, 0.5*texelZ);
+    }
+
 private:
 
     //SSDB
@@ -90,18 +97,18 @@ private:
         Vector3 e2{p2-p0};
 
         double denom = e1.x*e2.y - e1.y*e2.x;
-        if(MathUt::equal(denom , 0.0)) return 0.0; //no slope
+        if(MathUt::equal(denom , 0.0 , 1e-12)) return 0.0; //no slope
 
         double a = (e1.z*e2.y - e2.z*e1.y) / denom;
         double b = (-e1.z*e2.x + e2.z*e1.x) / denom;
 
-        return std::max(abs(a) , abs(b));
+        return std::max(std::abs(a) , std::abs(b));
     }
 
     static double getSsdbKConst(double alphaConst,int pcfKernelSize,int minHeightWidth){
         if (minHeightWidth <= 0) return 0.0;
         if (pcfKernelSize <= 1)  return alphaConst / double(minHeightWidth);
-        const double r = double((pcfKernelSize - 1) / 2);
+        const double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
         return alphaConst * r / double(minHeightWidth);
     }
 
@@ -147,7 +154,7 @@ private:
 
     static double pcfCorrect(double wupt, int kernel){
         if (kernel <= 1) return wupt;
-        const double r = double((kernel - 1) / 2);
+        const double r = RendUt::kernelRadiusFromSide(kernel);
         return wupt * r;
     }
 
@@ -156,6 +163,8 @@ private:
         Vector3 normalizedLightVector3 = lightVector.normalize();
         return (1-std::max(0.0 , normalizedNormal.dotProduct(normalizedLightVector3)));
     }
+
+
 
     static constexpr double defaultNaNormalFactor = 0.75;
     static constexpr double defaultNaAngleFactor = 1.0;

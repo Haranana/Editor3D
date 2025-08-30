@@ -161,3 +161,9 @@ Vector3 RendUt::linearToSRGB(const Vector3& linear){
 
     return sRGB;
 }
+
+//works for even kernelSides like in bilinear filtering!
+double RendUt::kernelRadiusFromSide(int side){
+    return (side <= 1) ? 0.0 : 0.5 * double(side - 1);
+}
+

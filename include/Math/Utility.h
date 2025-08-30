@@ -45,9 +45,12 @@ Vector2 randomPointInRing(const Vector2& center, double r, std::mt19937& gen);
 namespace RendUt{
 
 Vector3 sRGBToLinear(const Vector3& sRGB);
+
 double sRGBToLinear(double sRGB);
+
 Vector3 linearToSRGB(const Vector3& linear);
 
+double kernelRadiusFromSide(int side);
 
 }
 #endif // UTILITY_H

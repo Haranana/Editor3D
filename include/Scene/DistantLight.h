@@ -16,11 +16,13 @@ public:
     static constexpr size_t defaultShadowMapSize = 2048; //in pixels
 
 
-    //used in projectionMatrix and normalAngleBias
+    //used in projectionMatrix, bias calculation, and normalization
     double oLeft = 0.0;
     double oRight = 0.0;
     double oBottom = 0.0;
     double oTop = 0.0;
+    double oNear = 0.0;
+    double oFar = 0.0;
 
     //probably should be kept normalized
     Vector3 direction;
@@ -77,6 +79,8 @@ public:
         oRight = orthoRight;
         oBottom = orthoBottom;
         oTop = orthoTop;
+        oNear = orthoNear;
+        oFar = orthoFar;
         projectionMatrix = LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
     }
 
@@ -96,6 +100,10 @@ public:
             meanZ = meanZ + v.z;
         }
         return Vector3(meanX/boundingBox.size() , meanY/boundingBox.size(), meanZ/boundingBox.size());
+    }
+
+    double normalizedDepthToWorld(double depth){
+        return oNear + depth*(oFar - oNear);
     }
 
     Matrix4 viewMatrix = Matrices4::identity();;

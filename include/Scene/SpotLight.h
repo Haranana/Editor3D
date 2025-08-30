@@ -90,6 +90,10 @@ public:
 
     }
 
+    double normalizedDepthToWorld(double depth){
+        return near + depth*(range - near);
+    }
+
     double getDistanceAttenuation(double distance){
         return 1/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance);
     }

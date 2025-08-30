@@ -95,6 +95,11 @@ public:
         return projectionMatrix;
     }
 
+
+    double normalizedDepthToWorld(double depth){
+        return near + depth*(range - near);
+    }
+
     void printShadowMaps(){
         for(int face=0; face<6; face++){
             QImage img(shadowMaps[face]->getCols(), shadowMaps[face]->getRows(), QImage::Format_Grayscale8);
@@ -110,7 +115,6 @@ public:
             img.save(QString("shadowmap_%1.png").arg(face));
         }
     }
-
 };
 
 
