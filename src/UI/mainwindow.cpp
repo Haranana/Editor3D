@@ -239,7 +239,7 @@ void MainWindow::refreshScene()
 
 void MainWindow::loadTestScene(){
     //TestScenes::loadDistantLightTestScene2(*scene , *objectsList);
-    TestScenes::loadSpotLightTestScene1(*scene, *objectsList);
+    TestScenes::loadSpotLightTestScene2(*scene, *objectsList);
     //TestScenes::loadPointLightTestScene1(*scene, *objectsList);
     refreshScene();
 }

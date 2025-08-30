@@ -1786,7 +1786,8 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
                 }
 
                 biasAddition = BiasManager::getSlopeScaled(spotLight->shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
-
+                //std::cout<<"Base bias: "<<light->bias<<"  |  biasAddition: "<<biasAddition<<std::endl;
+               // if(biasAddition - light->bias > 0.00001) std::cout<<"+"<<std::endl;
 
             }else{
                 biasAddition = light->bias;

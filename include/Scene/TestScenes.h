@@ -117,6 +117,38 @@ namespace TestScenes{
         objectsList.addItem(itemTextLight);
     }
 
+
+    void loadSpotLightTestScene2(Scene& scene, QListWidget& objectsList){
+        auto floor = std::make_shared<Cube>();
+        scene.addObject(floor);
+        QString itemTextFloor = QString("floor");
+        objectsList.addItem(itemTextFloor);
+        floor->transform.setScales(Vector3(2.0,2.0,0.1));
+        floor->transform.setPositionZ(-50);
+        floor->viewportDisplay.color = Colors::Green;
+
+
+        auto cube = std::make_shared<Cube>();
+        scene.addObject(cube);
+        QString itemTextCube = QString("Cube");
+        objectsList.addItem(itemTextCube);
+        cube->transform.setScales(Vector3(0.4,0.4,0.4));
+        cube->transform.setAngleX(0.7);
+        cube->viewportDisplay.color = Colors::Blue;
+
+
+        std::shared_ptr<SpotLight> light = std::make_shared<SpotLight>();
+        light->biasType = Light::BiasType::SLOPE_SCALED;
+        light->direction = {-1.0,0.0,0.0};
+        light->color = Colors::White;
+        light->intensity = 8.0;
+        light->castsShadow = true;
+        light->transform.setPositionX(300);
+        scene.addObject(light);
+        QString itemTextLight = QString("light");
+        objectsList.addItem(itemTextLight);
+    }
+
     void loadPointLightTestScene1(Scene& scene, QListWidget& objectsList){
 
         auto cube1 = std::make_shared<Cube>();
