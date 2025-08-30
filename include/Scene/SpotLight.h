@@ -27,7 +27,7 @@ public:
 
 
 
-    static constexpr int defaultShadowMapSize = 512;
+    static constexpr int defaultShadowMapSize = 2048;
     static constexpr double ASPECT = 1.0;
     static constexpr Vector3 defaultUp = Vector3(0.0,1.0,0.0);
 
