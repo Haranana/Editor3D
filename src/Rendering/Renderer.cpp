@@ -58,7 +58,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const int width  = getRenderingSurface()->getImg()->width();
     const int height = getRenderingSurface()->getImg()->height();
     const Matrix4 M = obj.transform.getTransMatrix();
-    const Vector3 camPos = getCamera()->transform.getPosition();
     const Color baseColor = obj.viewportDisplay.color;
     Color finalColor = baseColor;
     bool objDrawn = false; //whether there was any pixel of this object drawn on scene, used in statistics
@@ -107,14 +106,11 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                                                 modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]],M),
                                                                                 modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]],M) ))) continue;
 
-
         //clipping triangle
         std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({clipSpaceTriangle.v1,
                                                                                                  clipSpaceTriangle.v2,
                                                                                                  clipSpaceTriangle.v3});
         if (clippedPoly.size() < 3) continue;
-        //stats.faces++;
-        //stats.vertices+=clippedPoly.size();
 
         // clip -> ndc -> screen - > screen with normalized depth
         std::vector<Vector3> screenVerticesWithDepth;
@@ -304,7 +300,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         kd = Vector3{mat.Kd.x * kdTex.x, mat.Kd.y * kdTex.y, mat.Kd.z * kdTex.z};
                         Vector3 ksTex = triangleHasUV ? Texture::sampleRGB(mat.specularTexture, pointUV) : Vector3{1,1,1};
                         Vector3 ks = Vector3{mat.Ks.x * ksTex.x, mat.Ks.y * ksTex.y , mat.Ks.z * ksTex.z};
-                        double  alpha = triangleHasUV ? Texture::sampleA  (mat.opacityTexture,  pointUV) : 1.0;
+                        double  alpha = triangleHasUV ? Texture::sampleA  (mat.opacityTexture,  pointUV) : mat.d;
                         Vector3 keTex = triangleHasUV ? Texture::sampleRGB(mat.emissiveTexture, pointUV) : Vector3{1,1,1};
                         Vector3 Ke = Vector3{mat.Ke.x * keTex.x, mat.Ke.y * keTex.y, mat.Ke.z * keTex.z};
                         Vector3 Ka = mat.Ka;
