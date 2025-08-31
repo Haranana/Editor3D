@@ -21,6 +21,36 @@ namespace TestScenes{
         objectsList.addItem(itemTextLight);
     }
 
+    void loadPointLightTestScene4(Scene& scene, QListWidget& objectsList){
+
+        auto cube3 = std::make_shared<Cube>();
+        scene.addObject(cube3);
+        QString itemTextCube3 = QString("Cub3");
+        objectsList.addItem(itemTextCube3);
+        cube3->transform.setScales(Vector3(0.1,0.1,0.1));
+        cube3->transform.setPositionX(100);
+        cube3->transform.setScales(Vector3(0.1, 3.0, 3.0));
+        cube3->viewportDisplay.color = Colors::Red;
+
+        auto cube4 = std::make_shared<Cube>();
+        scene.addObject(cube4);
+        QString itemTextCube4 = QString("Cube4");
+        objectsList.addItem(itemTextCube4);
+        cube4->transform.setScales(Vector3(0.1,0.1,0.1));
+        cube4->transform.setPositionY(100);
+        cube4->transform.setScales(Vector3(3.0, 0.1, 3.0));
+        cube4->viewportDisplay.color = Colors::Purple;
+
+
+        std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
+        light->color = Colors::White;
+        light->intensity = 2.0;
+        light->castsShadow = true;
+        scene.addObject(light);
+        QString itemTextLight = QString("light");
+        objectsList.addItem(itemTextLight);
+    }
+
     void loadSpotLightOnEmptyWall(Scene& scene, QListWidget& objectsList){
         Vector3 lightDirection(0.0 , 0.0 , -1.0);
         std::shared_ptr<SpotLight> light = std::make_shared<SpotLight>();
