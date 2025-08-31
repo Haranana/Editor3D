@@ -13,6 +13,9 @@ void Scene::removeObject(int id){
 
 void Scene::removeObject(std::shared_ptr<Object3D> objectPtr){
     objectsHierarchy.erase(find(objectsHierarchy.begin() , objectsHierarchy.end() , objectPtr));
+    if (auto light = std::dynamic_pointer_cast<Light>(objectPtr)) {
+        lightSources.erase(find(lightSources.begin() , lightSources.end() , objectPtr));
+    }
 }
 
 void Scene::changeObjectHierarchy(int objectId, int targetId){
