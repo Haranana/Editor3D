@@ -33,12 +33,12 @@ SOURCES += \
     src/Rendering/ClippingManager.cpp \
     src/Rendering/Color.cpp \
     src/Rendering/HitDetectionManager.cpp \
+    src/Rendering/LightingManager.cpp \
     src/Rendering/LinePainter.cpp \
     src/Rendering/PaintTool.cpp \
     src/Rendering/PixelPainter.cpp \
     src/Rendering/Renderer.cpp \
     src/Rendering/RenderingSurface.cpp \
-    src/Rendering/ShadingManager.cpp \
     src/Scene/Camera.cpp \
     src/Scene/Cube.cpp \
     src/Scene/Cylinder.cpp \
@@ -91,6 +91,7 @@ HEADERS += \
     include/Rendering/FilteringManager.h \
     include/Rendering/HitDetectionManager.h \
     include/Rendering/IdBufferElement.h \
+    include/Rendering/LightingManager.h \
     include/Rendering/LinePainter.h \
     include/Rendering/PaintTool.h \
     include/Rendering/PixelPainter.h \
@@ -98,7 +99,6 @@ HEADERS += \
     include/Rendering/RenderStrategy.h \
     include/Rendering/Renderer.h \
     include/Rendering/RenderingSurface.h \
-    include/Rendering/ShadingManager.h \
     include/Rendering/Texture.h \
     include/Rendering/ViewportDisplay.h \
     include/Scene/Camera.h \

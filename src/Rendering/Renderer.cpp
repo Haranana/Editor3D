@@ -20,7 +20,7 @@ Renderer::Renderer(
 {
     pixelPainter = std::make_shared<PixelPainter>(renderingSurface->getImg());
     clippingManager = std::make_shared<ClippingManager>();
-    shadingManager = std::make_shared<ShadingManager>();
+    lightingManager = std::make_shared<LightingManager>();
 }
 
 void Renderer::renderScene(){
@@ -224,26 +224,26 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                     flat_combinedLight[i]         = combinedLight;
                     flat_NdotL[i] = nDotL;
 
-                    flat_diffuseNoAlbedo[i] = shadingManager->getDiffuseLambert(
+                    flat_diffuseNoAlbedo[i] = lightingManager->getDiffuseLambert(
                         pointToLightDirection, flatFaceNormal, combinedLight);
 
                     Vector3 speculatNoLight;
                     if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
-                        speculatNoLight = shadingManager->illuminatePointPhong(
+                        speculatNoLight = lightingManager->illuminatePointPhong(
                             pointToLightDirection, flatFaceNormal, obj.material, *camera, flatWorldCentroid
                             );
                     }
                     else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
-                        speculatNoLight = shadingManager->illuminatePointBlinnPhong(
+                        speculatNoLight = lightingManager->illuminatePointBlinnPhong(
                             pointToLightDirection, flatFaceNormal, obj.material, *camera, flatWorldCentroid
                             );
                     }
                     else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE){
-                        speculatNoLight = shadingManager->getSpecularCookTorrance(
+                        speculatNoLight = lightingManager->getSpecularCookTorrance(
                             pointToLightDirection, flatFaceNormal, obj.material, *camera, flatWorldCentroid
                             );
                         speculatNoLight = speculatNoLight*nDotL;
-                        flat_diffuseNoAlbedo[i] = flat_diffuseNoAlbedo[i].hadamard(shadingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, flatWorldCentroid));
+                        flat_diffuseNoAlbedo[i] = flat_diffuseNoAlbedo[i].hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, flatWorldCentroid));
                     }
                     flat_specularWithLight[i] = Vector3{
                         speculatNoLight.x*combinedLight.x,
@@ -638,16 +638,16 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                 //only lambert, no specular
                                 if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::LAMBERT){
-                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                    diffuseModifier = lightingManager->getReflectedLightLambert(
                                                           pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
 
 
                                 //phong specular, lambert diffuse
                                 }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
-                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                    diffuseModifier = lightingManager->getReflectedLightLambert(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
 
-                                    specularModifier = shadingManager->illuminatePointPhong(
+                                    specularModifier = lightingManager->illuminatePointPhong(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
                                         );
 
@@ -655,10 +655,10 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                 //blinn phong specular, lambert diffuse
                                 else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
-                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                    diffuseModifier = lightingManager->getReflectedLightLambert(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
 
-                                    specularModifier = shadingManager->illuminatePointBlinnPhong(
+                                    specularModifier = lightingManager->illuminatePointBlinnPhong(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
                                         );
 
@@ -666,11 +666,11 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                                 //blinn phong specular, lambert diffuse
                                 else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE){
-                                    diffuseModifier = shadingManager->getReflectedLightLambert(
+                                    diffuseModifier = lightingManager->getReflectedLightLambert(
                                                           pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
-                                    diffuseModifier = diffuseModifier.hadamard(shadingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, interpolatedWorldSpaceCoords));
+                                    diffuseModifier = diffuseModifier.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, interpolatedWorldSpaceCoords));
 
-                                    specularModifier = shadingManager->getSpecularCookTorrance(
+                                    specularModifier = lightingManager->getSpecularCookTorrance(
                                         pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
                                         );
                                     specularModifier = specularModifier * (interpolatedWorldSpaceFaceNormal.dotProduct(pointToLightDirection));
@@ -976,24 +976,24 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
         // spec (opcjonalnie) – Twoje funkcje zwracają Ks*… (bez koloru światła)
         Vector3 specNoLight{};
         if (obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG) {
-                specNoLight = shadingManager->illuminatePointPhong(
+                specNoLight = lightingManager->illuminatePointPhong(
                     const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
                     obj.material, *camera, P
                     );
         } else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG) { // BLINN_PHONG
-                specNoLight = shadingManager->illuminatePointBlinnPhong(
+                specNoLight = lightingManager->illuminatePointBlinnPhong(
                     const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
                     obj.material, *camera, P
                 );
 
         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE) { // BLINN_PHONG
-            specNoLight = shadingManager->getSpecularCookTorrance(
+            specNoLight = lightingManager->getSpecularCookTorrance(
                 const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
                 obj.material, *camera, P
                 );
             specNoLight = specNoLight * ndotl;
 
-            diffNoAlb = diffNoAlb.hadamard(shadingManager->getDiffuseLambertBRDFMultiplier(Ldir, obj.material, *camera, P));
+            diffNoAlb = diffNoAlb.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(Ldir, obj.material, *camera, P));
 
         }else{
             specNoLight = {};

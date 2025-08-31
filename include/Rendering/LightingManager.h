@@ -1,5 +1,5 @@
-#ifndef SHADINGMANAGER_H
-#define SHADINGMANAGER_H
+#ifndef LIGHTINGMANAGER_H
+#define LIGHTINGMANAGER_H
 #include "Math/Vector3.h"
 #include "Buffer.h"
 #include "Color.h"
@@ -7,10 +7,10 @@
 #include "memory"
 #include "Scene/Camera.h"
 
-class ShadingManager{
+class LightingManager{
 public:
     static constexpr double defaultAlbedo = 0.5;
-    ShadingManager();
+    LightingManager();
     Color shadeColorFR(const Vector3& cameraPosition,
                         const Vector3& point,
                         const Vector3& normal,
@@ -45,4 +45,4 @@ private:
                                  const Vector3& point) const;
 };
 
-#endif // SHADINGMANAGER_H
+#endif // LIGHTINGMANAGER_H

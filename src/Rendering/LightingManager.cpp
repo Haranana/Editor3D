@@ -1,14 +1,14 @@
-#include "Rendering/ShadingManager.h"
+#include "Rendering/LightingManager.h"
 #include "Math/Utility.h"
 
-ShadingManager::ShadingManager() {}
+LightingManager::LightingManager() {}
 
-double ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo) const{
+double LightingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo) const{
     double NdotL = std::max(0.0, normal.dotProduct(lightDirection*(-1.0)));
     return NdotL * albedo * lightEnergy;
 }
 
-Vector3 ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const{
+Vector3 LightingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const{
     double NdotL = std::max(0.0, normal.dotProduct(lightDirection));
     return {NdotL * albedo.x * lightEnergy.x,
             NdotL * albedo.y * lightEnergy.y,
@@ -16,7 +16,7 @@ Vector3 ShadingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3
             } ;
 }
 
-Vector3 ShadingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightColor) const{
+Vector3 LightingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightColor) const{
     double NdotL = std::max(0.0, normal.dotProduct(lightDirection));
     return {NdotL * lightColor.x,
             NdotL * lightColor.y,
@@ -24,7 +24,7 @@ Vector3 ShadingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& norma
             } ;
 }
 
-Vector3 ShadingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material, Camera& camera, const Vector3& worldSpacePoint){
+Vector3 LightingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material, Camera& camera, const Vector3& worldSpacePoint){
     Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
     Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();
 
@@ -40,7 +40,7 @@ Vector3 ShadingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToLi
     return (oneMinusFresnel)*(1.0 - material.metallic)*(1.0/M_PI);
 }
 
-Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material, Camera& camera,const Vector3& worldSpacePoint,
+Vector3 LightingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material, Camera& camera,const Vector3& worldSpacePoint,
                                              bool fresnel , bool normalizeSpecular ) {
 
     double nDotL = normal.dotProduct(pointToLightDir);
@@ -72,7 +72,7 @@ Vector3 ShadingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& n
     return result;
 }
 
-Vector3 ShadingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
+Vector3 LightingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
                                   bool fresnel, bool normalizeSpecular){
 
     double nDotL = normal.dotProduct(pointToLightDir);
@@ -109,7 +109,7 @@ Vector3 ShadingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vecto
 }
 
 
-Vector3 ShadingManager::getSpecularCookTorrance(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint){
+Vector3 LightingManager::getSpecularCookTorrance(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint){
 
     Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
     Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();
@@ -133,17 +133,17 @@ Vector3 ShadingManager::getSpecularCookTorrance(Vector3& pointToLightDir,Vector3
 
 }
 
-double ShadingManager::schlickApproximation(double angleCos, double normIncidenceReflaction){
+double LightingManager::schlickApproximation(double angleCos, double normIncidenceReflaction){
     if(MathUt::equal(normIncidenceReflaction , 0.0)) normIncidenceReflaction = 0.04;
     return normIncidenceReflaction + (1-normIncidenceReflaction)*std::pow((1-angleCos),5);
 }
 
-Vector3 ShadingManager::schlickApproximationVector(double angleCos, Vector3 normIncidenceReflaction ){
+Vector3 LightingManager::schlickApproximationVector(double angleCos, Vector3 normIncidenceReflaction ){
     angleCos = std::clamp(angleCos, 0.0 , 1.0);
     return normIncidenceReflaction + (Vector3(1,1,1) - normIncidenceReflaction)*std::pow((1-angleCos),5);
 }
 
-double ShadingManager::ndfGgx(double roughness, const Vector3& normal, const Vector3& halfwayVector){
+double LightingManager::ndfGgx(double roughness, const Vector3& normal, const Vector3& halfwayVector){
     double alpha = roughness*roughness;
     double alphaSquared = alpha*alpha;
     double nDotH = normal.dotProduct(halfwayVector);
@@ -156,7 +156,7 @@ double ShadingManager::ndfGgx(double roughness, const Vector3& normal, const Vec
     return alphaSquared/denom;
 }
 
-double ShadingManager::schlickGgx(double roughness, const Vector3& normal, const Vector3& pointToCameraDir, const Vector3& pointToLightDir){
+double LightingManager::schlickGgx(double roughness, const Vector3& normal, const Vector3& pointToCameraDir, const Vector3& pointToLightDir){
     double k = (roughness+1.0)*(roughness+1.0)/8.0;
     double nDotV = normal.dotProduct(pointToCameraDir);
     double nDotL = normal.dotProduct(pointToLightDir);
@@ -168,7 +168,7 @@ double ShadingManager::schlickGgx(double roughness, const Vector3& normal, const
 }
 
 
-Color ShadingManager::shadeColorFR(const Vector3& cameraPosition,
+Color LightingManager::shadeColorFR(const Vector3& cameraPosition,
                    const Vector3& point,
                    const Vector3& normal,
                                    const Color& color) const{
@@ -176,14 +176,14 @@ Color ShadingManager::shadeColorFR(const Vector3& cameraPosition,
     return Color(color.B*facingRatio, color.G*facingRatio, color.R*facingRatio);
 }
 
-double ShadingManager::getFacingRatio(const Vector3& cameraPosition,
+double LightingManager::getFacingRatio(const Vector3& cameraPosition,
                       const Vector3& point,
                           const Vector3& normal) const{
     return std::max(0.0, normal.dotProduct(getCameraPointVector(cameraPosition,point)));
 }
 
 
-Vector3 ShadingManager::getCameraPointVector(const Vector3& cameraPosition,
+Vector3 LightingManager::getCameraPointVector(const Vector3& cameraPosition,
                              const Vector3& point) const{
     return (point - cameraPosition).normalize();
 }

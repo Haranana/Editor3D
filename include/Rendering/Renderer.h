@@ -15,7 +15,7 @@
 #include "Rendering/LinePainter.h"
 #include "Rendering/HitDetectionManager.h"
 #include <QImage>
-#include "Rendering/ShadingManager.h"
+#include "Rendering/LightingManager.h"
 #include <limits>
 #include "Math/Matrices.h"
 #include "Scene/DistantLight.h"
@@ -147,7 +147,7 @@ private:
     std::shared_ptr<Buffer<IdBufferElement>> idBuffer;
     std::shared_ptr<PixelPainter> pixelPainter;
     std::shared_ptr<ClippingManager> clippingManager;
-    std::shared_ptr<ShadingManager> shadingManager;
+    std::shared_ptr<LightingManager> lightingManager;
 
 
     PaintTool paintTool;
