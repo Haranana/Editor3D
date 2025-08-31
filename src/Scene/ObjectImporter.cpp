@@ -503,8 +503,25 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
         obj->name = meshBuilder.name;
 
         obj->sanitize();
+        switch(obj->material.illum){
+            case 0:
+                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::UNLIT;
+                break;
+            case 1:
+                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
+                break;
+            case 2:
+                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
+                break;
+            default:
+                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
+                break;
+        }
+
         loadedObjects.push_back(obj);
     }
+
+
 
     return loadedObjects;
 }
