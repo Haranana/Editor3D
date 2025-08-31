@@ -10,16 +10,15 @@ public:
     std::string name;
 
     //vector parameters
-    Vector3 Ka{0,0,0}; //ambient, "minimal light"
+    Vector3 Ka{1,1,1}; //ambient, "minimal light"
     Vector3 Kd{1,1,1}; //diffuse/albedo used in Lambert
     Vector3 Ks{1,1,1}; //specular used in Blinn/Phong
     Vector3 Ke{0,0,0}; //emissive (object own light)
 
     // parameters
     double Ns = 32.f; //shininess in Blinn/Phong
-    double Ni = 1.f; //Index of Refraction used in water/glass etc
-    //opacity, used mainly for correct imports, if below 0.5, pixel is skipped, else nothing changes
-    double d  = 1.f;
+    double Ni = 1.f; //Index of Refraction used in Fresnels/water/glass etc
+    double d  = 1.f; //opacity, used mainly for correct imports, if below 0.5, pixel is skipped, else nothing changes
     int   illum = 2; //light model preset , 0 - unlit, 1 - only diffuse, 2 - specular + diffuse (Blinn Phong by default)
     double roughness = 0.5;//used in Cook-Torrence, should never be 0, maybe min = 0.045
     double metallic = 0.0;//used in Cook-Torrence

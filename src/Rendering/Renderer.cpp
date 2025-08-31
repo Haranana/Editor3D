@@ -308,10 +308,11 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             continue;
                         }
 
-
                         const double SHADOW_INTENSITY = 0.2;
                         Vector3 outColor = Ke; //we start with emission because it's not dependant on the shadow
 
+                        Vector3 ambient = lightingManager->getConstantAmbient(kd,Ka,scene->ambientColor,scene->ambientIntensity,scene->ambientPBR,obj.material.metallic);
+                        outColor = outColor + ambient;
 
                         if(obj.displaySettings->shadingMode == DisplaySettings::Shading::FLAT){
 
@@ -826,6 +827,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                 lightId++;
                             }
                         }
+
 
                         outColor.x = std::clamp(outColor.x ,0.0,1.0);
                         outColor.y = std::clamp(outColor.y,0.0,1.0);

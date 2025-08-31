@@ -28,7 +28,9 @@ public:
 
     Vector3 getSpecularCookTorrance(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint);
 
-    std::shared_ptr<Buffer<double>> shadowMap;
+    Vector3 getConstantAmbient(const Vector3& baseColor, const Vector3& Ka, const Vector3& ambientColor, double ,
+                               bool ambientPBR = false, double metallic = 0.0);
+
 private:
     //returns vector beetwen camera and specified point, used in calculating facing ratio
     double getFacingRatio(const Vector3& cameraPosition,

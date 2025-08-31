@@ -17,7 +17,10 @@ public:
     int getSceneObjectId(int uiId);
 
     std::shared_ptr<Object3D> getObject(int id);
-    Vector3 ambientColor{0.03, 0.03, 0.03};
+
+    Vector3 ambientColor {0.2, 0.2, 0.2};
+    double  ambientIntensity = 0.12;
+    bool    ambientPBR = true;             // weaker diffuse on metallic surfaces
 
     std::vector<std::shared_ptr<Light>>lightSources;
 private:

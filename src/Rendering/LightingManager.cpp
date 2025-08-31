@@ -133,6 +133,19 @@ Vector3 LightingManager::getSpecularCookTorrance(Vector3& pointToLightDir,Vector
 
 }
 
+Vector3 LightingManager::getConstantAmbient(const Vector3& baseColor, const Vector3& Ka, const Vector3& ambientColor, double ambientIntensity ,
+                                            bool ambientPBR , double metallic){
+
+    Vector3 La = ambientColor * ambientIntensity;
+    Vector3 ambient = baseColor.hadamard(Ka).hadamard(La);
+
+    if (ambientPBR) {
+        ambient = ambient * (1.0 - metallic);
+    }
+
+    return ambient;
+}
+
 double LightingManager::schlickApproximation(double angleCos, double normIncidenceReflaction){
     if(MathUt::equal(normIncidenceReflaction , 0.0)) normIncidenceReflaction = 0.04;
     return normIncidenceReflaction + (1-normIncidenceReflaction)*std::pow((1-angleCos),5);
