@@ -89,7 +89,7 @@ SpotLightPropertiesWidget::SpotLightPropertiesWidget(QWidget* parent)
     outerAngleSlider->setRange(int(outerAngleMin * 10), int(outerAngleMax * 10));
     outerLayout->addWidget(outerAngleSpin);
     outerLayout->addWidget(outerAngleSlider);
-    layout->addRow("Outer angle (deg)", outerRow);
+    layout->addRow("Outer half-angle (deg)", outerRow);
 
     connect(outerAngleSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, [this](double v){
@@ -114,7 +114,7 @@ SpotLightPropertiesWidget::SpotLightPropertiesWidget(QWidget* parent)
     innerAngleSlider->setRange(int(innerAngleMin * 10), int(innerAngleMax * 10));
     innerLayout->addWidget(innerAngleSpin);
     innerLayout->addWidget(innerAngleSlider);
-    layout->addRow("Inner angle (deg)", innerRow);
+    layout->addRow("Inner half-angle (deg)", innerRow);
 
     connect(innerAngleSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, [this](double v){
@@ -209,22 +209,22 @@ void SpotLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
 
     outerAngleSpin->blockSignals(true);
     outerAngleSlider->blockSignals(true);
-    outerAngleSpin->setValue(light->outerAngle);
-    outerAngleSlider->setValue(int(std::round(light->outerAngle * 10.0)));
+    outerAngleSpin->setValue(MathUt::radianToDegree(light->outerAngle));
+    outerAngleSlider->setValue(int(std::round(MathUt::radianToDegree(light->outerAngle) * 10.0)));
     outerAngleSpin->blockSignals(false);
     outerAngleSlider->blockSignals(false);
 
     innerAngleSpin->blockSignals(true);
     innerAngleSlider->blockSignals(true);
-    innerAngleSpin->setValue(light->innerAngle);
-    innerAngleSlider->setValue(int(std::round(light->innerAngle * 10.0)));
+    innerAngleSpin->setValue(MathUt::radianToDegree(light->innerAngle));
+    innerAngleSlider->setValue(int(std::round(MathUt::radianToDegree(light->innerAngle) * 10.0)));
     innerAngleSpin->blockSignals(false);
     innerAngleSlider->blockSignals(false);
 
     rangeSpin->blockSignals(true);
     rangeSlider->blockSignals(true);
     rangeSpin->setValue(light->range);
-    rangeSlider->setValue(int(std::round(light->range)));
+    rangeSlider->setValue(light->range);
     rangeSpin->blockSignals(false);
     rangeSlider->blockSignals(false);
 
@@ -261,17 +261,22 @@ void SpotLightPropertiesWidget::onDynamicBiasChanged(){
 
 void SpotLightPropertiesWidget::onOuterAngleChanged() {
     if (!light) return;
+    const double halfAngleRad = MathUt::degreeToRadian(outerAngleSpin->value());
 
-    light->outerAngle = MathUt::degreeToRadian(outerAngleSpin->value());
-    light->outerAngle = outerAngleSpin->value();
+    light->outerAngle = std::clamp(halfAngleRad, MathUt::degreeToRadian(0.1), MathUt::degreeToRadian(89.0));
+    if (light->innerAngle >= light->outerAngle){
+        light->innerAngle = std::max(MathUt::degreeToRadian(0.1), light->outerAngle - MathUt::degreeToRadian(0.1));
+
+    }
+    light->updateCos();
     emit objectChanged();
 }
 
 void SpotLightPropertiesWidget::onInnerAngleChanged() {
     if (!light) return;
-
-    light->innerAngle = MathUt::degreeToRadian(innerAngleSpin->value());
-    light->innerAngle = innerAngleSpin->value();
+    const double halfAngleRad = MathUt::degreeToRadian(innerAngleSpin->value());
+    light->innerAngle = std::clamp(halfAngleRad, 0.0, light->outerAngle - MathUt::degreeToRadian(0.1));
+    light->updateCos();
     emit objectChanged();
 }
 

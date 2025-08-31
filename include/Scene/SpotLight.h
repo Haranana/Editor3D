@@ -48,13 +48,23 @@ public:
     static constexpr double defaultInnerAngle = 0.785; //45 degrees
     static constexpr Vector3 defaultDirection = Vector3(1.0,0.0,0.0);
 
-    Vector3 direction = defaultDirection;
-
-    Buffer<double> shadowMap;
-
     double outerAngle = defaultOuterAngle; //default 60 degrees
     double innerAngle = defaultInnerAngle; //default 45 degrees
     double range = deafultRange;
+
+    double outerAngleCos = std::cos(defaultOuterAngle);
+    double InnerAngleCos = std::cos(defaultInnerAngle);
+    double invCos = 1.0 / (std::cos(defaultInnerAngle)-std::cos(defaultOuterAngle));
+
+    void updateCos(){
+        outerAngleCos = std::cos(outerAngle);
+        InnerAngleCos = std::cos(innerAngle);
+        invCos = 1.0 / MathUt::safePositiveDenom(InnerAngleCos-outerAngleCos);
+    }
+
+    Vector3 direction = defaultDirection;
+
+    Buffer<double> shadowMap;
 
     double attenuationConstant = 1.0;
     double attenuationLinear = 0.0;
@@ -78,7 +88,7 @@ public:
     }
 
     double getConeAttenuation(const Vector3& lightToPoint){
-
+    /*
         double outerAngleCos = getOuterAngleCos();
         double innerAngleCos = getInnerAngleCos();
         Vector3 normDir = direction.normalize();
@@ -87,7 +97,26 @@ public:
 
         double denom = MathUt::safePositiveDenom(innerAngleCos - outerAngleCos);
         return std::clamp( ((lightToPointCos-outerAngleCos)/denom), 0.0, 1.0);
+    */
+        Vector3 normDir = direction.normalize();
+        Vector3 lightToPointDir = lightToPoint.normalize();
+        double lightToPointCos = (lightToPointDir).dotProduct(normDir);
 
+        double denom = MathUt::safePositiveDenom(InnerAngleCos - outerAngleCos);
+        return std::clamp( ((lightToPointCos-outerAngleCos)/denom), 0.0, 1.0);
+    }
+
+    double getConeAttenuation(double LightToPointDotDir){
+
+
+        double cosTheta = LightToPointDotDir;
+        if(cosTheta <= outerAngleCos){
+            return 0.0;
+        }else if(cosTheta >= InnerAngleCos){
+            return 1.0;
+        }else{
+            return (cosTheta - outerAngleCos)* invCos;
+        }
     }
 
     double normalizedDepthToWorld(double depth){

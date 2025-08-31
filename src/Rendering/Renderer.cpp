@@ -205,9 +205,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             pointToLightDirection = pointToLightVector.normalize();
 
                             const double lightToPointDistance = lightToPointVector.length();
+                            /*
                             double coneAttenuation     = (lightToPointDistance <= spotLight->range)
                                                          ? spotLight->getConeAttenuation(lightToPointVector)
-                                                         : 0.0;
+                                                         : 0.0;*/
+                            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
+                                                         spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
                             double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
 
                             attenuation = std::clamp(distanceAttenuation * coneAttenuation, 0.0, 1.0);
@@ -564,7 +567,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                         Vector3 pointForDepthCheck;
                                         double biasAddition;
                                         calculateBias(spotLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,nullptr,  FilteringManager::kernelSideFor(*spotLight));
+                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, nullptr,  FilteringManager::kernelSideFor(*spotLight));
 
                                         Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
                                         Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
@@ -577,17 +580,21 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
                                             Vector3 lightToPointVector = pointToLightVector * (-1.0);
                                             pointToLightDirection = (pointToLightVector).normalize();
-
                                             double  lightToPointDistance = lightToPointVector.length();
 
-                                            double coneAttenuation     = (lightToPointDistance <= spotLight->range)
-                                                                 ? spotLight->getConeAttenuation(lightToPointVector)
-                                                                 : 0.0;
+                                           // double coneAttenuation     = (lightToPointDistance <= spotLight->range)
+                                            //                     ? spotLight->getConeAttenuation(lightToPointVector)
+                                             //                    : 0.0;
+                                            //double coneAttenuation = spotLight->getConeAttenuation(pointToLightDirection.dotProduct(spotLight->direction.normalize()));
+                                            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
+                                                                        spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
+                                            //double coneAttenuation = spotLight->getConeAttenuation(pointToLightDirection.dotProduct(spotLight->direction.normalize()));
                                             double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
 
 
                                             attenuation = distanceAttenuation*coneAttenuation;
                                             attenuation = std::clamp(attenuation, 0.0, 1.0);
+
                                         }else{
                                             float depthInLightView = (pointForDepthCheck - spotLight->transform.getPosition()).length();
 
@@ -604,10 +611,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                             pointToLightDirection = (pointToLightVector).normalize();
 
                                             double  lightToPointDistance = lightToPointVector.length();
-
+                                            /*
                                             double coneAttenuation     = (lightToPointDistance <= spotLight->range)
                                                                              ? spotLight->getConeAttenuation(lightToPointVector)
-                                                                             : 0.0;
+                                                                             : 0.0;*/
+                                            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
+                                                spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
                                             double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
 
                                             attenuation = distanceAttenuation*coneAttenuation;
@@ -948,7 +957,11 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
             Vector3 l2p = toL * (-1.0);
             Ldir  = toL.normalize();
             const double d = l2p.length();
-            const double cone = (d <= s->range) ? s->getConeAttenuation(l2p) : 0.0;
+            //const double cone = (d <= s->range) ? s->getConeAttenuation(l2p) : 0.0;
+
+            const double cone = (d <= s->range)?
+                                         s->getConeAttenuation(l2p.dotProduct(s->direction.normalize())) : 0.0;
+
             const double dist = s->getDistanceAttenuation(d);
             atten = std::clamp(cone * dist, 0.0, 1.0);
         }

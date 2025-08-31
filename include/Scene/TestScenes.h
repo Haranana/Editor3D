@@ -21,6 +21,26 @@ namespace TestScenes{
         objectsList.addItem(itemTextLight);
     }
 
+    void loadSpotLightOnEmptyWall(Scene& scene, QListWidget& objectsList){
+        Vector3 lightDirection(0.0 , 0.0 , -1.0);
+        std::shared_ptr<SpotLight> light = std::make_shared<SpotLight>();
+        light->color = Colors::White;
+        light->intensity = 2.0;
+        light->castsShadow = true;
+        light->direction = lightDirection;
+        light->transform.setPositionZ(200);
+        scene.addObject(light);
+        QString itemTextLight = QString("light");
+        objectsList.addItem(itemTextLight);
+
+        auto floor = std::make_shared<Cube>();
+        scene.addObject(floor);
+        QString itemTextFloor = QString("floor");
+        objectsList.addItem(itemTextFloor);
+        floor->transform.setScales(Vector3(0.5,0.5,0.5));
+        floor->viewportDisplay.color = Colors::Purple;
+    }
+
     //small blue cube | large green cube | small blue cube
     void loadDistantLightTestScene1(Scene& scene, QListWidget& objectsList){
         auto floor = std::make_shared<Cube>();

@@ -48,15 +48,15 @@ private:
     QSlider* dirZSlider;
     QCheckBox* dynamicBiasCheckBox;
 
-    static constexpr double outerAngleMin = 0.0;
-    static constexpr double outerAngleMax = 360.0;
+    static constexpr double outerAngleMin = 0.1;
+    static constexpr double outerAngleMax = 89.0;
     static constexpr double outerAngleStep = 1.0;
     static constexpr int outerAngleDecimals = 1;
     QDoubleSpinBox* outerAngleSpin;
     QSlider* outerAngleSlider;
 
-    static constexpr double innerAngleMin = 0.0;
-    static constexpr double innerAngleMax = 360.0;
+    static constexpr double innerAngleMin = 0.1;
+    static constexpr double innerAngleMax = 89.0;
     static constexpr double innerAngleStep = 1.0;
     static constexpr int innerAngleDecimals = 1;
     QDoubleSpinBox* innerAngleSpin;
