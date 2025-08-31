@@ -10,6 +10,16 @@
 
 namespace TestScenes{
 
+    void loadOnlyDistantLight(Scene& scene, QListWidget& objectsList){
+        Vector3 lightDirection(0.0 , -1.0 , -1.0);
+        std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
+        light->color = Colors::White;
+        light->intensity = 2.0;
+        light->castsShadow = true;
+        scene.addObject(light);
+        QString itemTextLight = QString("light");
+        objectsList.addItem(itemTextLight);
+    }
 
     //small blue cube | large green cube | small blue cube
     void loadDistantLightTestScene1(Scene& scene, QListWidget& objectsList){

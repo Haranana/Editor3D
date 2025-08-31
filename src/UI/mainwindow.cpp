@@ -239,8 +239,9 @@ void MainWindow::refreshScene()
 
 void MainWindow::loadTestScene(){
     //TestScenes::loadDistantLightTestScene2(*scene , *objectsList);
-    TestScenes::loadSpotLightTestScene2(*scene, *objectsList);
+    //TestScenes::loadSpotLightTestScene2(*scene, *objectsList);
     //TestScenes::loadPointLightTestScene1(*scene, *objectsList);
+    TestScenes::loadOnlyDistantLight(*scene, *objectsList);
     refreshScene();
 }
 
@@ -260,7 +261,7 @@ void MainWindow::addImportedObjectsToScene(const ImportResult& import, const QSt
         scene->addObject(obj);
         QString itemTextLight = QString::fromStdString(obj->name);
         objectsList->addItem(itemTextLight);
-        obj->debugStats();
+        //obj->debugStats();
     }
 
 

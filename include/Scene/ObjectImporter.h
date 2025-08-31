@@ -27,14 +27,14 @@ struct ImportOptions {
     // importer deals with this in one of 2 possible ways:
     // false - use material specified in first usemtl for whole object
     // true - convert every submesh into new object which uses correct material
-    bool splitPerUsemtlAsObjects = true;
+    bool splitPerUsemtlAsObjects = false;
 
     //UNSTABLE
     //can produce problem when det<0
     //importer should reverse plane (and reverse triangles orientation)
     //but it's not implemented so should probably remain as identity or without negatives
     Matrix3 axisConversionMatrix = Matrices3::identity();
-    double  globalScale = 1.0;
+    double  globalScale = 10.0;
 };
 
 struct ImportResult {
