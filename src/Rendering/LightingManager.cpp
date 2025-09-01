@@ -8,7 +8,8 @@ double LightingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3
     return NdotL * albedo * lightEnergy;
 }
 
-Vector3 LightingManager::getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const{
+Vector3 LightingManager::getReflectedLightLambert(const Vector3& lightDirection, const Vector3& normal,
+                                                  const  Vector3& lightEnergy,const Vector3& albedo) const{
     double NdotL = std::max(0.0, normal.dotProduct(lightDirection));
     return {NdotL * albedo.x * lightEnergy.x,
             NdotL * albedo.y * lightEnergy.y,
@@ -16,7 +17,7 @@ Vector3 LightingManager::getReflectedLightLambert(Vector3& lightDirection,Vector
             } ;
 }
 
-Vector3 LightingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightColor) const{
+Vector3 LightingManager::getDiffuseLambert(const Vector3& lightDirection, const Vector3& normal, const Vector3 lightColor) const{
     double NdotL = std::max(0.0, normal.dotProduct(lightDirection));
     return {NdotL * lightColor.x,
             NdotL * lightColor.y,
@@ -24,7 +25,8 @@ Vector3 LightingManager::getDiffuseLambert(Vector3& lightDirection,Vector3& norm
             } ;
 }
 
-Vector3 LightingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material, Camera& camera, const Vector3& worldSpacePoint){
+Vector3 LightingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material,const Camera& camera,
+                                                         const Vector3& worldSpacePoint){
     Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
     Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();
 
@@ -40,8 +42,8 @@ Vector3 LightingManager::getDiffuseLambertBRDFMultiplier(const Vector3& pointToL
     return (oneMinusFresnel)*(1.0 - material.metallic)*(1.0/M_PI);
 }
 
-Vector3 LightingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material, Camera& camera,const Vector3& worldSpacePoint,
-                                             bool fresnel , bool normalizeSpecular ) {
+Vector3 LightingManager::illuminatePointPhong(const Vector3& pointToLightDir, const Vector3& normal, const Material& material,
+                                              const Camera& camera,const Vector3& worldSpacePoint, bool fresnel , bool normalizeSpecular ) {
 
     double nDotL = normal.dotProduct(pointToLightDir);
     if(nDotL <= 0) return Vector3();
@@ -72,8 +74,8 @@ Vector3 LightingManager::illuminatePointPhong(Vector3& pointToLightDir,Vector3& 
     return result;
 }
 
-Vector3 LightingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
-                                  bool fresnel, bool normalizeSpecular){
+Vector3 LightingManager::illuminatePointBlinnPhong(const Vector3& pointToLightDir, const Vector3& normal,const Material& material,
+                                                   const Camera& camera, const Vector3& worldSpacePoint, bool fresnel, bool normalizeSpecular){
 
     double nDotL = normal.dotProduct(pointToLightDir);
     if(nDotL <= 0) return Vector3();
@@ -109,7 +111,8 @@ Vector3 LightingManager::illuminatePointBlinnPhong(Vector3& pointToLightDir,Vect
 }
 
 
-Vector3 LightingManager::getSpecularCookTorrance(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint){
+Vector3 LightingManager::getSpecularCookTorrance(const Vector3& pointToLightDir,const Vector3& normal,const Material& material,
+                                                 const Camera& camera, const Vector3& worldSpacePoint){
 
     Vector3 pointToCameraDir = (camera.transform.getPosition() - worldSpacePoint).normalize();
     Vector3 halfwayVector = (pointToLightDir + pointToCameraDir).normalize();

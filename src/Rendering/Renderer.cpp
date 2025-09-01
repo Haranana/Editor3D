@@ -324,7 +324,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             size_t lightId = 0;
                             for(std::shared_ptr<Light>&lightSource : scene->lightSources){
                                 Vector3 pointToLightDirection = flat_pointToLightDirection[lightId];
-                                Vector3 combinedLight = flat_combinedLight[lightId];
+                                Vector3 combined = flat_combinedLight[lightId];
                                 Vector3 diffuse = flat_diffuseNoAlbedo[lightId];
                                 Vector3 specular = flat_specularWithLight[lightId];
                                 double shadowAmount{};
@@ -439,22 +439,14 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     }
                                 }
 
+
+                                Vector3 diffuseModifier{}, specularModifier{}, combinedLight{}, shadowTintModifier{};
+
                                 const double visibility = 1.0 - shadowAmount;
-
-                                Vector3 diffuseModifier = Vector3{diffuse.x * kd.x,
-                                                            diffuse.y * kd.y,
-                                                           diffuse.z * kd.z} * visibility;
-
-                                Vector3 specularModifier = Vector3{
-                                    specular.x,
-                                    specular.y,
-                                    specular.z} * visibility;
-
-                                Vector3 shadowTintModifier = Vector3{
-                                    kd.x * Ka.x * SHADOW_INTENSITY * combinedLight.x * shadowAmount,
-                                    kd.y * Ka.y * SHADOW_INTENSITY * combinedLight.y * shadowAmount,
-                                    kd.z * Ka.z * SHADOW_INTENSITY * combinedLight.z * shadowAmount,
-                                };
+                                combinedLight = combined;
+                                diffuseModifier = diffuse.hadamard(kd)*visibility;
+                                specularModifier = specular*visibility;
+                                shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
 
                                 outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
 
@@ -622,63 +614,20 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     } 
                                 }
 
+                                Vector3 combinedLight{}, shadowTintModifier{}, diffuseModifier{}, specularModifier{};
+
+                                bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
+
                                 const double visibility = 1.0 - shadowAmount;
-                                Vector3 combinedLight = Vectors::colorToVector3(lightSource->color) * lightSource->intensity * attenuation;
-                                Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{};
 
-                                shadowTintModifier = Vector3{
-                                    kd.x * Ka.x * SHADOW_INTENSITY * combinedLight.x * shadowAmount,
-                                    kd.y * Ka.y * SHADOW_INTENSITY * combinedLight.y * shadowAmount,
-                                    kd.z * Ka.z * SHADOW_INTENSITY * combinedLight.z * shadowAmount,
-                                };
+                                combinedLight = Vectors::colorToVector3(lightSource->color) * lightSource->intensity * attenuation;
 
+                                shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
 
-                                //only lambert, no specular
-                                if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::LAMBERT){
-                                    diffuseModifier = lightingManager->getReflectedLightLambert(
-                                                          pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
-
-
-                                //phong specular, lambert diffuse
-                                }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
-                                    diffuseModifier = lightingManager->getReflectedLightLambert(
-                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
-
-                                    specularModifier = lightingManager->illuminatePointPhong(
-                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        );
-
-                                }
-
-                                //blinn phong specular, lambert diffuse
-                                else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
-                                    diffuseModifier = lightingManager->getReflectedLightLambert(
-                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
-
-                                    specularModifier = lightingManager->illuminatePointBlinnPhong(
-                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        );
-
-                                }
-
-                                //blinn phong specular, lambert diffuse
-                                else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE){
-                                    diffuseModifier = lightingManager->getReflectedLightLambert(
-                                                          pointToLightDirection, interpolatedWorldSpaceFaceNormal, combinedLight, kd) * visibility;
-                                    diffuseModifier = diffuseModifier.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, interpolatedWorldSpaceCoords));
-
-                                    specularModifier = lightingManager->getSpecularCookTorrance(
-                                        pointToLightDirection, interpolatedWorldSpaceFaceNormal, obj.material, *camera, interpolatedWorldSpaceCoords
-                                        );
-                                    specularModifier = specularModifier * (interpolatedWorldSpaceFaceNormal.dotProduct(pointToLightDirection));
-
-                                }
-
-                                specularModifier = Vector3{
-                                    specularModifier.x * combinedLight.x,
-                                    specularModifier.y * combinedLight.y,
-                                    specularModifier.z * combinedLight.z
-                                } * visibility;
+                                diffuseModifier = getDiffuseModifier(obj,combinedLight,interpolatedWorldSpaceCoords,interpolatedWorldSpaceFaceNormal,
+                                                                     pointToLightDirection,kd,visibility, brdf);
+                                specularModifier = getSpecularModifier(obj, combinedLight, interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
+                                                                       pointToLightDirection, visibility);
 
                                 outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                             }
@@ -780,48 +729,29 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     }
                                 }
 
-                                const double visibility = 1.0 - shadowAmount;
-
-                                Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{};
-
+                                Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{}, combinedLight{};
 
                                 Triangle3 gouraudCombLightOverW = {gouraudShadingFaceData.face.v1.combinedLightOverW[lightId],
                                                                 gouraudShadingFaceData.face.v2.combinedLightOverW[lightId],
                                                                 gouraudShadingFaceData.face.v3.combinedLightOverW[lightId]};
 
-                                Vector3 combinedLight = (gouraudCombLightOverW.v1 * baricentricFactor.v1 +
-                                                        gouraudCombLightOverW.v2 * baricentricFactor.v2 +
-                                                        gouraudCombLightOverW.v3 * baricentricFactor.v3)/invDenom;
-
-                                shadowTintModifier = Vector3{
-                                    kd.x * Ka.x * SHADOW_INTENSITY * combinedLight.x * shadowAmount,
-                                    kd.y * Ka.y * SHADOW_INTENSITY * combinedLight.y * shadowAmount,
-                                    kd.z * Ka.z * SHADOW_INTENSITY * combinedLight.z * shadowAmount,
-                                };
-
                                 Triangle3 gouraudDiffuseOverW = {gouraudShadingFaceData.face.v1.diffuseNoAlbedoOverW[lightId],
-                                                                   gouraudShadingFaceData.face.v2.diffuseNoAlbedoOverW[lightId],
-                                                                   gouraudShadingFaceData.face.v3.diffuseNoAlbedoOverW[lightId]};
-
-                                Vector3 InterpolatedDiffuseNoAlbedo = (gouraudDiffuseOverW.v1 * baricentricFactor.v1 +
-                                                           gouraudDiffuseOverW.v2 * baricentricFactor.v2 +
-                                                           gouraudDiffuseOverW.v3 * baricentricFactor.v3)/invDenom;
-
-                                diffuseModifier = Vector3{InterpolatedDiffuseNoAlbedo.x * kd.x,
-                                                   InterpolatedDiffuseNoAlbedo.y * kd.y,
-                                                   InterpolatedDiffuseNoAlbedo.z * kd.z} * visibility;
+                                                                 gouraudShadingFaceData.face.v2.diffuseNoAlbedoOverW[lightId],
+                                                                 gouraudShadingFaceData.face.v3.diffuseNoAlbedoOverW[lightId]};
 
                                 Triangle3 gouraudSpecularOverW = {gouraudShadingFaceData.face.v1.specularOverW[lightId],
-                                                                 gouraudShadingFaceData.face.v2.specularOverW[lightId],
-                                                                 gouraudShadingFaceData.face.v3.specularOverW[lightId]};
+                                                                  gouraudShadingFaceData.face.v2.specularOverW[lightId],
+                                                                  gouraudShadingFaceData.face.v3.specularOverW[lightId]};
 
-                                Vector3 InterpolatedSpecular = (gouraudSpecularOverW.v1 * baricentricFactor.v1 +
-                                                                       gouraudSpecularOverW.v2 * baricentricFactor.v2 +
-                                                                       gouraudSpecularOverW.v3 * baricentricFactor.v3)/invDenom;
+                                const double visibility = getVisibility(shadowAmount);
 
-                                specularModifier = Vector3{InterpolatedSpecular.x,
-                                                          InterpolatedSpecular.y,
-                                                          InterpolatedSpecular.z} * visibility;
+                                combinedLight = interpolateCombinedLight(gouraudCombLightOverW, baricentricFactor, invDenom);
+
+                                shadowTintModifier =getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
+
+                                diffuseModifier = interpolateDiffuseModifier(gouraudDiffuseOverW, baricentricFactor, kd, invDenom, visibility);
+
+                                specularModifier = interpolatSpecularModifier(gouraudSpecularOverW, baricentricFactor, combinedLight, invDenom, visibility);
 
                                 outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                                 lightId++;
@@ -889,6 +819,87 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
         }
 
     }
+}
+
+double Renderer::getVisibility(const double shadowAmount){
+    return 1 - shadowAmount;
+}
+
+Vector3 Renderer::getShadowTintModifier(const Vector3& albedo, const Vector3& combinedLight,
+                                        double shadowIntensity, double shadowAmount){
+    return albedo.hadamard(combinedLight)*shadowIntensity*shadowAmount;
+}
+
+Vector3 Renderer::interpolateCombinedLight(const Triangle3& combinedLightOverW, const Triangle<double>& baricentricFactor, double invDenom){
+    return (combinedLightOverW.v1 * baricentricFactor.v1 +
+            combinedLightOverW.v2 * baricentricFactor.v2 +
+            combinedLightOverW.v3 * baricentricFactor.v3)/invDenom;
+}
+
+Vector3 Renderer::interpolateDiffuseModifier(const Triangle3& diffuseNoAlbedoInVerticesOverW , const Triangle<double>& baricentricFactor,
+                                             const Vector3& albedo, double invDenom, double visibility){
+
+    Vector3 InterpolatedDiffuseNoAlbedo = (diffuseNoAlbedoInVerticesOverW.v1 * baricentricFactor.v1 +
+                                   diffuseNoAlbedoInVerticesOverW.v2 * baricentricFactor.v2 +
+                                   diffuseNoAlbedoInVerticesOverW.v3 * baricentricFactor.v3)/invDenom;
+
+    Vector3 diffuseModifier = Vector3{InterpolatedDiffuseNoAlbedo.x * albedo.x,
+                              InterpolatedDiffuseNoAlbedo.y * albedo.y,
+                              InterpolatedDiffuseNoAlbedo.z * albedo.z} * visibility;
+
+    return diffuseModifier;
+}
+
+
+Vector3 Renderer::interpolatSpecularModifier(const Triangle3& specularInVerticesOverW , const Triangle<double>& baricentricFactor,
+                                     const Vector3& combinedLight, double invDenom, double visibility){
+
+  }
+
+
+Vector3 Renderer::getDiffuseModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
+                                     const Vector3& faceNormal, const Vector3& pointToLightDir, const Vector3& albedo, double visibility, bool brdf){
+
+    Vector3 diffuseModifier = lightingManager->getReflectedLightLambert( pointToLightDir, faceNormal, combinedLight, albedo) * visibility;
+    if(brdf){
+        Vector3 brdfModifier = lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDir, obj.material, *camera, pointWorldCoords);
+        return diffuseModifier.hadamard(brdfModifier);
+    }else{
+        return diffuseModifier;
+    }
+
+    diffuseModifier = diffuseModifier.hadamard(combinedLight) * visibility;
+    return diffuseModifier;
+}
+
+Vector3 Renderer::getSpecularModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
+                                   const Vector3& faceNormal, const Vector3& pointToLightDir, double visibility){
+
+    Vector3 specularModifier;
+    if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
+
+        specularModifier = lightingManager->illuminatePointPhong(
+            pointToLightDir, faceNormal, obj.material, *camera, pointWorldCoords
+            );
+
+    }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
+
+        specularModifier = lightingManager->illuminatePointBlinnPhong(
+            pointToLightDir, faceNormal, obj.material, *camera, pointWorldCoords
+            );
+
+    }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE){
+
+        specularModifier = lightingManager->getSpecularCookTorrance(
+            pointToLightDir, faceNormal, obj.material, *camera, pointWorldCoords
+            );
+
+        specularModifier = specularModifier * (faceNormal.dotProduct(pointToLightDir));
+
+    }
+
+    specularModifier = specularModifier.hadamard(combinedLight) * visibility;
+    return specularModifier;
 }
 
 Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(

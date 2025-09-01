@@ -8,11 +8,11 @@
 class Transform3D{
 public:
 
-    Matrix4 getTransMatrix();
+    Matrix4 getTransMatrix() const;
 
-    Vector3 getAngles(bool inRadians = true);
-    Vector3 getPosition();
-    Vector3 getScales();
+    Vector3 getAngles(bool inRadians = true) const;
+    Vector3 getPosition() const;
+    Vector3 getScales() const;
 
     void setPosition(Vector3 newPosition);
     void setPositionX(double newX);

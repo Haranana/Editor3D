@@ -1,11 +1,11 @@
 #include "Math/Transform3D.h"
 #include <cmath>
 
-Matrix4 Transform3D::getTransMatrix() {
+Matrix4 Transform3D::getTransMatrix() const {
     return transMatrix;
 }
 
-Vector3 Transform3D::getAngles(bool inRadians) {
+Vector3 Transform3D::getAngles(bool inRadians) const {
     if (inRadians) {
         return rotationParameters;
     }
@@ -16,11 +16,11 @@ Vector3 Transform3D::getAngles(bool inRadians) {
         );
 }
 
-Vector3 Transform3D::getPosition() {
+Vector3 Transform3D::getPosition() const{
     return translationParameters;
 }
 
-Vector3 Transform3D::getScales() {
+Vector3 Transform3D::getScales() const{
     return scalingParameters;
 }
 

@@ -17,16 +17,19 @@ public:
                         const Color& color) const;
 
     double getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, double lightEnergy, double albedo = defaultAlbedo) const;
-    Vector3 getReflectedLightLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightEnergy, Vector3 albedo) const;
-    Vector3 getDiffuseLambert(Vector3& lightDirection,Vector3& normal, Vector3 lightColor) const;
-    Vector3 getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material, Camera& camera, const Vector3& worldSpacePoint);
+    Vector3 getReflectedLightLambert(const Vector3& lightDirection,const Vector3& normal, const Vector3& lightEnergy, const Vector3& albedo) const;
 
-    Vector3 illuminatePointPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
-                                 bool fresnel = false, bool normalizeSpecular = false) ;
-    Vector3 illuminatePointBlinnPhong(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint,
+    Vector3 getDiffuseLambert(const Vector3& lightDirection, const Vector3& normal, const Vector3 lightColor) const;
+
+    Vector3 getDiffuseLambertBRDFMultiplier(const Vector3& pointToLightDir, const Material& material,const Camera& camera, const Vector3& worldSpacePoint);
+
+    Vector3 illuminatePointPhong(const Vector3& pointToLightDir,const Vector3& normal,const Material& material,const  Camera& camera, const Vector3& worldSpacePoint,
                                  bool fresnel = false, bool normalizeSpecular = false) ;
 
-    Vector3 getSpecularCookTorrance(Vector3& pointToLightDir,Vector3& normal,const Material& material,  Camera& camera, const Vector3& worldSpacePoint);
+    Vector3 illuminatePointBlinnPhong(const Vector3& pointToLightDir,const Vector3& normal,const Material& material,
+                                    const  Camera& camera, const Vector3& worldSpacePoint, bool fresnel = false, bool normalizeSpecular = false) ;
+
+    Vector3 getSpecularCookTorrance(const Vector3& pointToLightDir,const Vector3& normal,const Material& material,const Camera& camera, const Vector3& worldSpacePoint);
 
     Vector3 getConstantAmbient(const Vector3& baseColor, const Vector3& Ka, const Vector3& ambientColor, double ,
                                bool ambientPBR = false, double metallic = 0.0);

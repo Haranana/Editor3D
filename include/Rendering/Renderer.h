@@ -107,6 +107,31 @@ private:
     void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
 
+    double getVisibility(const double shadowAmount);
+
+    Vector3 getShadowTintModifier(const Vector3& albedo, const Vector3& combinedLight,  double shadowIntensity, double shadowAmount);
+
+    Vector3 getCombinedLight(const Vector3& color, double intensity, double attenuation);
+
+    Vector3 interpolateCombinedLight(const Triangle3& combinedLightOverW, const Triangle<double>& baricentricFactor, double invDenom);
+
+    Vector3 getDiffuseModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
+                              const Vector3& faceNormal, const Vector3& pointToLightDir, const Vector3& albedo, double visibility, bool brdf = false);
+
+    //If diffuse it supposed to be brdf, then vertices in diffuseNoAlbedoInVerticesOverW should already be with brdf modifier
+    //also assumes that diffuse already is multiplied by combinedLight
+    Vector3 interpolateDiffuseModifier(const Triangle3& diffuseNoAlbedoInVerticesOverW , const Triangle<double>& baricentricFactor,
+                                       const Vector3& albedo, double invDenom, double visibility);
+
+    Vector3 getSpecularModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
+                               const Vector3& faceNormal, const Vector3& pointToLightDir, double visibility);
+
+    //assumes that vertices in triangle are already modified by combinedLight
+    Vector3 interpolatSpecularModifier(const Triangle3& specularInVerticesOverW , const Triangle<double>& baricentricFactor,
+                                       const Vector3& combinedLight, double invDenom, double visibility);
+
+
+
     struct Bias{
         double biasAddition{};
         Vector3 pointForDepthCheck{};
