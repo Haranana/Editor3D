@@ -7,6 +7,8 @@
 #include "UI/HudOverlay.h"
 
 
+
+
 Renderer::Renderer(
     std::shared_ptr<QImage> img,
     std::shared_ptr<Scene> scene,
@@ -153,11 +155,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                fanTriangleClipped.v2.worldSpaceVertexOverW/fanTriangleClipped.v2.invW,
                                                fanTriangleClipped.v3.worldSpaceVertexOverW/fanTriangleClipped.v3.invW);
 
-
-
-            //if flat shading is used we calculate color once using normal at middle of triangle
-            Vector3 interpolatedWorldSpaceCoords;
-            Vector3 interpolatedWorldSpaceFaceNormal;
 
             GouraudShadingFaceData gouraudShadingFaceData;
             FlatShadingFaceData flatShadingFaceData;
@@ -705,7 +702,7 @@ void Renderer::updateShadowMaps(){
                 std::cout << "Found distant light source"<<std::endl;
             }
             auto distantLight = std::static_pointer_cast<DistantLight>(lightSource);
-
+            double INF = std::numeric_limits<double>::infinity();;
 
 
                 //get lightview Matrix
@@ -757,6 +754,9 @@ void Renderer::updateShadowMaps(){
                 // calculate near and far and set proj matrix
                 double nearDist = lightSource->near;
                 double farDist  = (-minZ) + padZ;
+                //double farDist  = 500;
+                //double nearDist = l
+
 
                 distantLight->setProjectionMatrix(
                     minX - padXY, maxX + padXY,
@@ -893,8 +893,14 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource){
                     }
                     normalizedClipVertex.x = std::clamp(normalizedClipVertex.x, -1.0, 1.0);
                     normalizedClipVertex.y = std::clamp(normalizedClipVertex.y, -1.0, 1.0);
-                    Vector2 screenSpaceVertex = Vector2(int(std::round( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMap.getCols()-1) ) ) ,
-                                                        std::round(int( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMap.getRows()-1) )));
+
+                    //Vector2 screenSpaceVertex = Vector2(int(std::round( (normalizedClipVertex.x * 0.5 + 0.5) * (lightSource.shadowMap.getCols()-1) ) ) ,
+                     //                                   std::round(int( (1 - (normalizedClipVertex.y*0.5+0.5)) * (lightSource.shadowMap.getRows()-1) )));
+                    const double sx = (normalizedClipVertex.x*0.5 + 0.5) * (lightSource.shadowMap.getCols()-1);
+                    const double sy = (1.0 - (normalizedClipVertex.y*0.5 + 0.5)) * (lightSource.shadowMap.getRows()-1);
+                    Vector2 screenSpaceVertex = Vector2(sx, sy);
+
+
                     screenVerticesWithDepth.push_back(Vector3(screenSpaceVertex.x , screenSpaceVertex.y, ((cv.clip.z/cv.clip.w)+1.0)*0.5));
 
                     if(debugMode == DEBUG_SHADOWMAP){
@@ -974,6 +980,8 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource){
         }
     }
 
+
+    //lightSource.printShadowMatrix();
     if(debugMode == DEBUG_SHADOWMAP){
         lightSource.printShadowMatrix();
         std::cout<<"ShadowMap non-empty elements: "<<lightSource.shadowMap.nonEmptyElements()<<"//"<<lightSource.shadowMap.size()<<std::endl;
@@ -1139,7 +1147,7 @@ void Renderer::shadowMapDepthPass(PointLight& lightSource){
 
         }
     }
-
+    // lightSource.printShadowMaps();
     if(debugMode == DEBUG_SHADOWMAP){
 
         lightSource.printShadowMaps();
@@ -1301,7 +1309,7 @@ void Renderer::shadowMapDepthPass(SpotLight& lightSource){
                 }
             }
         }
-
+        //lightSource.printShadowMatrix();
     }
 }
 

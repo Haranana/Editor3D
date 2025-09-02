@@ -208,10 +208,6 @@ public:
                 }
         }
 
-
-
-
-
         if(shadowedTexels == texelsInRange){
             return 1.0;
         }else if(shadowedTexels == 0){

@@ -44,7 +44,7 @@ public:
     virtual const Buffer<double>& getShadowMap(size_t index = 0) const = 0;
 
     Color color = Colors::White;
-    double bias = 0.05;
+    double bias = 0.002;
     double range;
     double intensity = 1.0;
     bool castsShadow = true;
