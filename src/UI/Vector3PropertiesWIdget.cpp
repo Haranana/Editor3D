@@ -95,7 +95,6 @@ Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMi
 }
 
 void Vector3PropertiesWidget::setVector(Vector3& vector){
-
     this->vector = &vector;
 
     xSpinBox->blockSignals(true);
@@ -111,9 +110,9 @@ void Vector3PropertiesWidget::setVector(Vector3& vector){
     xSlider->blockSignals(true);
     ySlider->blockSignals(true);
     zSlider->blockSignals(true);
-    xSlider->setValue(vector.x*valueToSliderFactor);
-    ySlider->setValue(vector.y*valueToSliderFactor);
-    zSlider->setValue(vector.z*valueToSliderFactor);
+    xSlider->setValue(int(std::round(valueToDisplay(vector.x)*valueToSliderFactor)));
+    ySlider->setValue(int(std::round(valueToDisplay(vector.y)*valueToSliderFactor)));
+    zSlider->setValue(int(std::round(valueToDisplay(vector.z)*valueToSliderFactor)));
     xSlider->blockSignals(false);
     ySlider->blockSignals(false);
     zSlider->blockSignals(false);
@@ -129,9 +128,12 @@ void Vector3PropertiesWidget::setValueToDisplay(std::function<double(double)> va
 
 void Vector3PropertiesWidget::onValueChanged(){
     if(!vector) return;
-    vector->x = std::clamp(displayToValue(xSpinBox->value()), valueMin, valueMax);
-    vector->y = std::clamp(displayToValue(ySpinBox->value()), valueMin, valueMax);
-    vector->z = std::clamp(displayToValue(zSpinBox->value()), valueMin, valueMax);
+    const double dx = std::clamp(xSpinBox->value(), valueMin, valueMax);
+    const double dy = std::clamp(ySpinBox->value(), valueMin, valueMax);
+    const double dz = std::clamp(zSpinBox->value(), valueMin, valueMax);
+    vector->x = displayToValue(dx);
+    vector->y = displayToValue(dy);
+    vector->z = displayToValue(dz);
     emit valueChanged();
 }
 
