@@ -240,8 +240,8 @@ void MainWindow::refreshScene()
 void MainWindow::loadTestScene(){
     //TestScenes::loadDistantLightTestScene1(*scene , *objectsList);
     //TestScenes::loadSpotLightTestScene2(*scene, *objectsList);
-    //TestScenes::loadPointLightTestScene4(*scene, *objectsList);
-    TestScenes::loadSpotLightOnEmptyWall(*scene, *objectsList);
+    //TestScenes::loadPointLightTestScene3(*scene, *objectsList);
+    //TestScenes::loadSpotLightOnEmptyWall(*scene, *objectsList);
     //TestScenes::loadOnlyDistantLight(*scene , *objectsList);
     refreshScene();
 }

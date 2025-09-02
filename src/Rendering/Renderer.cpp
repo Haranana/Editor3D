@@ -510,7 +510,6 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
 
     GouraudShadingFaceData result{};
 
-    // --- Face: pozycje+normalna płaska ---
     const Vector3 P1 = fanTriangleRawWorldSpace.v1;
     const Vector3 P2 = fanTriangleRawWorldSpace.v2;
     const Vector3 P3 = fanTriangleRawWorldSpace.v3;
@@ -518,7 +517,7 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
     result.faceNormal = ((P2 - P1).crossProduct(P3 - P1)).normalize();
     result.centroid   = (P1 + P2 + P3) / 3.0;
 
-    // --- Per-vertex world normal (gładka) + invW ---
+
     const double wInv1 = fanTriangleClipped.v1.invW;
     const double wInv2 = fanTriangleClipped.v2.invW;
     const double wInv3 = fanTriangleClipped.v3.invW;
@@ -527,83 +526,71 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
     Vector3 N2 = (fanTriangleClipped.v2.worldSpaceNormalOverW * wInv2).normalize();
     Vector3 N3 = (fanTriangleClipped.v3.worldSpaceNormalOverW * wInv3).normalize();
 
-    // --- Przygotuj kontenery per-vertex ---
-    auto initGV = [&](GouraudShadingVertexData& gv, const Vector3& P, const Vector3& N, double invW) {
-        const size_t L = scene->lightSources.size();
-        gv.combinedLightOverW.resize(L, Vector3{});
-        gv.diffuseNoAlbedoOverW.resize(L, Vector3{});
-        gv.specularOverW.resize(L, Vector3{});
-        //gv.worldPos = P; gv.normal = N; gv.invW = invW;
+    auto initVertex = [&](GouraudShadingVertexData& vertexData) {
+        const size_t lights = scene->lightSources.size();
+        vertexData.combinedLightOverW.resize(lights, Vector3{});
+        vertexData.diffuseNoAlbedoOverW.resize(lights, Vector3{});
+        vertexData.specularOverW.resize(lights, Vector3{});
     };
 
-    initGV(result.face.v1, P1, N1, wInv1);
-    initGV(result.face.v2, P2, N2, wInv2);
-    initGV(result.face.v3, P3, N3, wInv3);
+    initVertex(result.face.v1);
+    initVertex(result.face.v2);
+    initVertex(result.face.v3);
 
-    // --- Funkcja pomocnicza: policz per-vertex wkład dla jednego światła ---
+
     auto evalOneLightAtVertex = [&](const std::shared_ptr<Light>& Ls,
                                     const Vector3& P, const Vector3& N, double invW,
                                     Vector3& outCombinedOverW,
                                     Vector3& outDiffuseNoAlbOverW,
                                     Vector3& outSpecWithLightOverW)
     {
-        Vector3 Ldir{};
+        Vector3 pointToLightDirection{};
         double  atten = 1.0;
 
         if (Ls->lightType == Light::LightType::DISTANT) {
-            auto d = std::dynamic_pointer_cast<DistantLight>(Ls);
-            Ldir  = (d->direction * (-1.0)).normalize();
+            auto distantLight = std::static_pointer_cast<DistantLight>(Ls);
+            pointToLightDirection  = (distantLight->direction * (-1.0)).normalize();
             atten = 1.0;
 
         } else if (Ls->lightType == Light::LightType::POINT) {
-            auto p = std::dynamic_pointer_cast<PointLight>(Ls);
-            Vector3 toL = p->transform.getPosition() - P;
-            Ldir  = toL.normalize();
-            atten = std::max(0.0, p->getAttenuation(toL.length()));
+            auto pointLight = std::static_pointer_cast<PointLight>(Ls);
+            Vector3 pointToLight = pointLight->transform.getPosition() - P;
+            pointToLightDirection  = pointToLight.normalize();
+            atten = pointLight->getAttenuation(pointToLight*(-1.0));
 
         } else { // SPOT
-            auto s = std::dynamic_pointer_cast<SpotLight>(Ls);
-            Vector3 toL = s->transform.getPosition() - P;
-            Vector3 l2p = toL * (-1.0);
-            Ldir  = toL.normalize();
-            const double d = l2p.length();
-            //const double cone = (d <= s->range) ? s->getConeAttenuation(l2p) : 0.0;
-
-            const double cone = (d <= s->range)?
-                                         s->getConeAttenuation(l2p.dotProduct(s->direction.normalize())) : 0.0;
-
-            const double dist = s->getDistanceAttenuation(d);
-            atten = std::clamp(cone * dist, 0.0, 1.0);
+            auto spotLight = std::static_pointer_cast<SpotLight>(Ls);
+            Vector3 pointToLight = spotLight->transform.getPosition() - P;
+            Vector3 lightToPoint = pointToLight * (-1.0);
+            pointToLightDirection  = pointToLight.normalize();
+            atten = spotLight->getAttenuation(lightToPoint);
         }
 
-        const Vector3 lightRGB = Vectors::colorToVector3(Ls->color) * Ls->intensity;
-        const Vector3 combined  = lightRGB * atten; // kolor/intens*atenuacja
-        const double  ndotl     = std::max(0.0, N.dotProduct(Ldir));
+        const Vector3 combined  = Vectors::colorToVector3(Ls->color) * Ls->intensity * atten;
+        const double  ndotl     = std::max(0.0, N.dotProduct(pointToLightDirection));
 
-        // diffuse (bez albedo)
         Vector3 diffNoAlb = combined * ndotl;
 
-        // spec (opcjonalnie) – Twoje funkcje zwracają Ks*… (bez koloru światła)
         Vector3 specNoLight{};
         if (obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG) {
                 specNoLight = lightingManager->illuminatePointPhong(
-                    const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
+                    const_cast<Vector3&>(pointToLightDirection), const_cast<Vector3&>(N),
                     obj.material, *camera, P
                     );
         } else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG) { // BLINN_PHONG
                 specNoLight = lightingManager->illuminatePointBlinnPhong(
-                    const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
+                    const_cast<Vector3&>(pointToLightDirection), const_cast<Vector3&>(N),
                     obj.material, *camera, P
                 );
 
         }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE) { // BLINN_PHONG
             specNoLight = lightingManager->getSpecularCookTorrance(
-                const_cast<Vector3&>(Ldir), const_cast<Vector3&>(N),
+                const_cast<Vector3&>(pointToLightDirection), const_cast<Vector3&>(N),
                 obj.material, *camera, P
                 );
             specNoLight = specNoLight * ndotl;
 
-            diffNoAlb = diffNoAlb.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(Ldir, obj.material, *camera, P));
+            diffNoAlb = diffNoAlb.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, P));
 
         }else{
             specNoLight = {};
@@ -612,27 +599,25 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
                                        specNoLight.y * combined.y,
                                        specNoLight.z * combined.z };
 
-        // zapisujemy w wersji overW (perspective-correct)
         outCombinedOverW      = combined      * invW;
         outDiffuseNoAlbOverW  = diffNoAlb     * invW;
         outSpecWithLightOverW = specWithLight * invW;
     };
 
-    // --- Główna pętla po światłach: wypełnij 3 wierzchołki ---
-    for (size_t i = 0; i < scene->lightSources.size(); ++i) {
-        auto& Ls = scene->lightSources[i];
+    for (size_t i = 0; i < scene->lightSources.size(); i++) {
+        auto& lightSource = scene->lightSources[i];
 
-        evalOneLightAtVertex(Ls, P1, N1, wInv1,
+        evalOneLightAtVertex(lightSource, P1, N1, wInv1,
                              result.face.v1.combinedLightOverW[i],
                              result.face.v1.diffuseNoAlbedoOverW[i],
                              result.face.v1.specularOverW[i]);
 
-        evalOneLightAtVertex(Ls, P2, N2, wInv2,
+        evalOneLightAtVertex(lightSource, P2, N2, wInv2,
                              result.face.v2.combinedLightOverW[i],
                              result.face.v2.diffuseNoAlbedoOverW[i],
                              result.face.v2.specularOverW[i]);
 
-        evalOneLightAtVertex(Ls, P3, N3, wInv3,
+        evalOneLightAtVertex(lightSource, P3, N3, wInv3,
                              result.face.v3.combinedLightOverW[i],
                              result.face.v3.diffuseNoAlbedoOverW[i],
                              result.face.v3.specularOverW[i]);
@@ -673,7 +658,7 @@ Renderer::FlatShadingFaceData Renderer::collectFlatPerFaceData(const Triangle3& 
             auto pointLight = std::static_pointer_cast<PointLight>(lightSource);
             Vector3 pointToLightVector = (pointLight->transform.getPosition() - result.flatWorldCentroid);
             pointToLightDirection = pointToLightVector.normalize();
-            attenuation = pointLight->getAttenuation(pointToLightVector.length());
+            attenuation = pointLight->getAttenuation(pointToLightVector);
 
         } else if (lightSource->lightType == Light::LightType::SPOT) {
             auto spotLight = std::static_pointer_cast<SpotLight>(lightSource);
@@ -681,14 +666,7 @@ Renderer::FlatShadingFaceData Renderer::collectFlatPerFaceData(const Triangle3& 
             Vector3 pointToLightVector = (spotLight->transform.getPosition() - result.flatWorldCentroid);
             Vector3 lightToPointVector = pointToLightVector * (-1.0);
             pointToLightDirection = pointToLightVector.normalize();
-
-            const double lightToPointDistance = lightToPointVector.length();
-
-            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
-                                             spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
-            double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
-
-            attenuation = std::clamp(distanceAttenuation * coneAttenuation, 0.0, 1.0);
+            attenuation = spotLight->getAttenuation(lightToPointVector);
 
         }
 
@@ -699,8 +677,7 @@ Renderer::FlatShadingFaceData Renderer::collectFlatPerFaceData(const Triangle3& 
         result.combinedLight[i]         = combinedLight;
         result.NdotL[i] = nDotL;
 
-        Vector3 specularNoLight = getSpecularModifier(obj,combinedLight, result.flatWorldCentroid, result.flatFaceNormal, pointToLightDirection);
-        result.specularWithLight[i] = specularNoLight.hadamard(combinedLight);
+        result.specularWithLight[i] = getSpecularModifier(obj,combinedLight, result.flatWorldCentroid, result.flatFaceNormal, pointToLightDirection);
 
         bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
         result.diffuseNoAlbedo[i] = getDiffuseModifier(obj, combinedLight, result.flatWorldCentroid,result.flatFaceNormal,

@@ -26,22 +26,7 @@ public:
         return                      (v.z >= 0 ? POSITIVE_Z : NEGATIVE_Z);
     }
 
-    static constexpr double FOV = M_PI/2;
-    static constexpr double ASPECT = 1.0;
-    static constexpr int defaultShadowMapSize = 2048;
-
-    double attenuationConstant = 1.0f;
-    //double attenuationLinear = 0.09f;
-    //double attenuationQuadratic = 0.032f;
-    double attenuationLinear = 0.00f;
-    double attenuationQuadratic = 0.000f;
-
-    std::vector<std::shared_ptr<Buffer<double>>> shadowMaps;
-    std::vector<Matrix4> viewMatrices = std::vector(6, Matrices4::identity());
-    Matrix4 projectionMatrix = Matrices4::identity();
-
-    PointLight()
-    {
+    PointLight(){
         shadowMaps.resize(6);
         for (int i = 0; i < 6; ++i) {
             shadowMaps[i] = std::make_shared<Buffer<double>>(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity());
@@ -67,9 +52,10 @@ public:
         return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
     }
 
+    /*
     double getAttenuation(double distance){
         return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
-    }
+    }*/
 
     void setViewMatrices(){
 
@@ -129,6 +115,19 @@ public:
             img.save(QString("shadowmap_%1.png").arg(face));
         }
     }
+
+    static constexpr double FOV = M_PI/2;
+    static constexpr double ASPECT = 1.0;
+    static constexpr int defaultShadowMapSize = 2048;
+
+    double attenuationConstant = 1.0f;
+    double attenuationLinear = 0.00f;
+    double attenuationQuadratic = 0.000f;
+
+    std::vector<std::shared_ptr<Buffer<double>>> shadowMaps;
+    std::vector<Matrix4> viewMatrices = std::vector(6, Matrices4::identity());
+    Matrix4 projectionMatrix = Matrices4::identity();
+
 };
 
 

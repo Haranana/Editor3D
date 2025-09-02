@@ -7,6 +7,58 @@
 class SpotLight : public Light{
 public:
 
+    SpotLight() : shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
+    {
+        direction = defaultDirection;
+        lightType = LightType::SPOT;
+        emitterRadiusWorld = 0.05;
+        range = deafultRange;
+    }
+
+    double getWorldUnitsPerTexel(double depth){
+        const double fovY = outerAngle*2;
+        const double fovYTan = tan(fovY/2.0);
+        const double fovX = 2*atan(fovYTan);
+        const double fovXTan = tan(fovX/2.0);
+
+        double tY = 2 * depth * fovYTan/defaultShadowMapSize;
+        double tX = 2*depth*fovXTan/defaultShadowMapSize;
+        return std::max(tX,tY);
+    }
+
+
+    double getAttenuation(const Vector3& lightToPoint) override{
+        double distance = lightToPoint.length();
+        if(distance > range) return 0.0;
+
+
+        return getConeAttenuation(lightToPoint.normalize().dotProduct(direction.normalize())) * getDistanceAttenuation(distance);
+    }
+    /*
+    double getConeAttenuation(const Vector3& lightToPoint){
+
+        Vector3 normDir = direction.normalize();
+        Vector3 lightToPointDir = lightToPoint.normalize();
+        double lightToPointCos = (lightToPointDir).dotProduct(normDir);
+
+        double denom = MathUt::safePositiveDenom(InnerAngleCos - outerAngleCos);
+        return std::clamp( ((lightToPointCos-outerAngleCos)/denom), 0.0, 1.0);
+    }*/
+
+    void updateCos(){
+        outerAngleCos = std::cos(outerAngle);
+        InnerAngleCos = std::cos(innerAngle);
+        invCos = 1.0 / MathUt::safePositiveDenom(InnerAngleCos-outerAngleCos);
+    }
+
+    Buffer<double>& getShadowMap(size_t index = 0) override{
+        return shadowMap;
+    }
+
+    const Buffer<double>& getShadowMap(size_t index = 0) const override{
+        return shadowMap;
+    }
+
     Matrix4 getViewMatrix(size_t index = 0) const override {
         return viewMatrix;
     }
@@ -25,6 +77,9 @@ public:
         return projectionMatrix;
     }
 
+    double normalizedDepthToWorld(double depth){
+        return near + depth*(range - near);
+    }
 
 
     static constexpr int defaultShadowMapSize = 2048;
@@ -51,73 +106,27 @@ public:
     double outerAngle = defaultOuterAngle; //default 60 degrees
     double innerAngle = defaultInnerAngle; //default 45 degrees
 
+    Buffer<double> shadowMap;
 
     double outerAngleCos = std::cos(defaultOuterAngle);
     double InnerAngleCos = std::cos(defaultInnerAngle);
     double invCos = 1.0 / (std::cos(defaultInnerAngle)-std::cos(defaultOuterAngle));
 
-    void updateCos(){
-        outerAngleCos = std::cos(outerAngle);
-        InnerAngleCos = std::cos(innerAngle);
-        invCos = 1.0 / MathUt::safePositiveDenom(InnerAngleCos-outerAngleCos);
-    }
-
-
-
-    Buffer<double> shadowMap;
-
-    Buffer<double>& getShadowMap(size_t index = 0) override{
-        return shadowMap;
-    }
-
-    const Buffer<double>& getShadowMap(size_t index = 0) const override{
-        return shadowMap;
-    }
-
-
     double attenuationConstant = 1.0;
     double attenuationLinear = 0.0;
     double attenuationQuadratic = 0.0;
 
-    SpotLight() : shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
-    {
-        direction = defaultDirection;
-        lightType = LightType::SPOT;
-        emitterRadiusWorld = 0.05;
-        range = deafultRange;
+private:
+
+    double getOuterAngleCos(){
+        return std::cos(outerAngle);
     }
 
-    double getWorldUnitsPerTexel(double depth){
-        const double fovY = outerAngle*2;
-        const double fovYTan = tan(fovY/2.0);
-        const double fovX = 2*atan(fovYTan);
-        const double fovXTan = tan(fovX/2.0);
-
-        double tY = 2 * depth * fovYTan/defaultShadowMapSize;
-        double tX = 2*depth*fovXTan/defaultShadowMapSize;
-        return std::max(tX,tY);
-    }
-
-
-    double getAttenuation(const Vector3& lightToPoint) override{
-        double distance = lightToPoint.length();
-        if(distance < range) return 0.0;
-        return getConeAttenuation(lightToPoint.dotProduct(direction)) * getDistanceAttenuation(distance);
-    }
-
-    double getConeAttenuation(const Vector3& lightToPoint){
-
-        Vector3 normDir = direction.normalize();
-        Vector3 lightToPointDir = lightToPoint.normalize();
-        double lightToPointCos = (lightToPointDir).dotProduct(normDir);
-
-        double denom = MathUt::safePositiveDenom(InnerAngleCos - outerAngleCos);
-        return std::clamp( ((lightToPointCos-outerAngleCos)/denom), 0.0, 1.0);
+    double getInnerAngleCos(){
+        return std::cos(innerAngle);
     }
 
     double getConeAttenuation(double LightToPointDotDir){
-
-
         double cosTheta = LightToPointDotDir;
         if(cosTheta <= outerAngleCos){
             return 0.0;
@@ -128,22 +137,8 @@ public:
         }
     }
 
-    double normalizedDepthToWorld(double depth){
-        return near + depth*(range - near);
-    }
-
     double getDistanceAttenuation(double distance){
         return 1/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance);
-    }
-
-private:
-
-    double getOuterAngleCos(){
-        return std::cos(outerAngle);
-    }
-
-    double getInnerAngleCos(){
-        return std::cos(innerAngle);
     }
 
     Matrix4 viewMatrix = Matrices4::identity();;
