@@ -9,7 +9,7 @@ CameraPropertiesWidget::CameraPropertiesWidget(QWidget* parent)
 {
     auto layout = new QFormLayout(this);
 
-    transformWidget = new Transform3DPropertiesWidget(this);
+    transformWidget = new Transform3DPropertiesWidget(this,true,true,false);
     layout->addRow(transformWidget);
 
     auto fovRow = new QWidget(this);
