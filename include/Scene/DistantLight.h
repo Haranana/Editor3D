@@ -14,6 +14,7 @@ public:
     static constexpr Vector3 defaultUp = Vector3(0,1,0);
     static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
     static constexpr size_t defaultShadowMapSize = 2048; //in pixels
+    static constexpr Vector3 defaultDireciton = {-1.0 ,0 ,0};
 
 
     //used in projectionMatrix, bias calculation, and normalization
@@ -25,15 +26,19 @@ public:
     double oFar = 0.0;
 
     //probably should be kept normalized
-    Vector3 direction;
+    //Vector3 direction;
     Buffer<double> shadowMap;
 
-    DistantLight(Vector3 direction) :
-        direction(direction.normalize()) ,
+    DistantLight(Vector3 direction = defaultDireciton) :
         shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
     {
+        this->direction = direction.normalize() ;
         lightType = LightType::DISTANT;
         emitterRadiusWorld = MathUt::degreeToRadian(0.27);
+    }
+
+    double getAttenuation(const Vector3& pointToLight = {}) override{
+        return 1.0;
     }
 
     double getWorldUnitsPerTexel(){
@@ -64,7 +69,7 @@ public:
         this->viewMatrix = viewMatrix;
     }
 
-    Matrix4 getViewMatrix(){
+    Matrix4 getViewMatrix(size_t index = 0) const override{
         return viewMatrix;
     };
 
@@ -84,7 +89,7 @@ public:
         projectionMatrix = LightMatrices::orthogonalLightProjection(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
     }
 
-    Matrix4 getProjectionMatrix(){
+    Matrix4 getProjectionMatrix() const override{
         return projectionMatrix;
     };
 
@@ -100,6 +105,15 @@ public:
             meanZ = meanZ + v.z;
         }
         return Vector3(meanX/boundingBox.size() , meanY/boundingBox.size(), meanZ/boundingBox.size());
+    }
+
+
+    Buffer<double>& getShadowMap(size_t index = 0) override{
+        return shadowMap;
+    }
+
+    const Buffer<double>& getShadowMap(size_t index = 0) const override{
+        return shadowMap;
     }
 
     double normalizedDepthToWorld(double depth){

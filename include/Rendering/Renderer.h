@@ -96,16 +96,36 @@ private:
         Vector3 centroid;
     };
 
+    struct FlatShadingFaceData{
+        std::vector<Vector3> pointToLightDirection;
+        std::vector<Vector3> combinedLight;
+        std::vector<Vector3> diffuseNoAlbedo;
+        std::vector<Vector3> specularWithLight;
+        std::vector<double>  NdotL;
+        Vector3 flatFaceNormal;
+        Vector3 flatWorldCentroid;
+    };
+
+
     void renderSceneObjects();
     void renderObject( RenderableObject3D& obj, int objId);
     GouraudShadingFaceData collectGouraudPerFaceData(Triangle<ClippingManager::ClippedVertex> fanTriangleClipped,
                                                      const Triangle3& fanTriangleRawWorldSpace,
                                                      const RenderableObject3D& obj);
+
+    FlatShadingFaceData collectFlatPerFaceData(const Triangle3& fanTriangleRawWorldSpace,
+                                               const RenderableObject3D& obj);
+
     void updateShadowMaps();
     void shadowMapDepthPass(DistantLight& lightSource);
     void shadowMapDepthPass(PointLight& lightSource);
     void shadowMapDepthPass(SpotLight& spotLight);
     bool shouldCullBackFace(const Triangle3& face);
+
+
+    double getShadowAmount(const Light& light, const Vector3& worldSpacePoint, const Vector3& normal, const Triangle3& worldSpaceFan);
+
+    Vector3 getPointToLight(const Vector3& worldSpacePoint, const Light& light);
 
     double getVisibility(const double shadowAmount);
 
@@ -116,7 +136,7 @@ private:
     Vector3 interpolateCombinedLight(const Triangle3& combinedLightOverW, const Triangle<double>& baricentricFactor, double invDenom);
 
     Vector3 getDiffuseModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
-                              const Vector3& faceNormal, const Vector3& pointToLightDir, const Vector3& albedo, double visibility, bool brdf = false);
+                              const Vector3& faceNormal, const Vector3& pointToLightDir, const Vector3& albedo, double visibility = 1.0, bool brdf = false);
 
     //If diffuse it supposed to be brdf, then vertices in diffuseNoAlbedoInVerticesOverW should already be with brdf modifier
     //also assumes that diffuse already is multiplied by combinedLight
@@ -124,11 +144,11 @@ private:
                                        const Vector3& albedo, double invDenom, double visibility);
 
     Vector3 getSpecularModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
-                               const Vector3& faceNormal, const Vector3& pointToLightDir, double visibility);
+                               const Vector3& faceNormal, const Vector3& pointToLightDir, double visibility = 1.0);
 
     //assumes that vertices in triangle are already modified by combinedLight
     Vector3 interpolatSpecularModifier(const Triangle3& specularInVerticesOverW , const Triangle<double>& baricentricFactor,
-                                       const Vector3& combinedLight, double invDenom, double visibility);
+                                       double invDenom, double visibility);
 
 
 
@@ -138,16 +158,18 @@ private:
         PointLight::ShadowMapFace face;
     };
 
+    /*
     void calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
                        Vector3& pointForDepthCheck, double& biasAddition, Triangle3& fanWorldCoords,
                         PointLight::ShadowMapFace* outFace = nullptr, int pcfKernelSize = 0);
-
+    */
     /*
     Bias calculateBias(const std::shared_ptr<Light>& light, const Vector3& point, const Vector3& normal,
                        Triangle3& fanWorldCoords, PointLight::ShadowMapFace face = PointLight::ShadowMapFace::NEGATIVE_X, int pcfKernelSize = 0);
     */
-    double calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
-                                 double receiverDepth, double bias, Light& light);
+    double calculateBias(const Light& light, const Vector3& worldSpacePoint, const Vector3& normal, const Triangle3& fanWorldSpace, int pcfKernelSize = 0);
+    double calculateShadowAmount(const Buffer<double>& shadowMap ,const Light& light, const Vector2& point,
+                                 double receiverDepth, double bias);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

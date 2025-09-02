@@ -122,7 +122,7 @@ public:
         }
     }
 
-    static double pcssPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias, Light& lightSource){
+    static double pcssPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias, const Light& lightSource){
 
         static const int pcfSample = 12;
         std::vector<Vector2> offset;
@@ -141,9 +141,10 @@ public:
         double distanceWorld = distance;
 
         if(lightType == Light::LightType::DISTANT){
-            if(auto distantLight = dynamic_cast<DistantLight*>(&lightSource)){
-                distanceWorld = distantLight->normalizedDepthToWorld(distance);
-                searchRadiusInTexels =baseSearchRadius * std::tan(lightSource.emitterRadiusWorld)/distantLight->getWorldUnitsPerTexel();
+
+            auto distantLight = static_cast<const DistantLight&>(lightSource);
+                distanceWorld = distantLight.normalizedDepthToWorld(distance);
+                searchRadiusInTexels =baseSearchRadius * std::tan(lightSource.emitterRadiusWorld)/distantLight.getWorldUnitsPerTexel();
 
 
                 searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
@@ -155,16 +156,17 @@ public:
                         texelsInRange++;
                         if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
                             shadowedTexels++;
-                            double blockerDistanceWorld = distantLight->normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                            double blockerDistanceWorld = distantLight.normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
                             blockerDistances.push_back( blockerDistanceWorld);
                         }
 
                 }
-            }
+
         }else if(lightType == Light::LightType::POINT){
-            if(auto pointLight = dynamic_cast<PointLight*>(&lightSource)){
-                distanceWorld = pointLight->normalizedDepthToWorld(distance);
-                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/pointLight->getWorldUnitsPerTexel(distanceWorld);
+
+            auto pointLight = static_cast<const PointLight&>(lightSource);
+                distanceWorld = pointLight.normalizedDepthToWorld(distance);
+                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/pointLight.getWorldUnitsPerTexel(distanceWorld);
 
                 searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
 
@@ -176,16 +178,16 @@ public:
                         texelsInRange++;
                         if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
                             shadowedTexels++;
-                            double blockerDistanceWorld = pointLight->normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                            double blockerDistanceWorld = pointLight.normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
                             blockerDistances.push_back( blockerDistanceWorld);
                         }
 
                 }
-            }
+
         }else if(lightType == Light::LightType::SPOT){
-            if(auto spotLight = dynamic_cast<SpotLight*>(&lightSource)){
-                distanceWorld = spotLight->normalizedDepthToWorld(distance);
-                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/spotLight->getWorldUnitsPerTexel(distanceWorld);
+            auto spotLight = static_cast<const SpotLight&>(lightSource);
+                distanceWorld = spotLight.normalizedDepthToWorld(distance);
+                searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/spotLight.getWorldUnitsPerTexel(distanceWorld);
 
 
                 searchRadiusInTexels =std::clamp(searchRadiusInTexels, 1.0, maxKernel );
@@ -198,14 +200,14 @@ public:
                         texelsInRange++;
                         if(shadowMap[shadowMapCoordY][shadowMapCoordX] + bias < distance){
                             shadowedTexels++;
-                            double blockerDistanceWorld = spotLight->normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
+                            double blockerDistanceWorld = spotLight.normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
                             blockerDistances.push_back( blockerDistanceWorld);
 
                         }
 
                 }
-            }
         }
+
 
 
 
@@ -221,20 +223,20 @@ public:
         double kernelSizeInTexels{};
 
         if(lightType == Light::LightType::DISTANT){
-            if(auto distantLight = dynamic_cast<DistantLight*>(&lightSource)){
+                auto distantLight = static_cast<const DistantLight&>(lightSource);
                 kernelSize = (distanceWorld - blockerDistanceMean) * std::tan(lightSource.emitterRadiusWorld);
-                kernelSizeInTexels = kernelSize/distantLight->getWorldUnitsPerTexel();
-            }
+                kernelSizeInTexels = kernelSize/distantLight.getWorldUnitsPerTexel();
+
         }else if(lightType == Light::LightType::POINT){
-            if(auto pointLight = dynamic_cast<PointLight*>(&lightSource)){
+            auto pointLight = static_cast<const PointLight&>(lightSource);
                 kernelSize = (distanceWorld - blockerDistanceMean) * (lightSource.emitterRadiusWorld/MathUt::safeDenom(blockerDistanceMean));
-                kernelSizeInTexels = kernelSize/pointLight->getWorldUnitsPerTexel(distanceWorld);
-            }
+                kernelSizeInTexels = kernelSize/pointLight.getWorldUnitsPerTexel(distanceWorld);
+
         }else if(lightType == Light::LightType::SPOT){
-            if(auto spotLight = dynamic_cast<SpotLight*>(&lightSource)){
+            auto spotLight = static_cast<const SpotLight&>(lightSource);
                 kernelSize = (distanceWorld - blockerDistanceMean) * (lightSource.emitterRadiusWorld/MathUt::safeDenom(blockerDistanceMean));
-                kernelSizeInTexels = kernelSize/spotLight->getWorldUnitsPerTexel(distanceWorld);
-            }
+                kernelSizeInTexels = kernelSize/spotLight.getWorldUnitsPerTexel(distanceWorld);
+
         }
 
         kernelSizeInTexels = std::clamp(kernelSizeInTexels, 1.0 , maxKernel);

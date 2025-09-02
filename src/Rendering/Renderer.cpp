@@ -159,102 +159,20 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             Vector3 interpolatedWorldSpaceCoords;
             Vector3 interpolatedWorldSpaceFaceNormal;
 
-
-            std::vector<Vector3> flat_pointToLightDirection(scene->lightSources.size());
-            std::vector<Vector3> flat_combinedLight(scene->lightSources.size(), Vector3{0,0,0});
-            std::vector<Vector3> flat_diffuseNoAlbedo(scene->lightSources.size(), Vector3{}); // bez albedo
-            std::vector<Vector3> flat_specularWithLight(scene->lightSources.size(), Vector3{});
-            std::vector<double>  flat_NdotL(scene->lightSources.size(), 0.0);
-            Vector3 flatFaceNormal;
-            Vector3 flatWorldCentroid;
-
-            if(obj.displaySettings->shadingMode == DisplaySettings::Shading::FLAT){
-                const Vector3 w0 = fanTriangleRawWorldSpace.v1;
-                const Vector3 w1 = fanTriangleRawWorldSpace.v2;
-                const Vector3 w2 = fanTriangleRawWorldSpace.v3;
-
-                flatFaceNormal = ((w1 - w0).crossProduct(w2 - w0)).normalize();
-                flatWorldCentroid = (w0 + w1 + w2) / 3.0;
-
-                for (size_t i = 0; i < scene->lightSources.size(); ++i) {
-                    auto& lightSource = scene->lightSources[i];
-
-                    Vector3 pointToLightDirection{};
-                    double  attenuation = 1.0;
-
-                    if (lightSource->lightType == Light::LightType::DISTANT) {
-                        if (auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)) {
-                            pointToLightDirection = (distantLight->direction * (-1.0)).normalize();
-                            attenuation = 1.0;
-
-                        }
-                    } else if (lightSource->lightType == Light::LightType::POINT) {
-                        if (auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)) {
-                            Vector3 pointToLightVector = (pointLight->transform.getPosition() - flatWorldCentroid);
-                            pointToLightDirection = pointToLightVector.normalize();
-                            attenuation = pointLight->getAttenuation(pointToLightVector.length());
-                        }
-                    } else if (lightSource->lightType == Light::LightType::SPOT) {
-                        if (auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)) {
-                            Vector3 pointToLightVector = (spotLight->transform.getPosition() - flatWorldCentroid);
-                            Vector3 lightToPointVector = pointToLightVector * (-1.0);
-                            pointToLightDirection = pointToLightVector.normalize();
-
-                            const double lightToPointDistance = lightToPointVector.length();
-                            /*
-                            double coneAttenuation     = (lightToPointDistance <= spotLight->range)
-                                                         ? spotLight->getConeAttenuation(lightToPointVector)
-                                                         : 0.0;*/
-                            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
-                                                         spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
-                            double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
-
-                            attenuation = std::clamp(distanceAttenuation * coneAttenuation, 0.0, 1.0);
-                        }
-                    }
-
-                    Vector3 combinedLight = Vectors::colorToVector3(lightSource->color) * lightSource->intensity * attenuation;
-                    double nDotL = std::max(0.0, flatFaceNormal.dotProduct(pointToLightDirection));
-
-                    flat_pointToLightDirection[i] = pointToLightDirection;
-                    flat_combinedLight[i]         = combinedLight;
-                    flat_NdotL[i] = nDotL;
-
-                    flat_diffuseNoAlbedo[i] = lightingManager->getDiffuseLambert(
-                        pointToLightDirection, flatFaceNormal, combinedLight);
-
-                    Vector3 speculatNoLight;
-                    if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
-                        speculatNoLight = lightingManager->illuminatePointPhong(
-                            pointToLightDirection, flatFaceNormal, obj.material, *camera, flatWorldCentroid
-                            );
-                    }
-                    else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
-                        speculatNoLight = lightingManager->illuminatePointBlinnPhong(
-                            pointToLightDirection, flatFaceNormal, obj.material, *camera, flatWorldCentroid
-                            );
-                    }
-                    else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE){
-                        speculatNoLight = lightingManager->getSpecularCookTorrance(
-                            pointToLightDirection, flatFaceNormal, obj.material, *camera, flatWorldCentroid
-                            );
-                        speculatNoLight = speculatNoLight*nDotL;
-                        flat_diffuseNoAlbedo[i] = flat_diffuseNoAlbedo[i].hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, flatWorldCentroid));
-                    }
-                    flat_specularWithLight[i] = Vector3{
-                        speculatNoLight.x*combinedLight.x,
-                        speculatNoLight.y*combinedLight.y,
-                        speculatNoLight.z*combinedLight.z,
-                    };
-                }
-            }
-
-
-            //Gouraud shading data collecting
             GouraudShadingFaceData gouraudShadingFaceData;
-            if(obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
-                gouraudShadingFaceData = collectGouraudPerFaceData(
+            FlatShadingFaceData flatShadingFaceData;
+            switch(obj.displaySettings->shadingMode){
+                case DisplaySettings::Shading::FLAT:
+                    flatShadingFaceData = collectFlatPerFaceData(fanTriangleRawWorldSpace, obj);
+                    break;
+                case DisplaySettings::Shading::GOURAUD:
+                    gouraudShadingFaceData = collectGouraudPerFaceData(
                         fanTriangleClipped, fanTriangleRawWorldSpace,obj);
+                    break;
+                case DisplaySettings::Shading::PHONG:
+                    break;
+                default:
+                    break;
             }
 
             // raster fill
@@ -314,454 +232,93 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         Vector3 ambient = lightingManager->getConstantAmbient(kd,Ka,scene->ambientColor,scene->ambientIntensity,scene->ambientPBR,obj.material.metallic);
                         outColor = outColor + ambient;
 
-                        if(obj.displaySettings->shadingMode == DisplaySettings::Shading::FLAT){
+                        size_t lightId = 0;
+                        for(std::shared_ptr<Light>&lightSource : scene->lightSources){
 
-                            interpolatedWorldSpaceCoords = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
-                                                            + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
-                                                            + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
+                            Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{}, combinedLight{};
+                            Vector3 worldSpacePoint, faceNormal;
+                            double shadowAmount{}, visibility{};
 
+                            switch (obj.displaySettings->shadingMode){
+                                case DisplaySettings::Shading::FLAT:{
 
-                            size_t lightId = 0;
-                            for(std::shared_ptr<Light>&lightSource : scene->lightSources){
-                                Vector3 pointToLightDirection = flat_pointToLightDirection[lightId];
-                                Vector3 combined = flat_combinedLight[lightId];
-                                Vector3 diffuse = flat_diffuseNoAlbedo[lightId];
-                                Vector3 specular = flat_specularWithLight[lightId];
-                                double shadowAmount{};
+                                    worldSpacePoint = flatShadingFaceData.flatWorldCentroid;
+                                    faceNormal = flatShadingFaceData.flatFaceNormal;
 
-                                if(lightSource->lightType == Light::LightType::DISTANT){
-                                    if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+                                    shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    visibility = getVisibility(shadowAmount);
 
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        calculateBias(distantLight , interpolatedWorldSpaceCoords, flatFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,nullptr, FilteringManager::kernelSideFor(*distantLight));
+                                    combinedLight = flatShadingFaceData.combinedLight[lightId];
+                                    diffuseModifier = flatShadingFaceData.diffuseNoAlbedo[lightId].hadamard(kd)*visibility;
+                                    specularModifier = flatShadingFaceData.specularWithLight[lightId]*visibility;
+                                    shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
 
-                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-                                          //check if we are not trying to get element from outside the buffer
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if (!(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)))){
-                                            pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
-
-                                        }else{
-
-                                            float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1);
-
-                                            shadowAmount  = calculateShadowAmount(distantLight->shadowMap, Vector2(sx,sy),
-                                                                                 depthInLightView, biasAddition, *distantLight);
-                                            pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
-                                        }
-
-                                    }
+                                    break;
                                 }
-                                if(lightSource->lightType == Light::LightType::POINT){
-                                    if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        PointLight::ShadowMapFace face;
-                                        face = PointLight::pickFace(interpolatedWorldSpaceCoords - pointLight->transform.getPosition());
-                                        calculateBias(pointLight , interpolatedWorldSpaceCoords, flatFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,&face, FilteringManager::kernelSideFor(*pointLight));
+                                case DisplaySettings::Shading::GOURAUD:{
 
-                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
+                                    worldSpacePoint = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
+                                                                    + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
+                                                                    + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
+                                    faceNormal = gouraudShadingFaceData.faceNormal;
 
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
+                                    shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    visibility = getVisibility(shadowAmount);
 
-                                        if (!(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)))){
+                                    Triangle3 gouraudCombLightOverW = {gouraudShadingFaceData.face.v1.combinedLightOverW[lightId],
+                                                                       gouraudShadingFaceData.face.v2.combinedLightOverW[lightId],
+                                                                       gouraudShadingFaceData.face.v3.combinedLightOverW[lightId]};
 
+                                    Triangle3 gouraudDiffuseOverW = {gouraudShadingFaceData.face.v1.diffuseNoAlbedoOverW[lightId],
+                                                                     gouraudShadingFaceData.face.v2.diffuseNoAlbedoOverW[lightId],
+                                                                     gouraudShadingFaceData.face.v3.diffuseNoAlbedoOverW[lightId]};
 
-                                            Vector3 pointToLightVector = (pointLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            pointToLightDirection = (pointToLightVector).normalize();
+                                    Triangle3 gouraudSpecularOverW = {gouraudShadingFaceData.face.v1.specularOverW[lightId],
+                                                                      gouraudShadingFaceData.face.v2.specularOverW[lightId],
+                                                                      gouraudShadingFaceData.face.v3.specularOverW[lightId]};
 
-                                        }else{
+                                    combinedLight = interpolateCombinedLight(gouraudCombLightOverW, baricentricFactor, invDenom);
+                                    shadowTintModifier =getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
+                                    diffuseModifier = interpolateDiffuseModifier(gouraudDiffuseOverW, baricentricFactor, kd, invDenom, visibility);
+                                    specularModifier = interpolatSpecularModifier(gouraudSpecularOverW, baricentricFactor, invDenom, visibility);
 
-                                            float depthInLightView = (pointForDepthCheck - pointLight->transform.getPosition()).length();
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * ((*pointLight->shadowMaps[face]).getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * ((*pointLight->shadowMaps[face]).getRows() - 1);
-
-                                            float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
-
-                                            shadowAmount  = calculateShadowAmount(*pointLight->shadowMaps[face], Vector2(sx,sy),
-                                                                                 normalizedDepth, biasAddition, *pointLight);
-
-                                            Vector3 pointToLightVector = (pointLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            pointToLightDirection = (pointToLightVector).normalize();
-                                        }
-                                    }
-
+                                    break;
                                 }
-                                if(lightSource->lightType == Light::LightType::SPOT){
-                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
-
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        calculateBias(spotLight , interpolatedWorldSpaceCoords, flatFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,nullptr,  FilteringManager::kernelSideFor(*spotLight));
-
-                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if (!(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)))){
-
-                                            Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            pointToLightDirection = (pointToLightVector).normalize();
-
-
-                                        }else{
-                                            float depthInLightView = (pointForDepthCheck - spotLight->transform.getPosition()).length();
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1);
-
-                                            float normalizedDepth =std::clamp((depthInLightView-lightSource->near)/(spotLight->range-lightSource->near),0.0,1.0);
-
-                                            shadowAmount  = calculateShadowAmount(spotLight->shadowMap, Vector2(sx,sy),
-                                                                                 normalizedDepth, biasAddition, *spotLight);
-
-                                            Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-
-                                            pointToLightDirection = (pointToLightVector).normalize();
-
-                                        }
-                                    }
-                                }
-
-
-                                Vector3 diffuseModifier{}, specularModifier{}, combinedLight{}, shadowTintModifier{};
-
-                                const double visibility = 1.0 - shadowAmount;
-                                combinedLight = combined;
-                                diffuseModifier = diffuse.hadamard(kd)*visibility;
-                                specularModifier = specular*visibility;
-                                shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
-
-                                outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
-
-                                lightId++;
-                            }
-
-                        }else if(obj.displaySettings->shadingMode == DisplaySettings::Shading::PHONG){
-
-
-                            interpolatedWorldSpaceCoords = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
+                                case DisplaySettings::Shading::PHONG:{
+                                    worldSpacePoint = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
                                                                     + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
                                                                     + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
 
-                            interpolatedWorldSpaceFaceNormal = ((fanTriangleClipped.v1.worldSpaceNormalOverW*baricentricFactor.v1
+                                    faceNormal = ((fanTriangleClipped.v1.worldSpaceNormalOverW*baricentricFactor.v1
                                                                          + fanTriangleClipped.v2.worldSpaceNormalOverW*baricentricFactor.v2
                                                                          + fanTriangleClipped.v3.worldSpaceNormalOverW*baricentricFactor.v3)
-                                                                        /invDenom).normalize();     
+                                                                        /invDenom).normalize();
 
-                            //choosing bias etc.
-                            for(std::shared_ptr<Light>&lightSource : scene->lightSources){
-                                Vector3 pointToLightDirection;
-                                double attenuation = 1.0;
-                                double shadowAmount = 0.0;
+                                    Vector3 pointToLight = getPointToLight(worldSpacePoint , *lightSource);
+                                    Vector3 pointToLightDirection = pointToLight.normalize();
+                                    double attenuation = lightSource->getAttenuation(pointToLight*(-1.0));
 
-                                //DISTANT LIGHT
-                                if(lightSource->lightType == Light::LightType::DISTANT){
-                                    if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
+                                    shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    visibility = getVisibility(shadowAmount);
 
-                                        calculateBias(distantLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, nullptr,  FilteringManager::kernelSideFor(*distantLight));
+                                    bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
 
 
-                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-
-                                        //check if we are not trying to get element from outside the buffer
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-
-
-                                        if (!(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)))){
-                                            pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
-                                            attenuation = 1.0;
-
-                                        }else{
-
-                                            float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-                                            //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1)));
-                                            //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1);
-
-                                         shadowAmount  = calculateShadowAmount(distantLight->shadowMap, Vector2(sx,sy),
-                                                                                         depthInLightView, biasAddition, *distantLight);
-                                            pointToLightDirection = (distantLight->direction*(-1.0)).normalize();
-                                            attenuation = 1.0;   
-                                        }
-
-                                    }
-                                //POINT LIGHT
-                                }else if(lightSource->lightType == Light::LightType::POINT){
-                                    if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        PointLight::ShadowMapFace face;
-                                        face = PointLight::pickFace(interpolatedWorldSpaceCoords - pointLight->transform.getPosition());
-                                        calculateBias(pointLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,&face, FilteringManager::kernelSideFor(*pointLight));
-
-                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if (!(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)))){
-
-
-                                            Vector3 pointToLightVector = (pointLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            pointToLightDirection = (pointToLightVector).normalize();
-                                            attenuation = pointLight->getAttenuation(pointToLightVector.length());
-
-                                        }else{
-
-                                            float depthInLightView = (pointForDepthCheck - pointLight->transform.getPosition()).length();
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * ((*pointLight->shadowMaps[face]).getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * ((*pointLight->shadowMaps[face]).getRows() - 1);
-
-                                            float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
-
-                                            shadowAmount  = calculateShadowAmount(*pointLight->shadowMaps[face], Vector2(sx,sy),
-                                                                                         normalizedDepth, biasAddition, *pointLight);
-
-                                            Vector3 pointToLightVector = (pointLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            pointToLightDirection = (pointToLightVector).normalize();
-                                            attenuation = pointLight->getAttenuation(pointToLightVector.length());
-                                        }
-                                    }
-                                }else if(lightSource->lightType == Light::LightType::SPOT){
-                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
-
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        calculateBias(spotLight , interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, nullptr,  FilteringManager::kernelSideFor(*spotLight));
-
-                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if (!(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f)))){
-
-                                            Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            Vector3 lightToPointVector = pointToLightVector * (-1.0);
-                                            pointToLightDirection = (pointToLightVector).normalize();
-                                            double  lightToPointDistance = lightToPointVector.length();
-
-                                           // double coneAttenuation     = (lightToPointDistance <= spotLight->range)
-                                            //                     ? spotLight->getConeAttenuation(lightToPointVector)
-                                             //                    : 0.0;
-                                            //double coneAttenuation = spotLight->getConeAttenuation(pointToLightDirection.dotProduct(spotLight->direction.normalize()));
-                                            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
-                                                                        spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
-                                            //double coneAttenuation = spotLight->getConeAttenuation(pointToLightDirection.dotProduct(spotLight->direction.normalize()));
-                                            double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
-
-
-                                            attenuation = distanceAttenuation*coneAttenuation;
-                                            attenuation = std::clamp(attenuation, 0.0, 1.0);
-
-                                        }else{
-                                            float depthInLightView = (pointForDepthCheck - spotLight->transform.getPosition()).length();
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1);
-
-                                            float normalizedDepth =std::clamp((depthInLightView-lightSource->near)/(spotLight->range-lightSource->near),0.0,1.0);
-
-                                            shadowAmount  = calculateShadowAmount(spotLight->shadowMap, Vector2(sx,sy),
-                                                                                         normalizedDepth, biasAddition, *spotLight);
-
-                                            Vector3 pointToLightVector = (spotLight->transform.getPosition() - interpolatedWorldSpaceCoords);
-                                            Vector3 lightToPointVector = pointToLightVector * (-1.0);
-                                            pointToLightDirection = (pointToLightVector).normalize();
-
-                                            double  lightToPointDistance = lightToPointVector.length();
-                                            /*
-                                            double coneAttenuation     = (lightToPointDistance <= spotLight->range)
-                                                                             ? spotLight->getConeAttenuation(lightToPointVector)
-                                                                             : 0.0;*/
-                                            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
-                                                spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
-                                            double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
-
-                                            attenuation = distanceAttenuation*coneAttenuation;
-                                            attenuation = std::clamp(attenuation, 0.0, 1.0);
-                                        }
-                                    } 
+                                    combinedLight = getCombinedLight(Vectors::colorToVector3(lightSource->color), lightSource->intensity, attenuation);
+                                    shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
+                                    diffuseModifier = getDiffuseModifier(obj,combinedLight,worldSpacePoint,faceNormal,
+                                                                         pointToLightDirection,kd,visibility, brdf);
+                                    specularModifier = getSpecularModifier(obj, combinedLight, worldSpacePoint, faceNormal,
+                                                                           pointToLightDirection, visibility);
+                                    break;
                                 }
-
-                                Vector3 combinedLight{}, shadowTintModifier{}, diffuseModifier{}, specularModifier{};
-
-                                bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
-
-                                const double visibility = 1.0 - shadowAmount;
-
-                                combinedLight = Vectors::colorToVector3(lightSource->color) * lightSource->intensity * attenuation;
-
-                                shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
-
-                                diffuseModifier = getDiffuseModifier(obj,combinedLight,interpolatedWorldSpaceCoords,interpolatedWorldSpaceFaceNormal,
-                                                                     pointToLightDirection,kd,visibility, brdf);
-                                specularModifier = getSpecularModifier(obj, combinedLight, interpolatedWorldSpaceCoords, interpolatedWorldSpaceFaceNormal,
-                                                                       pointToLightDirection, visibility);
-
-                                outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                             }
 
-                        }else if(obj.displaySettings->shadingMode == DisplaySettings::Shading::GOURAUD){
-
-                            interpolatedWorldSpaceCoords = (fanTriangleClipped.v1.worldSpaceVertexOverW*baricentricFactor.v1
-                                                            + fanTriangleClipped.v2.worldSpaceVertexOverW*baricentricFactor.v2
-                                                            + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
-                            size_t lightId = 0;
-                            //choosing bias etc.
-                            for(std::shared_ptr<Light>&lightSource : scene->lightSources){
-                                Vector3 gouraudFaceNormal = gouraudShadingFaceData.faceNormal;
-                                double shadowAmount = 0.0;
-
-                                //DISTANT LIGHT
-                                if(lightSource->lightType == Light::LightType::DISTANT){
-                                    if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-
-                                        calculateBias(distantLight , interpolatedWorldSpaceCoords, gouraudFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace, nullptr,  FilteringManager::kernelSideFor(*distantLight));
-
-                                        Vector4 lightProjCoord = distantLight->getProjectionMatrix() * distantLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-
-                                        //check if we are not trying to get element from outside the buffer
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
-                                            float depthInLightView = lightNdcCoord.z * 0.5f + 0.5f;
-                                            //int sx = int(std::round((lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1)));
-                                            //int sy = int(std::round((1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1)));
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (distantLight->shadowMap.getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (distantLight->shadowMap.getRows() - 1);
-
-                                            shadowAmount  = calculateShadowAmount(distantLight->shadowMap, Vector2(sx,sy),
-                                                                                 depthInLightView, biasAddition, *distantLight);
-                                        }
-                                    }
-                                    //POINT LIGHT
-                                }else if(lightSource->lightType == Light::LightType::POINT){
-                                    if(auto pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        PointLight::ShadowMapFace face;
-                                        face = PointLight::pickFace(interpolatedWorldSpaceCoords - pointLight->transform.getPosition());
-                                        calculateBias(pointLight , interpolatedWorldSpaceCoords, gouraudFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,&face, FilteringManager::kernelSideFor(*pointLight));
-
-                                        Vector4 lightProjCoord = pointLight->getProjectionMatrix() * pointLight->getViewMatrix(face) * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if (std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
-
-                                            float depthInLightView = (pointForDepthCheck - pointLight->transform.getPosition()).length();
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * ((*pointLight->shadowMaps[face]).getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * ((*pointLight->shadowMaps[face]).getRows() - 1);
-
-                                            float normalizedDepth = std::clamp((depthInLightView-lightSource->near)/(pointLight->range-pointLight->near),0.0,1.0);
-
-                                            shadowAmount  = calculateShadowAmount(*pointLight->shadowMaps[face], Vector2(sx,sy),
-                                                                                 normalizedDepth, biasAddition, *pointLight);
-
-                                        }
-                                    }
-                                }else if(lightSource->lightType == Light::LightType::SPOT){
-                                    if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
-
-                                        Vector3 pointForDepthCheck;
-                                        double biasAddition;
-                                        calculateBias(spotLight , interpolatedWorldSpaceCoords, gouraudFaceNormal,
-                                                      pointForDepthCheck, biasAddition, fanTriangleRawWorldSpace,nullptr,  FilteringManager::kernelSideFor(*spotLight));
-
-                                        Vector4 lightProjCoord = spotLight->getProjectionMatrix() * spotLight->getViewMatrix() * Vectors::vector3to4(pointForDepthCheck);
-                                        Vector3 lightNdcCoord = Vector3(lightProjCoord.x/lightProjCoord.w, lightProjCoord.y/lightProjCoord.w, lightProjCoord.z/lightProjCoord.w);
-
-                                        float u =  lightNdcCoord.x * 0.5f + 0.5f;       // 0 … 1
-                                        float v = 1.0f - (lightNdcCoord.y * 0.5f + 0.5f);
-
-                                        if(std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f))){
-                                            float depthInLightView = (pointForDepthCheck - spotLight->transform.getPosition()).length();
-
-                                            double sx = (lightNdcCoord.x * 0.5f + 0.5f) * (spotLight->shadowMap.getCols() - 1);
-                                            double sy = (1 - (lightNdcCoord.y * 0.5f + 0.5f)) * (spotLight->shadowMap.getRows() - 1);
-
-                                            float normalizedDepth =std::clamp((depthInLightView-lightSource->near)/(spotLight->range-lightSource->near),0.0,1.0);
-
-                                            shadowAmount  = calculateShadowAmount(spotLight->shadowMap, Vector2(sx,sy),
-                                                                                 normalizedDepth, biasAddition, *spotLight);
-                                        }
-                                    }
-                                }
-
-                                Vector3 shadowTintModifier{}, diffuseModifier{}, specularModifier{}, combinedLight{};
-
-                                Triangle3 gouraudCombLightOverW = {gouraudShadingFaceData.face.v1.combinedLightOverW[lightId],
-                                                                gouraudShadingFaceData.face.v2.combinedLightOverW[lightId],
-                                                                gouraudShadingFaceData.face.v3.combinedLightOverW[lightId]};
-
-                                Triangle3 gouraudDiffuseOverW = {gouraudShadingFaceData.face.v1.diffuseNoAlbedoOverW[lightId],
-                                                                 gouraudShadingFaceData.face.v2.diffuseNoAlbedoOverW[lightId],
-                                                                 gouraudShadingFaceData.face.v3.diffuseNoAlbedoOverW[lightId]};
-
-                                Triangle3 gouraudSpecularOverW = {gouraudShadingFaceData.face.v1.specularOverW[lightId],
-                                                                  gouraudShadingFaceData.face.v2.specularOverW[lightId],
-                                                                  gouraudShadingFaceData.face.v3.specularOverW[lightId]};
-
-                                const double visibility = getVisibility(shadowAmount);
-
-                                combinedLight = interpolateCombinedLight(gouraudCombLightOverW, baricentricFactor, invDenom);
-
-                                shadowTintModifier =getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
-
-                                diffuseModifier = interpolateDiffuseModifier(gouraudDiffuseOverW, baricentricFactor, kd, invDenom, visibility);
-
-                                specularModifier = interpolatSpecularModifier(gouraudSpecularOverW, baricentricFactor, combinedLight, invDenom, visibility);
-
-                                outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
-                                lightId++;
-                            }
+                            outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
+                            lightId++;
                         }
 
-
-                        outColor.x = std::clamp(outColor.x ,0.0,1.0);
-                        outColor.y = std::clamp(outColor.y,0.0,1.0);
-                        outColor.z = std::clamp(outColor.z,0.0,1.0);
+                        outColor = MathUt::clampVector01(outColor);
                         finalColor = Vectors::vector3ToColor(RendUt::linearToSRGB(outColor));
 
                         if (paintTool.drawPixel(x, y, depth, finalColor)) {
@@ -790,11 +347,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
         //pass wireframe - drawing edges of rasterizatied triangle
         if(obj.displaySettings->colorWireframes || obj.displaySettings->renderMode == DisplaySettings::RenderMode::WIREFRAME){
-            //IdBufferElement edgeEl;
-            //edgeEl.objectId = objId;
-            //edgeEl.faceId   = int(face/3);
             size_t facePolysAmount = screenVerticesWithDepth.size();
-
 
             for (size_t i = 0; i < facePolysAmount; i++) {
                 Vector3 edgeVertex1 = screenVerticesWithDepth[i];
@@ -802,13 +355,6 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
 
                 edgeVertex1.z = std::max(0.0, edgeVertex1.z - doubleBias);
                 edgeVertex2.z = std::max(0.0, edgeVertex2.z - doubleBias);
-
-                //int idxA = (i   < 3 ? obj.faceVertexIndices[face+i  ] : -1);
-                //int idxB = (i+1 < 3 ? obj.faceVertexIndices[face+i+1] : -1);
-                //if (i == 2) idxB = obj.faceVertexIndices[face];
-
-                //edgeEl.edgeVertices = { idxA, idxB };
-
 
                 if(paintTool.drawLine3D(edgeVertex1, edgeVertex2,
                                          obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color)){
@@ -821,6 +367,43 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     }
 }
 
+double Renderer::getShadowAmount(const Light& light, const Vector3& worldSpacePoint, const Vector3& normal ,const Triangle3& worldSpaceFan){
+    double shadowAmount = 0.0;
+
+    size_t shadowMapfaceIndex = 0;
+    if(light.lightType == Light::LightType::POINT){
+        shadowMapfaceIndex = PointLight::pickFace(worldSpacePoint - light.transform.getPosition());
+    }
+
+    int kernelSide = FilteringManager::kernelSideFor(light);
+    double bias = calculateBias(light, worldSpacePoint, normal, worldSpaceFan, kernelSide);
+
+    Vector4 lightProjPoint = light.getProjectionMatrix() * light.getViewMatrix() * Vectors::vector3to4(worldSpacePoint);
+    Vector3 lightNdcPoint = Vector3(lightProjPoint.x/lightProjPoint.w, lightProjPoint.y/lightProjPoint.w, lightProjPoint.z/lightProjPoint.w);
+
+    float u =  lightNdcPoint.x * 0.5f + 0.5f;
+    float v = 1.0f - (lightNdcPoint.y * 0.5f + 0.5f);
+    if (MathUt::uvInTexture(u, v)){
+        float depthInLightView = lightNdcPoint.z * 0.5f + 0.5f;
+
+        double sx = (lightNdcPoint.x * 0.5f + 0.5f) * (light.getShadowMap().getCols() - 1);
+        double sy = (1 - (lightNdcPoint.y * 0.5f + 0.5f)) * (light.getShadowMap().getRows() - 1);
+
+        shadowAmount  = calculateShadowAmount(light.getShadowMap(shadowMapfaceIndex), light,Vector2(sx,sy),
+                                             depthInLightView, bias);
+    }
+
+    return shadowAmount;
+}
+
+Vector3 Renderer::getPointToLight(const Vector3& worldSpacePoint, const Light& light){
+    if(light.lightType == Light::LightType::DISTANT){
+        return light.direction*(-1.0);
+    }else{
+        return light.transform.getPosition() - worldSpacePoint;
+    }
+}
+
 double Renderer::getVisibility(const double shadowAmount){
     return 1 - shadowAmount;
 }
@@ -828,6 +411,10 @@ double Renderer::getVisibility(const double shadowAmount){
 Vector3 Renderer::getShadowTintModifier(const Vector3& albedo, const Vector3& combinedLight,
                                         double shadowIntensity, double shadowAmount){
     return albedo.hadamard(combinedLight)*shadowIntensity*shadowAmount;
+}
+
+Vector3 Renderer::getCombinedLight(const Vector3& color, double intensity, double attenuation){
+    return color*intensity*attenuation;
 }
 
 Vector3 Renderer::interpolateCombinedLight(const Triangle3& combinedLightOverW, const Triangle<double>& baricentricFactor, double invDenom){
@@ -852,9 +439,15 @@ Vector3 Renderer::interpolateDiffuseModifier(const Triangle3& diffuseNoAlbedoInV
 
 
 Vector3 Renderer::interpolatSpecularModifier(const Triangle3& specularInVerticesOverW , const Triangle<double>& baricentricFactor,
-                                     const Vector3& combinedLight, double invDenom, double visibility){
+                                     double invDenom, double visibility){
+    Vector3 InterpolatedSpecular = (specularInVerticesOverW.v1 * baricentricFactor.v1 +
+                                           specularInVerticesOverW.v2 * baricentricFactor.v2 +
+                                           specularInVerticesOverW.v3 * baricentricFactor.v3)/invDenom;
 
-  }
+    Vector3 specularModifier = InterpolatedSpecular * visibility;
+
+    return specularModifier;
+}
 
 
 Vector3 Renderer::getDiffuseModifier(const RenderableObject3D& obj, const Vector3& combinedLight, const Vector3& pointWorldCoords,
@@ -1040,6 +633,79 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
     return result;
 }
 
+Renderer::FlatShadingFaceData Renderer::collectFlatPerFaceData(const Triangle3& fanTriangleRawWorldSpace,
+                                           const RenderableObject3D& obj){
+
+    FlatShadingFaceData result{};
+    result.pointToLightDirection.assign(scene->lightSources.size() , {});
+    result.combinedLight.assign(scene->lightSources.size() , {});
+    result.diffuseNoAlbedo.assign(scene->lightSources.size() , {});
+    result.specularWithLight.assign(scene->lightSources.size() , {});
+    result.NdotL.assign(scene->lightSources.size() , {});
+
+    const Vector3 w0 = fanTriangleRawWorldSpace.v1;
+    const Vector3 w1 = fanTriangleRawWorldSpace.v2;
+    const Vector3 w2 = fanTriangleRawWorldSpace.v3;
+
+    result.flatFaceNormal = ((w1 - w0).crossProduct(w2 - w0)).normalize();
+    result.flatWorldCentroid = (w0 + w1 + w2) / 3.0;
+
+    for (size_t i = 0; i < scene->lightSources.size(); ++i) {
+        auto& lightSource = scene->lightSources[i];
+
+        Vector3 pointToLightDirection{};
+        double  attenuation = 1.0;
+
+        if (lightSource->lightType == Light::LightType::DISTANT) {
+            auto distantLight = std::static_pointer_cast<DistantLight>(lightSource);
+            pointToLightDirection = (distantLight->direction * (-1.0)).normalize();
+            attenuation = 1.0;
+
+        } else if (lightSource->lightType == Light::LightType::POINT) {
+            auto pointLight = std::static_pointer_cast<PointLight>(lightSource);
+            Vector3 pointToLightVector = (pointLight->transform.getPosition() - result.flatWorldCentroid);
+            pointToLightDirection = pointToLightVector.normalize();
+            attenuation = pointLight->getAttenuation(pointToLightVector.length());
+
+        } else if (lightSource->lightType == Light::LightType::SPOT) {
+            auto spotLight = std::static_pointer_cast<SpotLight>(lightSource);
+
+            Vector3 pointToLightVector = (spotLight->transform.getPosition() - result.flatWorldCentroid);
+            Vector3 lightToPointVector = pointToLightVector * (-1.0);
+            pointToLightDirection = pointToLightVector.normalize();
+
+            const double lightToPointDistance = lightToPointVector.length();
+
+            double coneAttenuation = (lightToPointDistance <= spotLight->range)?
+                                             spotLight->getConeAttenuation(lightToPointVector.normalize().dotProduct(spotLight->direction.normalize())) : 0.0;
+            double distanceAttenuation = spotLight->getDistanceAttenuation(lightToPointDistance);
+
+            attenuation = std::clamp(distanceAttenuation * coneAttenuation, 0.0, 1.0);
+
+        }
+
+        Vector3 combinedLight = Vectors::colorToVector3(lightSource->color) * lightSource->intensity * attenuation;
+        double nDotL = std::max(0.0, result.flatFaceNormal.dotProduct(pointToLightDirection));
+
+        result.pointToLightDirection[i] = pointToLightDirection;
+        result.combinedLight[i]         = combinedLight;
+        result.NdotL[i] = nDotL;
+
+        result.diffuseNoAlbedo[i] = lightingManager->getDiffuseLambert(
+            pointToLightDirection, result.flatFaceNormal, combinedLight);
+
+
+
+        Vector3 specularNoLight = getSpecularModifier(obj,combinedLight, result.flatWorldCentroid, result.flatFaceNormal, pointToLightDirection);
+        result.specularWithLight[i] = specularNoLight.hadamard(combinedLight);
+
+        bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
+        result.diffuseNoAlbedo[i] = getDiffuseModifier(obj, combinedLight, result.flatWorldCentroid,result.flatFaceNormal,
+                                                       pointToLightDirection, Vector3{1,1,1}, 1.0, brdf );
+    }
+
+    return result;
+}
 void Renderer::updateShadowMaps(){
 
     if(debugMode == DEBUG_SHADOWMAP){
@@ -1663,6 +1329,7 @@ bool Renderer::shouldCullBackFace(const Triangle3& face){
     return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
 }
 
+/*
 void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3& point,
                                 const Vector3& normal, Vector3& pointForDepthCheck, double& biasAddition,
                                 Triangle3& fanWorldCoords,  PointLight::ShadowMapFace* outFace, int pcfKernelSize){
@@ -1721,11 +1388,7 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
                     };
                 };
 
-                /*
-                Vector3 p0 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v1)),
-                    p1 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v2)),
-                    p2 = Vectors::vector4to3(distantLight->getViewMatrix() * Vectors::vector3to4(fanWorldCoords.v3));
-                */
+
                 Vector3 p0 = toTexel(fanWorldCoords.v1);
                 Vector3 p1 = toTexel(fanWorldCoords.v2);
                 Vector3 p2 = toTexel(fanWorldCoords.v3);
@@ -1825,6 +1488,127 @@ void Renderer::calculateBias(const std::shared_ptr<Light>& light, const Vector3&
         biasAddition = light->bias;
         break;
     }
+}*/
+
+
+
+double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoint, const Vector3& normal,
+                               const Triangle3& fanWorldSpace, int pcfKernelSize){
+    using BT = Light::BiasType;
+
+    switch (light.biasType) {
+        case BT::NORMAL_ANGLE: {
+            break;
+        }
+    case BT::SLOPE_SCALED: {
+        if (light.lightType == Light::LightType::DISTANT) {
+
+            const DistantLight& distantLight = static_cast<const DistantLight&>(light);
+
+            auto toTexel = [&](const Vector3& w) {
+                Vector4 c = distantLight.getProjectionMatrix()*distantLight.getViewMatrix()*Vectors::vector3to4(w);
+                Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
+                return Vector3{
+                    (ndc.x*0.5 + 0.5) * (distantLight.shadowMap.getCols()-1),
+                    (1.0 - (ndc.y*0.5 + 0.5)) * (distantLight.shadowMap.getRows()-1),
+                    (ndc.z*0.5 + 0.5)
+                };
+            };
+
+            Vector3 p0 = toTexel(fanWorldSpace.v1);
+            Vector3 p1 = toTexel(fanWorldSpace.v2);
+            Vector3 p2 = toTexel(fanWorldSpace.v3);
+
+            double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+            int minDim = std::min(distantLight.shadowMap.getRows(), distantLight.shadowMap.getCols());
+            double alphaConst;
+
+            //if r would be smaller than 0 we don't divide, otherwise bias would be too great
+            if(pcfKernelSize <= 1){
+                alphaConst = light.bias * std::max(1, minDim);
+            }else{
+                alphaConst = light.bias * std::max(1, minDim) / MathUt::safeDenom(r);
+            }
+
+            double bias = BiasManager::getSlopeScaled(distantLight.shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
+            return bias;
+
+        } else if (light.lightType == Light::LightType::POINT) {
+
+            const PointLight& pointLight = static_cast<const PointLight&>(light);
+
+            PointLight::ShadowMapFace face = PointLight::pickFace(worldSpacePoint - pointLight.transform.getPosition());
+
+            auto toTexel = [&](const Vector3& w) {
+                Vector4 c = pointLight.getProjectionMatrix()*pointLight.getViewMatrix(face)*Vectors::vector3to4(w);
+                Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
+                return Vector3{
+                    (ndc.x*0.5 + 0.5) * (pointLight.shadowMaps[0]->getCols()-1),
+                    (1.0 - (ndc.y*0.5 + 0.5)) * (pointLight.shadowMaps[0]->getRows()-1),
+                    (ndc.z*0.5 + 0.5)
+                };
+            };
+
+            Vector3 p0 = toTexel(fanWorldSpace.v1);
+            Vector3 p1 = toTexel(fanWorldSpace.v2);
+            Vector3 p2 = toTexel(fanWorldSpace.v3);
+
+            double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+            int minDim = std::min(pointLight.shadowMaps[face]->getRows(), pointLight.shadowMaps[face]->getCols());
+            double alphaConst;
+
+            //if r would be smaller than 0 we don't divide, otherwise bias would be too great
+            if(pcfKernelSize <= 1){
+                alphaConst = light.bias * std::max(1, minDim);
+            }else{
+                alphaConst = light.bias * std::max(1, minDim) / MathUt::safeDenom(r);
+            }
+
+            double bias = BiasManager::getSlopeScaled(*pointLight.shadowMaps[face], p0, p1, p2, pcfKernelSize, alphaConst);
+            return bias;
+
+        } else if (light.lightType == Light::LightType::SPOT){
+            auto spotLight = static_cast<const SpotLight&>(light);
+            auto toTexel = [&](const Vector3& w) {
+                Vector4 c = spotLight.getProjectionMatrix()*spotLight.getViewMatrix()*Vectors::vector3to4(w);
+                Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
+                return Vector3{
+                    (ndc.x*0.5 + 0.5) * (spotLight.shadowMap.getCols()-1),
+                    (1.0 - (ndc.y*0.5 + 0.5)) * (spotLight.shadowMap.getRows()-1),
+                    (ndc.z*0.5 + 0.5)
+                };
+            };
+
+            Vector3 p0 = toTexel(fanWorldSpace.v1);
+            Vector3 p1 = toTexel(fanWorldSpace.v2);
+            Vector3 p2 = toTexel(fanWorldSpace.v3);
+
+            double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+            int minDim = std::min(spotLight.shadowMap.getRows(), spotLight.shadowMap.getCols());
+            double alphaConst;
+
+            //if r would be smaller than 0 we don't divide, otherwise bias would be too great
+            if(pcfKernelSize <= 1){
+                alphaConst = light.bias * std::max(1, minDim);
+            }else{
+                alphaConst = light.bias * std::max(1, minDim) / MathUt::safeDenom(r);
+            }
+
+
+            double bias = BiasManager::getSlopeScaled(spotLight.shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
+            return bias;
+
+        }else{
+            return light.bias;
+        }
+        break;
+    }
+
+    case BT::CONSTANT:
+    default:
+        return light.bias;
+        break;
+    }
 }
 
 /*
@@ -1904,8 +1688,8 @@ Renderer::Bias Renderer::calculateBias(const std::shared_ptr<Light>& light, cons
 }
 */
 
-double Renderer::calculateShadowAmount(const Buffer<double>& shadowMap, const Vector2& point,
-                             double receiverDepth, double bias,  Light& light){
+double Renderer::calculateShadowAmount(const Buffer<double>& shadowMap,const Light& light, const Vector2& point,
+                             double receiverDepth, double bias ){
 
     using FT = Light::FilteringType;
     switch (light.filteringType){

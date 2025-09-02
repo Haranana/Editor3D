@@ -7,7 +7,7 @@
 class SpotLight : public Light{
 public:
 
-    Matrix4 getViewMatrix() const{
+    Matrix4 getViewMatrix(size_t index = 0) const override {
         return viewMatrix;
     }
 
@@ -21,7 +21,7 @@ public:
     }
 
 
-    Matrix4 getProjectionMatrix(){
+    Matrix4 getProjectionMatrix() const override{
         return projectionMatrix;
     }
 
@@ -62,9 +62,18 @@ public:
         invCos = 1.0 / MathUt::safePositiveDenom(InnerAngleCos-outerAngleCos);
     }
 
-    Vector3 direction = defaultDirection;
+
 
     Buffer<double> shadowMap;
+
+    Buffer<double>& getShadowMap(size_t index = 0) override{
+        return shadowMap;
+    }
+
+    const Buffer<double>& getShadowMap(size_t index = 0) const override{
+        return shadowMap;
+    }
+
 
     double attenuationConstant = 1.0;
     double attenuationLinear = 0.0;
@@ -72,6 +81,7 @@ public:
 
     SpotLight() : shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
     {
+        direction = defaultDirection;
         lightType = LightType::SPOT;
         emitterRadiusWorld = 0.05;
     }
@@ -87,17 +97,15 @@ public:
         return std::max(tX,tY);
     }
 
-    double getConeAttenuation(const Vector3& lightToPoint){
-    /*
-        double outerAngleCos = getOuterAngleCos();
-        double innerAngleCos = getInnerAngleCos();
-        Vector3 normDir = direction.normalize();
-        Vector3 lightToPointDir = lightToPoint.normalize();
-        double lightToPointCos = (lightToPointDir).dotProduct(normDir);
 
-        double denom = MathUt::safePositiveDenom(innerAngleCos - outerAngleCos);
-        return std::clamp( ((lightToPointCos-outerAngleCos)/denom), 0.0, 1.0);
-    */
+    double getAttenuation(const Vector3& lightToPoint) override{
+        double distance = lightToPoint.length();
+        if(distance < range) return 0.0;
+        return getConeAttenuation(lightToPoint.dotProduct(direction)) * getDistanceAttenuation(distance);
+    }
+
+    double getConeAttenuation(const Vector3& lightToPoint){
+
         Vector3 normDir = direction.normalize();
         Vector3 lightToPointDir = lightToPoint.normalize();
         double lightToPointCos = (lightToPointDir).dotProduct(normDir);

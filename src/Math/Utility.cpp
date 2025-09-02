@@ -5,6 +5,18 @@ bool MathUt::equal(double d1, double d2, double epsilon){
     return std::abs(d1 - d2) <= epsilon;
 }
 
+bool MathUt::uvInTexture(float u, float v){
+    return std::isfinite(u) && std::isfinite(v) && ((u >= 0.0f && u < 1.0f) && (v >= 0.0f && v < 1.0f));
+}
+
+Vector3 MathUt::clampVector01(const Vector3& v){
+    return Vector3{
+        std::clamp(v.x, 0.0, 1.0),
+        std::clamp(v.y, 0.0, 1.0),
+        std::clamp(v.z, 0.0, 1.0)
+    };
+}
+
 double lerp(double a, double b, double t){
     return (1-t)*a+t*b;
 }

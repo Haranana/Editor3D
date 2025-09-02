@@ -34,8 +34,14 @@ public:
 
     int    pcfPoissonSamples      = 12;   // 8/12/16
     double pcfPoissonRadiusTexels = 1.8;  // 1.5–2.5 should be good
-
+    Vector3 direction; //should be ignored in case of point light
     BiasType biasType = BiasType::CONSTANT;
+
+    virtual double getAttenuation(const Vector3& lightToPoint = {}) = 0;
+    virtual Matrix4 getViewMatrix(size_t index = 0) const = 0;
+    virtual Matrix4 getProjectionMatrix() const = 0;
+    virtual Buffer<double>& getShadowMap(size_t index = 0) = 0;
+    virtual const Buffer<double>& getShadowMap(size_t index = 0) const = 0;
 
     Color color = Colors::White;
     double bias = 0.03;

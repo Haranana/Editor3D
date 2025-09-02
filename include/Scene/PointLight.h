@@ -62,6 +62,11 @@ public:
         return std::max(tX,tY);
     }
 
+    double getAttenuation(const Vector3& pointToLight = {}) override{
+        double distance = pointToLight.length();
+        return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
+    }
+
     double getAttenuation(double distance){
         return distance <= range? 1.0/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance) : 0.0;
     }
@@ -82,16 +87,25 @@ public:
         return viewMatrices;
     }
 
-    Matrix4 getViewMatrix(int face){
-        return viewMatrices[face];
+    Matrix4 getViewMatrix(size_t index = 0) const override{
+        return viewMatrices[index];
     }
+
+    Buffer<double>& getShadowMap(size_t index = 0) override{
+        return *shadowMaps[index];
+    }
+
+    const Buffer<double>& getShadowMap(size_t index = 0) const override{
+        return *shadowMaps[index];
+    }
+
 
     void setProjectionMatrix(double near, double far){
         const double fovOffset = MathUt::degreeToRadian(0.5);
         projectionMatrix = LightMatrices::PerspectiveLightProjection(FOV+fovOffset , near, far, ASPECT);
     }
 
-    Matrix4 getProjectionMatrix(){
+    Matrix4 getProjectionMatrix() const override{
         return projectionMatrix;
     }
 
