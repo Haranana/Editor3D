@@ -14,7 +14,7 @@ SpotLightPropertiesWidget::SpotLightPropertiesWidget(QWidget* parent)
         emit objectChanged();
     });
 
-    transform3DPropertiesWidget = new Transform3DPropertiesWidget(this);
+    transform3DPropertiesWidget = new Transform3DPropertiesWidget(this, true, false, false);
     layout->addRow(transform3DPropertiesWidget);
     connect(transform3DPropertiesWidget, &Transform3DPropertiesWidget::objectChanged, this, [this]() {
         emit objectChanged();

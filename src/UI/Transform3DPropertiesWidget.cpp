@@ -3,23 +3,29 @@
 #include "Math/Utility.h"
 #include <QFormLayout>
 
-Transform3DPropertiesWidget::Transform3DPropertiesWidget(QWidget* parent) : ObjectPropertiesWidget(parent){
+Transform3DPropertiesWidget::Transform3DPropertiesWidget(QWidget* parent, bool showPos, bool showScale, bool showRot) :
+    ObjectPropertiesWidget(parent), showPos(showPos), showScale(showScale) , showRot(showRot){
     auto layout = new QFormLayout(this);
 
-    posWidget = new Vector3PropertiesWidget(this, posRangeMin, posRangeMax, posSpinStep, 1.0);
-    scaleWidget = new Vector3PropertiesWidget(this, scaleRangeMin, scaleRangeMax, scaleSpinStep, scaleSliderFactor);
-    rotWidget = new Vector3PropertiesWidget(this, rotRangeMin, rotRangeMax, rotSpinStep, 1.0);
+    if(showPos){
+        posWidget = new Vector3PropertiesWidget(this, posRangeMin, posRangeMax, posSpinStep, 1.0);
+        connect(posWidget, &Vector3PropertiesWidget::valueChanged, this, &Transform3DPropertiesWidget::onPosChanged);
+        layout->addRow("Pos", posWidget);
+    }
 
-    rotWidget->setValueToDisplay([](double v){ return MathUt::radianToDegree(v); });
-    rotWidget->setDisplayToValue([](double v){ return MathUt::degreeToRadian(v); });
+    if(showScale){
+        scaleWidget = new Vector3PropertiesWidget(this, scaleRangeMin, scaleRangeMax, scaleSpinStep, scaleSliderFactor);
+        connect(scaleWidget, &Vector3PropertiesWidget::valueChanged, this, &Transform3DPropertiesWidget::onScaleChanged);
+        layout->addRow("Scale", scaleWidget);
+    }
 
-    connect(posWidget, &Vector3PropertiesWidget::valueChanged, this, &Transform3DPropertiesWidget::onPosChanged);
-    connect(scaleWidget, &Vector3PropertiesWidget::valueChanged, this, &Transform3DPropertiesWidget::onScaleChanged);
-    connect(rotWidget, &Vector3PropertiesWidget::valueChanged, this, &Transform3DPropertiesWidget::onRotChanged);
-
-    layout->addRow("Pos", posWidget);
-    layout->addRow("Scale", scaleWidget);
-    layout->addRow("Rot", rotWidget);
+    if(showRot){
+        rotWidget = new Vector3PropertiesWidget(this, rotRangeMin, rotRangeMax, rotSpinStep, 1.0);
+        rotWidget->setValueToDisplay([](double v){ return MathUt::radianToDegree(v); });
+        rotWidget->setDisplayToValue([](double v){ return MathUt::degreeToRadian(v); });
+        connect(rotWidget, &Vector3PropertiesWidget::valueChanged, this, &Transform3DPropertiesWidget::onRotChanged);
+        layout->addRow("Rot", rotWidget);
+    }
 
     setLayout(layout);
 }
@@ -27,13 +33,21 @@ Transform3DPropertiesWidget::Transform3DPropertiesWidget(QWidget* parent) : Obje
 void Transform3DPropertiesWidget::setObject(std::shared_ptr<Object3D> object){
     obj = object;
 
-    posProxy = obj->transform.getPosition();
-    scaleProxy = obj->transform.getScales();
-    rotProxy = obj->transform.getAngles();
+    if(showPos){
+        posProxy = obj->transform.getPosition();
+        posWidget->setVector(posProxy);
+    }
 
-    posWidget->setVector(posProxy);
-    scaleWidget->setVector(scaleProxy);
-    rotWidget->setVector(rotProxy);
+    if(showScale){
+        scaleProxy = obj->transform.getScales();
+        scaleWidget->setVector(scaleProxy);
+    }
+
+    if(showRot){
+        rotProxy = obj->transform.getAngles();
+        rotWidget->setVector(rotProxy);
+    }
+
 }
 
 void Transform3DPropertiesWidget::onPosChanged(){

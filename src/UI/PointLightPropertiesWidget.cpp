@@ -5,12 +5,15 @@ PointLightPropertiesWidget::PointLightPropertiesWidget(QWidget* parent)
 {
     auto layout = new QFormLayout(this);
 
-    posPropertiesWidget = new Vector3PropertiesWidget(this, posRangeMin, posRangeMax, posSpinStep, 1.0);
-    connect(posPropertiesWidget, &Vector3PropertiesWidget::valueChanged, this, &PointLightPropertiesWidget::onPosChanged);
-    layout->addRow(posPropertiesWidget);
-
     lightPropertiesWidget = new LightPropertiesWidget();
     layout->addRow(lightPropertiesWidget);
+
+    transform3DPropertiesWidget = new Transform3DPropertiesWidget(this, true, false, false);
+    layout->addRow(transform3DPropertiesWidget);
+    connect(transform3DPropertiesWidget, &Transform3DPropertiesWidget::objectChanged, this, [this]() {
+        emit objectChanged();
+    });
+
 
     auto rangeRow = new QWidget(this);
     auto rangeLayout = new QHBoxLayout(rangeRow);
@@ -109,8 +112,6 @@ void PointLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
         dynamicBiasCheckBox->setCheckState(Qt::CheckState::Checked);
     }
 
-    posProxy = light->transform.getPosition();
-    posPropertiesWidget->setVector(posProxy);
 
     rangeSpin->blockSignals(true);
     rangeSpin->setValue(light->range);
@@ -131,12 +132,6 @@ void PointLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     attenuationQuadraticSpin->blockSignals(true);
     attenuationQuadraticSpin->setValue(light->attenuationQuadratic);
     attenuationQuadraticSpin->blockSignals(false);
-}
-
-void PointLightPropertiesWidget::onPosChanged(){
-    if(!light) return;
-    light->transform.setPosition(posProxy);
-    emit objectChanged();
 }
 
 void PointLightPropertiesWidget::onRangeChanged(double v) {

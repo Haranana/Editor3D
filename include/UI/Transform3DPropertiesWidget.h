@@ -15,7 +15,7 @@ class Vector3PropertiesWidget;
 class Transform3DPropertiesWidget : public ObjectPropertiesWidget{
     Q_OBJECT
 public:
-    Transform3DPropertiesWidget(QWidget* parent = nullptr);
+    Transform3DPropertiesWidget(QWidget* parent = nullptr, bool showPos = true, bool showScale = true, bool showRot = true);
     void setObject(std::shared_ptr<Object3D> object) override;
 
 private slots:
@@ -46,6 +46,10 @@ private:
     Vector3 posProxy;
     Vector3 scaleProxy;
     Vector3 rotProxy;
+
+    const bool showPos;
+    const bool showScale;
+    const bool showRot;
 };
 
 #endif // TRANSFORM3DPROPERTIESWIDGET_H

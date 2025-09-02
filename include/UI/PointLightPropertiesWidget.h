@@ -6,6 +6,7 @@
 #include "UI/LightPropertiesWidget.h"
 #include <QFormLayout>
 #include "UI/Vector3PropertiesWidget.h"
+#include "Transform3DPropertiesWidget.h"
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 #include <QLabel>
@@ -22,7 +23,7 @@ public:
 
 private slots:
 
-    void onPosChanged();
+    //void onPosChanged();
     void onRangeChanged(double v);
     void onDynamicBiasChanged();
     void onAttenuationConstantChanged(double v);
@@ -32,15 +33,16 @@ private slots:
 private:
 
     LightPropertiesWidget* lightPropertiesWidget;
-    Vector3PropertiesWidget* posPropertiesWidget;
+    //Vector3PropertiesWidget* posPropertiesWidget;
+    Transform3DPropertiesWidget* transform3DPropertiesWidget;
 
-    Vector3 posProxy;
+    //Vector3 posProxy;
 
     std::shared_ptr<PointLight> light;
 
-    static constexpr double posRangeMin = -500;
-    static constexpr double posRangeMax = 500;
-    static constexpr double posSpinStep = 1.0;
+    //static constexpr double posRangeMin = -500;
+    //static constexpr double posRangeMax = 500;
+    //static constexpr double posSpinStep = 1.0;
 
     static constexpr double minRange = 1.0;
     static constexpr double maxRange = 1000.0;
