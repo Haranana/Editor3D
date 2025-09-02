@@ -8,31 +8,13 @@
 //despite having position because of inheritance DistantLight<-Light<-Object3D
 //its position should never be accessed due to definiton of distant light only its direction should ever be used
 //in any calculatins
-//
+
 class DistantLight : public Light{
 public:
 
-    static constexpr Vector3 defaultUp = Vector3(0,1,0);
-    static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
-    static constexpr size_t defaultShadowMapSize = 2048; //in pixels
-    static constexpr Vector3 defaultDireciton = {-1.0 ,0 ,0};
-
-
-    //used in projectionMatrix, bias calculation, and normalization
-    double oLeft = 0.0;
-    double oRight = 0.0;
-    double oBottom = 0.0;
-    double oTop = 0.0;
-    double oNear = 0.0;
-    double oFar = 0.0;
-
-    //probably should be kept normalized
-    //Vector3 direction;
-    Buffer<double> shadowMap;
 
     DistantLight(Vector3 direction = defaultDireciton) :
-        shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity())
-    {
+        shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity()){
         this->direction = direction.normalize() ;
         lightType = LightType::DISTANT;
         emitterRadiusWorld = MathUt::degreeToRadian(0.27);
@@ -122,10 +104,26 @@ public:
         return oNear + depth*(oFar - oNear);
     }
 
+    static constexpr Vector3 defaultUp = Vector3(0,1,0);
+    static constexpr Vector3 secondChoiceUp = Vector3(0,0,1);
+    static constexpr size_t defaultShadowMapSize = 2048; //in pixels
+    static constexpr Vector3 defaultDireciton = {-1.0 ,0 ,0};
+
+    Buffer<double> shadowMap;
+
+
+    //used in projectionMatrix, bias calculation, and normalization
+    double oLeft = 0.0;
+    double oRight = 0.0;
+    double oBottom = 0.0;
+    double oTop = 0.0;
+    double oNear = 0.0;
+    double oFar = 0.0;
+
+private:
+
     Matrix4 viewMatrix = Matrices4::identity();;
     Matrix4 projectionMatrix = Matrices4::identity();
-
-
 };
 
 #endif // DISTANTLIGHT_H
