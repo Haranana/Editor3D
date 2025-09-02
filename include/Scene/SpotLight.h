@@ -50,7 +50,7 @@ public:
 
     double outerAngle = defaultOuterAngle; //default 60 degrees
     double innerAngle = defaultInnerAngle; //default 45 degrees
-    double range = deafultRange;
+
 
     double outerAngleCos = std::cos(defaultOuterAngle);
     double InnerAngleCos = std::cos(defaultInnerAngle);
@@ -84,6 +84,7 @@ public:
         direction = defaultDirection;
         lightType = LightType::SPOT;
         emitterRadiusWorld = 0.05;
+        range = deafultRange;
     }
 
     double getWorldUnitsPerTexel(double depth){

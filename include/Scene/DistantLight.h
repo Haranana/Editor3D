@@ -4,6 +4,7 @@
 #include "Light.h"
 #include <QImage>
 #include "Math/Utility.h"
+#include <limits>
 //despite having position because of inheritance DistantLight<-Light<-Object3D
 //its position should never be accessed due to definiton of distant light only its direction should ever be used
 //in any calculatins
@@ -35,6 +36,7 @@ public:
         this->direction = direction.normalize() ;
         lightType = LightType::DISTANT;
         emitterRadiusWorld = MathUt::degreeToRadian(0.27);
+        range = std::numeric_limits<double>::infinity();
     }
 
     double getAttenuation(const Vector3& pointToLight = {}) override{

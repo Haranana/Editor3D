@@ -45,6 +45,7 @@ public:
 
     Color color = Colors::White;
     double bias = 0.03;
+    double range;
     double intensity = 1.0;
     bool castsShadow = true;
     LightType lightType;// = LightType::DISTANT;

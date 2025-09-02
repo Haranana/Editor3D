@@ -30,7 +30,6 @@ public:
     static constexpr double ASPECT = 1.0;
     static constexpr int defaultShadowMapSize = 2048;
 
-    double range = 400.0;
     double attenuationConstant = 1.0f;
     //double attenuationLinear = 0.09f;
     //double attenuationQuadratic = 0.032f;
@@ -49,6 +48,7 @@ public:
         }
         lightType = LightType::POINT;
         emitterRadiusWorld = 0.05;
+        range = 400.0;
 
     }
 

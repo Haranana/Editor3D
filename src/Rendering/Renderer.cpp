@@ -378,19 +378,27 @@ double Renderer::getShadowAmount(const Light& light, const Vector3& worldSpacePo
     int kernelSide = FilteringManager::kernelSideFor(light);
     double bias = calculateBias(light, worldSpacePoint, normal, worldSpaceFan, kernelSide);
 
-    Vector4 lightProjPoint = light.getProjectionMatrix() * light.getViewMatrix() * Vectors::vector3to4(worldSpacePoint);
+    Vector4 lightProjPoint = light.getProjectionMatrix() * light.getViewMatrix(shadowMapfaceIndex) * Vectors::vector3to4(worldSpacePoint);
     Vector3 lightNdcPoint = Vector3(lightProjPoint.x/lightProjPoint.w, lightProjPoint.y/lightProjPoint.w, lightProjPoint.z/lightProjPoint.w);
+
 
     float u =  lightNdcPoint.x * 0.5f + 0.5f;
     float v = 1.0f - (lightNdcPoint.y * 0.5f + 0.5f);
     if (MathUt::uvInTexture(u, v)){
-        float depthInLightView = lightNdcPoint.z * 0.5f + 0.5f;
 
-        double sx = (lightNdcPoint.x * 0.5f + 0.5f) * (light.getShadowMap().getCols() - 1);
-        double sy = (1 - (lightNdcPoint.y * 0.5f + 0.5f)) * (light.getShadowMap().getRows() - 1);
+        double receiverDepth;
+        if (light.lightType == Light::LightType::DISTANT) {
+            receiverDepth = lightNdcPoint.z*0.5 + 0.5;
+        } else {
+            const double dist = (worldSpacePoint - light.transform.getPosition()).length();
+            receiverDepth = std::clamp((dist - light.near) / (light.range - light.near), 0.0, 1.0);
+        }
+
+        double sx = (lightNdcPoint.x * 0.5f + 0.5f) * (light.getShadowMap(shadowMapfaceIndex).getCols() - 1);
+        double sy = (1 - (lightNdcPoint.y * 0.5f + 0.5f)) * (light.getShadowMap(shadowMapfaceIndex).getRows() - 1);
 
         shadowAmount  = calculateShadowAmount(light.getShadowMap(shadowMapfaceIndex), light,Vector2(sx,sy),
-                                             depthInLightView, bias);
+                                             receiverDepth, bias);
     }
 
     return shadowAmount;
@@ -690,11 +698,6 @@ Renderer::FlatShadingFaceData Renderer::collectFlatPerFaceData(const Triangle3& 
         result.pointToLightDirection[i] = pointToLightDirection;
         result.combinedLight[i]         = combinedLight;
         result.NdotL[i] = nDotL;
-
-        result.diffuseNoAlbedo[i] = lightingManager->getDiffuseLambert(
-            pointToLightDirection, result.flatFaceNormal, combinedLight);
-
-
 
         Vector3 specularNoLight = getSpecularModifier(obj,combinedLight, result.flatWorldCentroid, result.flatFaceNormal, pointToLightDirection);
         result.specularWithLight[i] = specularNoLight.hadamard(combinedLight);
