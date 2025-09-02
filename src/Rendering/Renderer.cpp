@@ -727,7 +727,8 @@ void Renderer::updateShadowMaps(){
             if(debugMode == DEBUG_SHADOWMAP){
                 std::cout << "Found distant light source"<<std::endl;
             }
-            if(auto distantLight = std::dynamic_pointer_cast<DistantLight>(lightSource)){
+            auto distantLight = std::static_pointer_cast<DistantLight>(lightSource);
+
 
 
                 //get lightview Matrix
@@ -802,12 +803,12 @@ void Renderer::updateShadowMaps(){
                 shadowMapDepthPass((*distantLight));
                 //depth pass - filling shadow map of current light source
 
-            }
+
         }else if(lightSource->lightType == Light::LightType::POINT){
             if(debugMode == DEBUG_SHADOWMAP){
                 std::cout << "Found point light source"<<std::endl;
             }
-            if(std::shared_ptr<PointLight> pointLight = std::dynamic_pointer_cast<PointLight>(lightSource)){
+            std::shared_ptr<PointLight> pointLight = std::static_pointer_cast<PointLight>(lightSource);
 
 
                 //get light view matrices
@@ -824,13 +825,13 @@ void Renderer::updateShadowMaps(){
                 shadowMapDepthPass((*pointLight));
 
 
-            }
+
 
         }else if(lightSource->lightType == Light::LightType::SPOT){
             if(debugMode == DEBUG_SHADOWMAP){
                 std::cout << "somehow found spot light source"<<std::endl;
             }
-            if(auto spotLight = std::dynamic_pointer_cast<SpotLight>(lightSource)){
+            auto spotLight = std::static_pointer_cast<SpotLight>(lightSource);
 
                 spotLight->setViewMatrix();
 
@@ -843,7 +844,7 @@ void Renderer::updateShadowMaps(){
                 }
 
                 shadowMapDepthPass((*spotLight));
-            }
+
         }else{
             if(debugMode == DEBUG_SHADOWMAP){
                 std::cout << "found inidentified light source"<<std::endl;
