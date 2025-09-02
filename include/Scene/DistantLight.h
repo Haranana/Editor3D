@@ -39,7 +39,7 @@ public:
                 img.setPixel(x, y, qRgb(v, v, v));
             }
         }
-        img.save("shadowmap.png");
+        img.save("shadowmap_dist.png");
     }
 
     void setViewMatrix(const Vector3& bboxCenter, Vector3 up = defaultUp){

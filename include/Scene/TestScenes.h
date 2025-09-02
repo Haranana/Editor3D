@@ -10,6 +10,50 @@
 
 namespace TestScenes{
 
+    void loadRotatedCubeAndLight(Scene& scene, QListWidget& objectsList, Light::LightType lightType){
+
+        auto cube3 = std::make_shared<Cube>();
+        scene.addObject(cube3);
+        QString itemTextCube3 = QString("Cube");
+        objectsList.addItem(itemTextCube3);
+        cube3->transform.setScales(Vector3(0.5,0.5,0.5));
+        cube3->transform.setAngles({61,45,45},false);
+        cube3->viewportDisplay.color = Colors::Red;
+
+
+        if(lightType == Light::LightType::DISTANT){
+            Vector3 lightDirection(0.0 , -1.0 , -1.0);
+            std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
+            light->color = Colors::White;
+            light->intensity = 2.0;
+            light->castsShadow = true;
+            scene.addObject(light);
+            QString itemTextLight = QString("light");
+            objectsList.addItem(itemTextLight);
+        }else if(lightType == Light::LightType::POINT){
+            std::shared_ptr<PointLight> light = std::make_shared<PointLight>();
+            light->color = Colors::White;
+            light->intensity = 2.0;
+            light->castsShadow = true;
+            scene.addObject(light);
+            light->transform.setPosition({0,200,200});
+            QString itemTextLight = QString("light");
+            objectsList.addItem(itemTextLight);
+        }else{
+            Vector3 lightDirection(0.0 , -1.0 , -1.0);
+            std::shared_ptr<SpotLight> light = std::make_shared<SpotLight>();
+            light->color = Colors::White;
+            light->intensity = 2.0;
+            light->castsShadow = true;
+            light->direction = lightDirection;
+            light->transform.setPositionZ(200);
+            light->transform.setPositionY(200);
+            scene.addObject(light);
+            QString itemTextLight = QString("light");
+            objectsList.addItem(itemTextLight);
+        }
+    }
+
     void loadOnlyDistantLight(Scene& scene, QListWidget& objectsList){
         Vector3 lightDirection(0.0 , -1.0 , -1.0);
         std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());

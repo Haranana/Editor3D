@@ -2,6 +2,7 @@
 #define SPOTLIGHT_H
 #include "Light.h"
 #include <cmath>
+#include <QImage>
 #include "Math/Utility.h"
 
 class SpotLight : public Light{
@@ -81,6 +82,18 @@ public:
         return near + depth*(range - near);
     }
 
+    void printShadowMatrix(){
+        QImage img(shadowMap.getCols(), shadowMap.getRows(), QImage::Format_Grayscale8);
+        for (int y = 0; y < (int)shadowMap.getRows(); ++y) {
+            for (int x = 0; x < (int)shadowMap.getCols(); ++x) {
+                float d = shadowMap[y][x];
+                // 0 = close, 1 = far, inf = empty
+                int v = (d == std::numeric_limits<float>::infinity()) ? 0 : int(255 * (1.0 - d));
+                img.setPixel(x, y, qRgb(v, v, v));
+            }
+        }
+        img.save("shadowmap_spot.png");
+    }
 
     static constexpr int defaultShadowMapSize = 2048;
     static constexpr double ASPECT = 1.0;

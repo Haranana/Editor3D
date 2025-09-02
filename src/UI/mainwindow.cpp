@@ -243,6 +243,8 @@ void MainWindow::loadTestScene(){
     //TestScenes::loadPointLightTestScene3(*scene, *objectsList);
     //TestScenes::loadSpotLightOnEmptyWall(*scene, *objectsList);
     //TestScenes::loadOnlyDistantLight(*scene , *objectsList);
+    TestScenes::loadRotatedCubeAndLight(*scene, *objectsList, Light::LightType::POINT);
+
     refreshScene();
 }
 
