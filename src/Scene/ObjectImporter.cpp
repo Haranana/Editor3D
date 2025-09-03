@@ -505,16 +505,20 @@ std::vector<std::shared_ptr<RenderableObject3D>> ObjImporter::meshBuildersToRend
         obj->sanitize();
         switch(obj->material.illum){
             case 0:
-                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::UNLIT;
+                obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::NONE;
+                obj->displaySettings->specularModel = DisplaySettings::SpecularModel::NONE;
                 break;
             case 1:
-                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
+                obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::LAMBERT;
+                obj->displaySettings->specularModel = DisplaySettings::SpecularModel::NONE;
                 break;
             case 2:
-                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
+                obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::LAMBERT;
+                obj->displaySettings->specularModel = DisplaySettings::SpecularModel::PHONG;
                 break;
             default:
-                obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
+                obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::LAMBERT;
+                obj->displaySettings->specularModel = DisplaySettings::SpecularModel::NONE;
                 break;
         }
 

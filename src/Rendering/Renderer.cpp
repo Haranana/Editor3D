@@ -299,19 +299,26 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
                                     visibility = getVisibility(shadowAmount);
 
-                                    bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
+                                    bool brdf = obj.displaySettings->specularModel == DisplaySettings::SpecularModel::COOK_TORRANCE;
 
 
                                     combinedLight = getCombinedLight(Vectors::colorToVector3(lightSource->color), lightSource->intensity, attenuation);
                                     shadowTintModifier = getShadowTintModifier(kd, combinedLight, SHADOW_INTENSITY, shadowAmount);
+
+                                    //if(obj.displaySettings->diffuseModel != DisplaySettings::DiffuseModel::NONE){
                                     diffuseModifier = getDiffuseModifier(obj,combinedLight,worldSpacePoint,faceNormal,
                                                                          pointToLightDirection,kd,visibility, brdf);
+                                    //}
                                     specularModifier = getSpecularModifier(obj, combinedLight, worldSpacePoint, faceNormal,
                                                                            pointToLightDirection, visibility);
                                     break;
                                 }
                             }
 
+
+                            if(obj.displaySettings->diffuseModel == DisplaySettings::DiffuseModel::NONE){
+                            diffuseModifier = {};
+                            }
                             outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                             lightId++;
                         }
@@ -475,19 +482,19 @@ Vector3 Renderer::getSpecularModifier(const RenderableObject3D& obj, const Vecto
                                    const Vector3& faceNormal, const Vector3& pointToLightDir, double visibility){
 
     Vector3 specularModifier;
-    if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG){
+    if(obj.displaySettings->specularModel == DisplaySettings::SpecularModel::PHONG){
 
         specularModifier = lightingManager->illuminatePointPhong(
             pointToLightDir, faceNormal, obj.material, *camera, pointWorldCoords
             );
 
-    }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG){
+    }else if(obj.displaySettings->specularModel == DisplaySettings::SpecularModel::BLINN_PHONG){
 
         specularModifier = lightingManager->illuminatePointBlinnPhong(
             pointToLightDir, faceNormal, obj.material, *camera, pointWorldCoords
             );
 
-    }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE){
+    }else if(obj.displaySettings->specularModel == DisplaySettings::SpecularModel::COOK_TORRANCE){
 
         specularModifier = lightingManager->getSpecularCookTorrance(
             pointToLightDir, faceNormal, obj.material, *camera, pointWorldCoords
@@ -570,25 +577,26 @@ Renderer::GouraudShadingFaceData Renderer::collectGouraudPerFaceData(
         Vector3 diffNoAlb = combined * ndotl;
 
         Vector3 specNoLight{};
-        if (obj.displaySettings->lightingMode == DisplaySettings::LightingModel::PHONG) {
+        if (obj.displaySettings->specularModel == DisplaySettings::SpecularModel::PHONG) {
                 specNoLight = lightingManager->illuminatePointPhong(
                     const_cast<Vector3&>(pointToLightDirection), const_cast<Vector3&>(N),
                     obj.material, *camera, P
                     );
-        } else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::BLINN_PHONG) { // BLINN_PHONG
+        } else if(obj.displaySettings->specularModel == DisplaySettings::SpecularModel::BLINN_PHONG) { // BLINN_PHONG
                 specNoLight = lightingManager->illuminatePointBlinnPhong(
                     const_cast<Vector3&>(pointToLightDirection), const_cast<Vector3&>(N),
                     obj.material, *camera, P
                 );
 
-        }else if(obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE) { // BLINN_PHONG
+        }else if(obj.displaySettings->specularModel == DisplaySettings::SpecularModel::COOK_TORRANCE) { // BLINN_PHONG
             specNoLight = lightingManager->getSpecularCookTorrance(
                 const_cast<Vector3&>(pointToLightDirection), const_cast<Vector3&>(N),
                 obj.material, *camera, P
                 );
             specNoLight = specNoLight * ndotl;
+            //if(obj.displaySettings->diffuseModel != DisplaySettings::DiffuseModel::NONE){
+                diffNoAlb = diffNoAlb.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, P));
 
-            diffNoAlb = diffNoAlb.hadamard(lightingManager->getDiffuseLambertBRDFMultiplier(pointToLightDirection, obj.material, *camera, P));
 
         }else{
             specNoLight = {};
@@ -677,7 +685,7 @@ Renderer::FlatShadingFaceData Renderer::collectFlatPerFaceData(const Triangle3& 
 
         result.specularWithLight[i] = getSpecularModifier(obj,combinedLight, result.flatWorldCentroid, result.flatFaceNormal, pointToLightDirection);
 
-        bool brdf = obj.displaySettings->lightingMode == DisplaySettings::LightingModel::COOK_TORRANCE;
+        bool brdf = obj.displaySettings->specularModel == DisplaySettings::SpecularModel::COOK_TORRANCE;
         result.diffuseNoAlbedo[i] = getDiffuseModifier(obj, combinedLight, result.flatWorldCentroid,result.flatFaceNormal,
                                                        pointToLightDirection, Vector3{1,1,1}, 1.0, brdf );
     }

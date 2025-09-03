@@ -18,7 +18,8 @@ private slots:
 
     void onRenderModeChanged();
     void onShadingChanged();
-    void onlightingModelChanged();
+    void onDiffuseModelChanged();
+    void onSpecularModelChanged();
     void onColorWireframesChanged();
 
 private:
@@ -26,7 +27,8 @@ private:
 
     QComboBox* objectRenderModeComboBox;
     QComboBox* objectShadingComboBox;
-    QComboBox* objectLightingModelComboBox;
+    QComboBox* objectDiffuseModelComboBox;
+    QComboBox* objectSpecularModelComboBox;
     QCheckBox* colorWireframesCheckBox;
 };
 

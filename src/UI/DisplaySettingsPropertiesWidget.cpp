@@ -19,14 +19,19 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
     layout->addRow("Shading",objectShadingComboBox);
     connect(objectShadingComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onShadingChanged);
 
-    objectLightingModelComboBox = new QComboBox(this);
-    objectLightingModelComboBox->addItem(QString("Unlit"));
-    objectLightingModelComboBox->addItem(QString("Lambert"));
-    objectLightingModelComboBox->addItem(QString("Phong"));
-    objectLightingModelComboBox->addItem(QString("Blinn Phong"));
-    objectLightingModelComboBox->addItem(QString("Cook Torrance"));
-    layout->addRow("Lighting model",objectLightingModelComboBox);
-    connect(objectLightingModelComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onlightingModelChanged);
+    objectDiffuseModelComboBox = new QComboBox(this);
+    objectDiffuseModelComboBox->addItem(QString("None"));
+    objectDiffuseModelComboBox->addItem(QString("Lambert"));
+    layout->addRow("Diffuse model",objectDiffuseModelComboBox);
+    connect(objectDiffuseModelComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onDiffuseModelChanged);
+
+    objectSpecularModelComboBox = new QComboBox(this);
+    objectSpecularModelComboBox->addItem(QString("None"));
+    objectSpecularModelComboBox->addItem(QString("Phong"));
+    objectSpecularModelComboBox->addItem(QString("Blinn Phong"));
+    objectSpecularModelComboBox->addItem(QString("Cook Torrance"));
+    layout->addRow("Specular model",objectSpecularModelComboBox);
+    connect(objectSpecularModelComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onSpecularModelChanged);
 
     colorWireframesCheckBox = new QCheckBox(this);
     connect(colorWireframesCheckBox, &QCheckBox::checkStateChanged, this,
@@ -66,21 +71,29 @@ void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object
         break;
     }
 
-    switch(obj->displaySettings->lightingMode){
-    case DisplaySettings::LightingModel::UNLIT:
-        objectLightingModelComboBox->setCurrentIndex(0);
+
+    switch(obj->displaySettings->diffuseModel){
+    case DisplaySettings::DiffuseModel::NONE:
+        objectDiffuseModelComboBox->setCurrentIndex(0);
         break;
-    case DisplaySettings::LightingModel::LAMBERT:
-        objectLightingModelComboBox->setCurrentIndex(1);
+    case DisplaySettings::DiffuseModel::LAMBERT:
+        objectDiffuseModelComboBox->setCurrentIndex(1);
         break;
-    case DisplaySettings::LightingModel::PHONG:
-        objectLightingModelComboBox->setCurrentIndex(2);
+    }
+
+
+    switch(obj->displaySettings->specularModel){
+    case DisplaySettings::SpecularModel::NONE:
+        objectSpecularModelComboBox->setCurrentIndex(0);
         break;
-    case DisplaySettings::LightingModel::BLINN_PHONG:
-        objectLightingModelComboBox->setCurrentIndex(3);
+    case DisplaySettings::SpecularModel::PHONG:
+        objectSpecularModelComboBox->setCurrentIndex(1);
         break;
-    case DisplaySettings::LightingModel::COOK_TORRANCE:
-        objectLightingModelComboBox->setCurrentIndex(4);
+    case DisplaySettings::SpecularModel::BLINN_PHONG:
+        objectSpecularModelComboBox->setCurrentIndex(2);
+        break;
+    case DisplaySettings::SpecularModel::COOK_TORRANCE:
+        objectSpecularModelComboBox->setCurrentIndex(3);
         break;
     }
 
@@ -128,27 +141,41 @@ void DisplaySettingsPropertiesWidget::onShadingChanged(){
     emit objectChanged();
 }
 
-void DisplaySettingsPropertiesWidget::onlightingModelChanged(){
-    switch (objectLightingModelComboBox->currentIndex()) {
+
+void DisplaySettingsPropertiesWidget::onDiffuseModelChanged(){
+    switch (objectDiffuseModelComboBox->currentIndex()) {
     case 0:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::UNLIT;
+        obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::NONE;
         break;
     case 1:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
-        break;
-    case 2:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::PHONG;
-        break;
-    case 3:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::BLINN_PHONG;
-        break;
-    case 4:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::COOK_TORRANCE;
+        obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::LAMBERT;
         break;
     default:
-        obj->displaySettings->lightingMode = DisplaySettings::LightingModel::LAMBERT;
+        obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::LAMBERT;
         break;
     }
+    emit objectChanged();
+}
+
+void DisplaySettingsPropertiesWidget::onSpecularModelChanged(){
+    switch (objectSpecularModelComboBox->currentIndex()) {
+    case 0:
+        obj->displaySettings->specularModel = DisplaySettings::SpecularModel::NONE;
+        break;
+    case 1:
+        obj->displaySettings->specularModel = DisplaySettings::SpecularModel::PHONG;
+        break;
+    case 2:
+        obj->displaySettings->specularModel = DisplaySettings::SpecularModel::BLINN_PHONG;
+        break;
+    case 3:
+        obj->displaySettings->specularModel = DisplaySettings::SpecularModel::COOK_TORRANCE;
+        break;
+    default:
+        obj->displaySettings->diffuseModel = DisplaySettings::DiffuseModel::LAMBERT;
+        break;
+    }
+
     emit objectChanged();
 }
 
