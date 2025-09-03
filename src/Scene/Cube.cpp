@@ -5,8 +5,6 @@ Cube::Cube(int sideLength) :RenderableObject3D(), sideLength(sideLength){
 
     int radious = sideLength/2;
 
-    //domyslnie szescian jest definiowany w orientacji praworecznej
-    //tzn. obiekty o wiekszym parametrze z sa mniejsze, wydaja sie byc oddalone od kamery
     vertices = {Vector3(-radious , radious , -radious),
                 Vector3(radious , radious , -radious),
                 Vector3(radious , -radious , -radious),

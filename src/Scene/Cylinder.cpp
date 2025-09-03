@@ -45,6 +45,42 @@ Cylinder::Cylinder(int radious, int height, int verticesInCircle) : height(heigh
         faceVertexIndices.push_back(top);
         faceVertexIndices.push_back(bot);
     }
-    //renderStrategy = std::make_unique<RasterRenderStrategy>();
+
+    for(size_t face = 0; face < faceVertexIndices.size(); face+=3){
+        Vector3 v0 = vertices[faceVertexIndices[face]];
+        Vector3 v1 = vertices[faceVertexIndices[face+1]];
+        Vector3 v2 = vertices[faceVertexIndices[face+2]];
+
+        normals.push_back(((v1-v0).crossProduct(v2-v0)).normalize()); //vertices are declare clockwise so we multiply by -1 to make normal positive
+    }
+
+    displaySettings = std::make_unique<DisplaySettings>();
+
+    textureCoords.resize(vertices.size() , Vector2(0.0,0.0));
+    vertexHasNormal.resize(vertices.size() , false);
+    vertexHasUV.resize(vertices.size() , false);
+    faceHasUV.resize(faceVertexIndices.size()/3, false);
+
+    vertexToFaceNormals.resize(vertices.size() , {});
+    for (size_t face = 0; face < faceVertexIndices.size(); face += 3) {
+        int idx0 = faceVertexIndices[face    ];
+        int idx1 = faceVertexIndices[face + 1];
+        int idx2 = faceVertexIndices[face + 2];
+
+        int faceNormalIdx = face / 3;
+        vertexToFaceNormals[idx0].push_back(faceNormalIdx);
+        vertexToFaceNormals[idx1].push_back(faceNormalIdx);
+        vertexToFaceNormals[idx2].push_back(faceNormalIdx);
+    }
+
+    for (size_t vi = 0; vi < vertices.size(); ++vi) {
+        Vector3 nSum(0, 0, 0);
+        for (int ni : vertexToFaceNormals[vi]) {
+            nSum = nSum + normals[ni];
+        }
+        vertexNormals.push_back(nSum.normalize());
+    }
+
+
 
 }

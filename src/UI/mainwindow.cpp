@@ -74,7 +74,6 @@ void MainWindow::setupUI()
     rightLayout = new QVBoxLayout(rightPanel);
     rightLayout->setContentsMargins(12,12,12,12);
     rightLayout->setSpacing(8);
-    //rightLayout->addStretch();
 
     propertiesWidgetScrollArea->setWidget(rightPanel);
     mainLayout->addWidget(propertiesWidgetScrollArea, 2);
@@ -93,6 +92,7 @@ void MainWindow::setupMenuBar(){
     QMenu *createObjectsMenu = objectsMenu->addMenu("Create");
     QMenu *createObjectsLightMenu = createObjectsMenu->addMenu("Light");
 
+    QAction *openSceneProperties = new QAction("&Properties");
     QAction *importObjectAction = new QAction("&Import object");
     QAction *createObjectCube = new QAction("&Cube");
     QAction *createObjectCylinder = new QAction("&Cylinder");
@@ -102,15 +102,18 @@ void MainWindow::setupMenuBar(){
     QAction *createSpotLight = new QAction("&Spot");
 
     fileMenu->addAction(importObjectAction);
-    //objectsMenu->addMenu(createObjectsMenu);
+     sceneMenu->addAction(openSceneProperties);
 
     createObjectsMenu->addAction(createObjectCube);
     createObjectsMenu->addAction(createObjectCylinder);
     createObjectsLightMenu->addAction(createDistantLight);
     createObjectsLightMenu->addAction(createPointLight);
     createObjectsLightMenu->addAction(createSpotLight);
-    //createObjectsMenu->addMenu(createObjectCylinder);
     selectedObjectMenu->addAction(deleteSelectedObject);
+
+    QObject::connect(openSceneProperties, &QAction::triggered, [&](){
+        onOpenSceneProperties();
+    });
 
     QObject::connect(importObjectAction, &QAction::triggered, [&](){
         onFileMenuImportObject();
@@ -291,7 +294,7 @@ void MainWindow::onObjectMenuCreateCylinder(){
     std::shared_ptr<Cylinder> newObject = std::make_shared<Cylinder>();
 
     scene->addObject(newObject);
-    QString itemText = QString("Cube");
+    QString itemText = QString("Cylinder");
     objectsList->addItem(itemText);
 
     refreshScene();
@@ -308,6 +311,30 @@ void MainWindow::onSceneMenuDeleteSelectedObject(){
 
     refreshScene();
 }
+
+void MainWindow::onOpenSceneProperties(){
+    currentObject = nullptr;
+    objectsList->clearSelection();
+
+    if (currentPropertiesWidget) {
+        rightLayout->removeWidget(currentPropertiesWidget);
+        delete currentPropertiesWidget;
+        currentPropertiesWidget = nullptr;
+    }
+
+     currentPropertiesWidget = new ScenePropertiesWidget(rightPanel);
+
+
+     if (currentPropertiesWidget) {
+         ScenePropertiesWidget* currentScenePropertiesWidget = static_cast<ScenePropertiesWidget*>(currentPropertiesWidget);
+         currentScenePropertiesWidget->setScene(renderer->getScene());
+         rightLayout->addWidget(currentScenePropertiesWidget);
+         connect(currentScenePropertiesWidget, &ObjectPropertiesWidget::objectChanged,
+                 this, &MainWindow::refreshScene);
+     }
+
+}
+
 
 void MainWindow::onSceneDisplayClicked(int x, int y){
 

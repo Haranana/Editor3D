@@ -60,6 +60,7 @@ SOURCES += \
     src/UI/PointLightPropertiesWidget.cpp \
     src/UI/RenderWidget.cpp \
     src/UI/RenderableObjectPropertiesWidget.cpp \
+    src/UI/ScenePropertiesWidget.cpp \
     src/UI/SpotLightPropertiesWidget.cpp \
     src/UI/Transform3DPropertiesWidget.cpp \
     src/UI/Vector3PropertiesWIdget.cpp \
@@ -133,6 +134,7 @@ HEADERS += \
     include/UI/PointLightPropertiesWidget.h \
     include/UI/RenderWidget.h \
     include/UI/RenderableObjectPropertiesWidget.h \
+    include/UI/ScenePropertiesWidget.h \
     include/UI/SpotLightPropertiesWidget.h \
     include/UI/Transform3DPropertiesWidget.h \
     include/UI/Vector3PropertiesWidget.h \

@@ -43,6 +43,7 @@
 #include "Scene/ObjectImporter.h"
 #include "FpsCounter.h"
 #include "HudOverlay.h"
+#include "UI/ScenePropertiesWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -139,6 +140,7 @@ private slots:
     void onObjectMenuCreatePointLight();
 
     void onSceneMenuDeleteSelectedObject();
+    void onOpenSceneProperties();
 
     void onSceneDisplayClicked(int x, int y);
 };
