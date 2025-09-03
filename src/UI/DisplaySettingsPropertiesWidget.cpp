@@ -6,17 +6,11 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
 
     objectRenderModeComboBox = new QComboBox(this);
     objectRenderModeComboBox->addItem("None");
-    objectRenderModeComboBox->addItem(QString("Raster"));
     objectRenderModeComboBox->addItem(QString("Wireframe"));
+    objectRenderModeComboBox->addItem(QString("Raster Color"));
+    objectRenderModeComboBox->addItem(QString("Raster Texture"));
     layout->addRow("Render mode",objectRenderModeComboBox);
     connect(objectRenderModeComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onRenderModeChanged);
-
-    objectRasterModeComboBox = new QComboBox(this);
-    objectRasterModeComboBox->addItem(QString("None"));
-    objectRasterModeComboBox->addItem(QString("Color"));
-    objectRasterModeComboBox->addItem(QString("Texture"));
-    layout->addRow("Raster mode",objectRasterModeComboBox);
-    connect(objectRasterModeComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onRasterModeChanged);
 
     objectShadingComboBox = new QComboBox(this);
     objectShadingComboBox->addItem(QString("Flat"));
@@ -49,23 +43,14 @@ void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object
     case DisplaySettings::RenderMode::NONE:
         objectRenderModeComboBox->setCurrentIndex(0);
         break;
-    case DisplaySettings::RenderMode::RASTER:
+    case DisplaySettings::RenderMode::WIREFRAME:
         objectRenderModeComboBox->setCurrentIndex(1);
         break;
-    case DisplaySettings::RenderMode::WIREFRAME:
+    case DisplaySettings::RenderMode::RASTER_COLOR:
         objectRenderModeComboBox->setCurrentIndex(2);
         break;
-    }
-
-    switch(obj->displaySettings->rasterMode){
-    case DisplaySettings::RasterMode::NONE:
-        objectRasterModeComboBox->setCurrentIndex(0);
-        break;
-    case DisplaySettings::RasterMode::COLOR:
-        objectRasterModeComboBox->setCurrentIndex(1);
-        break;
-    case DisplaySettings::RasterMode::TEXTURE:
-        objectRasterModeComboBox->setCurrentIndex(2);
+    case DisplaySettings::RenderMode::RASTER_TEXTURE:
+        objectRenderModeComboBox->setCurrentIndex(3);
         break;
     }
 
@@ -108,35 +93,22 @@ void DisplaySettingsPropertiesWidget::onRenderModeChanged(){
         obj->displaySettings->renderMode = DisplaySettings::RenderMode::NONE;
         break;
     case 1:
-        obj->displaySettings->renderMode = DisplaySettings::RenderMode::RASTER;
-        break;
-    case 2:
         obj->displaySettings->renderMode = DisplaySettings::RenderMode::WIREFRAME;
         break;
+    case 2:
+        obj->displaySettings->renderMode = DisplaySettings::RenderMode::RASTER_COLOR;
+        break;
+    case 3:
+        obj->displaySettings->renderMode = DisplaySettings::RenderMode::RASTER_TEXTURE;
+        break;
     default:
-        obj->displaySettings->renderMode = DisplaySettings::RenderMode::RASTER;
+        obj->displaySettings->renderMode = DisplaySettings::RenderMode::RASTER_COLOR;
         break;
     }
     emit objectChanged();
 }
 
-void DisplaySettingsPropertiesWidget::onRasterModeChanged(){
-    switch (objectRasterModeComboBox->currentIndex()) {
-    case 0:
-        obj->displaySettings->renderMode = DisplaySettings::RenderMode::NONE;
-        break;
-    case 1:
-        obj->displaySettings->rasterMode = DisplaySettings::RasterMode::COLOR;
-        break;
-    case 2:
-        obj->displaySettings->rasterMode = DisplaySettings::RasterMode::TEXTURE;
-        break;
-    default:
-        obj->displaySettings->rasterMode = DisplaySettings::RasterMode::COLOR;
-        break;
-    }
-    emit objectChanged();
-}
+
 
 void DisplaySettingsPropertiesWidget::onShadingChanged(){
     switch (objectShadingComboBox->currentIndex()) {

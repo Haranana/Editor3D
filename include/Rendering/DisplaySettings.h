@@ -7,13 +7,8 @@ public:
     enum class RenderMode{
         NONE,
         WIREFRAME,
-        RASTER,
-    };
-
-    enum class RasterMode{
-        NONE,
-        COLOR,
-        TEXTURE,
+        RASTER_COLOR,
+        RASTER_TEXTURE
     };
 
     enum class Shading{
@@ -33,8 +28,7 @@ public:
     bool hideUnseenWireframes = false; //not implemented!
     bool colorWireframes = false;
     bool backFaceCulling = true;
-    RenderMode renderMode = RenderMode::RASTER;
-    RasterMode rasterMode = RasterMode::COLOR ;
+    RenderMode renderMode = RenderMode::RASTER_COLOR;
     Shading shadingMode = Shading::PHONG;
     LightingModel lightingMode = LightingModel::LAMBERT;
     void print() const {
@@ -42,7 +36,6 @@ public:
         std::cout << "  hideUnseenWireframes: " << (hideUnseenWireframes ? "true" : "false") << std::endl;
         std::cout << "  colorWireframes:      " << (colorWireframes ? "true" : "false") << std::endl;
         std::cout << "  renderMode:           " << renderModeToString(renderMode) << std::endl;
-        std::cout << "  rasterMode:           " << rasterModeToString(rasterMode) << std::endl;
         std::cout << "  shadingMode:          " << shadingModeToString(shadingMode) << std::endl;
         std::cout << "  lightingMode:         " << lightingModeToString(lightingMode) << std::endl;
     }
@@ -51,16 +44,9 @@ private:
         switch(m) {
         case RenderMode::NONE:      return "NONE";
         case RenderMode::WIREFRAME: return "WIREFRAME";
-        case RenderMode::RASTER:    return "RASTER";
+        case RenderMode::RASTER_COLOR:    return "RASTER COLOR";
+        case RenderMode::RASTER_TEXTURE:    return "RASTER TEXTURE";
         default:                    return "UNKNOWN";
-        }
-    }
-    static const char* rasterModeToString(RasterMode m) {
-        switch(m) {
-        case RasterMode::NONE:    return "NONE";
-        case RasterMode::COLOR:   return "COLOR";
-        case RasterMode::TEXTURE: return "TEXTURE";
-        default:                  return "UNKNOWN";
         }
     }
     static const char* shadingModeToString(Shading m) {

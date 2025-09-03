@@ -173,7 +173,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
             }
 
             // raster fill
-            if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER){
+            if(obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER_COLOR ||
+                obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER_TEXTURE){
                 for (int y = minY; y <= maxY; y++) {
                     for (int x = minX; x <= maxX; x++) {
 
@@ -207,7 +208,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         }
                         Vector3 kdTex;
                         Vector3 kd;
-                        if(triangleHasUV && obj.displaySettings->rasterMode == DisplaySettings::RasterMode::TEXTURE){
+                        if(triangleHasUV && obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER_TEXTURE){
                             kdTex = Texture::sampleRGB(mat.albedoTexture,   pointUV);
                         }else{
                             kdTex = Vectors::colorToVector3(obj.viewportDisplay.color);

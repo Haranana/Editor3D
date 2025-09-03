@@ -17,7 +17,6 @@ public:
 private slots:
 
     void onRenderModeChanged();
-    void onRasterModeChanged();
     void onShadingChanged();
     void onlightingModelChanged();
     void onColorWireframesChanged();
@@ -26,7 +25,6 @@ private:
     std::shared_ptr<RenderableObject3D> obj;
 
     QComboBox* objectRenderModeComboBox;
-    QComboBox* objectRasterModeComboBox;
     QComboBox* objectShadingComboBox;
     QComboBox* objectLightingModelComboBox;
     QCheckBox* colorWireframesCheckBox;
