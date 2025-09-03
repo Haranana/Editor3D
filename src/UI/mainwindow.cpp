@@ -49,10 +49,8 @@ void MainWindow::setupUI()
     QVBoxLayout* leftLayout = new QVBoxLayout(leftPanel);
 
     objectsList = new QListWidget(leftPanel);
-    addCubeButton = new QPushButton("Add Cube", leftPanel);
 
     leftLayout->addWidget(objectsList);
-    leftLayout->addWidget(addCubeButton);
     leftPanel->setLayout(leftLayout);
     mainLayout->addWidget(leftPanel, 1);
 
@@ -81,7 +79,6 @@ void MainWindow::setupUI()
     propertiesWidgetScrollArea->setWidget(rightPanel);
     mainLayout->addWidget(propertiesWidgetScrollArea, 2);
 
-    connect(addCubeButton, &QPushButton::clicked, this, &MainWindow::onAddCubeClicked);
     connect(objectsList, &QListWidget::itemSelectionChanged, this, &MainWindow::onObjectSelected);
 }
 
@@ -95,42 +92,16 @@ void MainWindow::setupMenuBar(){
     QMenu *selectedObjectMenu = sceneMenu->addMenu("Sel. Object");
     QMenu *createObjectsMenu = objectsMenu->addMenu("Create");
     QMenu *createObjectsLightMenu = createObjectsMenu->addMenu("Light");
-    QMenu *selectMenu = menuBar->addMenu("Select");
 
-    QActionGroup *selectActionGroup = new QActionGroup(this);
     QAction *importObjectAction = new QAction("&Import object");
-    QAction *saveObjectAction = new QAction("&Save object");
     QAction *createObjectCube = new QAction("&Cube");
     QAction *createObjectCylinder = new QAction("&Cylinder");
     QAction *deleteSelectedObject = new QAction("&Delete");
-    QAction *assignTectureToObject = new QAction("&Assign texture");
-    QAction *selectObjects = new QAction("&Objects");
-    QAction *selectFaces = new QAction("&Faces");
-    QAction *selectEdges = new QAction("&Edges");
-    QAction *selectVertices = new QAction("&Vertices");
     QAction *createDistantLight = new QAction("&Distant");
     QAction *createPointLight = new QAction("&Point");
     QAction *createSpotLight = new QAction("&Spot");
 
-    selectActionGroup->setExclusive(true);
-    selectObjects->setCheckable(true);
-    selectFaces->setCheckable(true);
-    selectEdges->setCheckable(true);
-    selectVertices->setCheckable(true);
-    selectActionGroup->addAction(selectObjects);
-    selectActionGroup->addAction(selectFaces);
-    selectActionGroup->addAction(selectEdges);
-    selectActionGroup->addAction(selectVertices);
-    //selectObjects->setChecked(true);
-
-    selectMenu->addAction(selectObjects);
-    selectMenu->addAction(selectFaces);
-    selectMenu->addAction(selectEdges);
-    selectMenu->addAction(selectVertices);
-
     fileMenu->addAction(importObjectAction);
-    fileMenu->addSeparator();
-    fileMenu->addAction(saveObjectAction);
     //objectsMenu->addMenu(createObjectsMenu);
 
     createObjectsMenu->addAction(createObjectCube);
@@ -140,7 +111,6 @@ void MainWindow::setupMenuBar(){
     createObjectsLightMenu->addAction(createSpotLight);
     //createObjectsMenu->addMenu(createObjectCylinder);
     selectedObjectMenu->addAction(deleteSelectedObject);
-    selectedObjectMenu->addAction(assignTectureToObject);
 
     QObject::connect(importObjectAction, &QAction::triggered, [&](){
         onFileMenuImportObject();
@@ -158,10 +128,6 @@ void MainWindow::setupMenuBar(){
         onObjectMenuCreateSpotLight();
     });
 
-    QObject::connect(saveObjectAction, &QAction::triggered, [&](){
-        onFileMenuSaveObject();
-    });
-
     QObject::connect(createObjectCube, &QAction::triggered, [&](){
         onObjectMenuCreateCube();
     });
@@ -172,28 +138,6 @@ void MainWindow::setupMenuBar(){
 
     QObject::connect(deleteSelectedObject, &QAction::triggered, [&](){
         onSceneMenuDeleteSelectedObject();
-    });
-
-    QObject::connect(assignTectureToObject, &QAction::triggered, [&](){
-        onSceneMenuAssignTectureToObject();
-    });
-
-    QObject::connect(selectObjects, &QAction::triggered, [&](){
-        onSelectMenuChangeSelectMode(SelectMode::OBJECTS);
-    });
-
-    QObject::connect(selectFaces, &QAction::triggered, [&](){
-        onSelectMenuChangeSelectMode(SelectMode::FACES);
-    });
-
-
-    QObject::connect(selectEdges, &QAction::triggered, [&](){
-        onSelectMenuChangeSelectMode(SelectMode::EDGES);
-    });
-
-
-    QObject::connect(selectVertices, &QAction::triggered, [&](){
-        onSelectMenuChangeSelectMode(SelectMode::VERTICES);
     });
 
 }
@@ -269,15 +213,6 @@ void MainWindow::addImportedObjectsToScene(const ImportResult& import, const QSt
 
 
     refreshScene();
-}
-
-void MainWindow::onAddCubeClicked()
-{
-
-    auto newObj = std::make_shared<Cylinder>();
-    scene->addObject(newObj);
-    QString itemText = QString("Cylinder");
-    objectsList->addItem(itemText);
 }
 
 void MainWindow::onObjectSelected(){
@@ -374,10 +309,6 @@ void MainWindow::onSceneMenuDeleteSelectedObject(){
     refreshScene();
 }
 
-void MainWindow::onSelectMenuChangeSelectMode(SelectMode newSelectMode){
-    curSelectMode = newSelectMode;
-}
-
 void MainWindow::onSceneDisplayClicked(int x, int y){
 
     IdBufferElement el = (*renderer->getIdBuffer())[y][x];
@@ -388,49 +319,6 @@ void MainWindow::onSceneDisplayClicked(int x, int y){
 
     objectsList->setCurrentRow(el.objectId);
     emit onObjectSelected();
-        /*
-    if(el.objectId!=-1){
-        switch(curSelectMode){
-        case OBJECTS:
-            scene->getObject(el.objectId)->viewportDisplay.selectObject();
-            break;
-        case EDGES:
-            scene->getObject(el.objectId)->viewportDisplay.selectEdge(el.edgeVertices.first, el.edgeVertices.second);
-            break;
-        case VERTICES:
-            scene->getObject(el.objectId)->viewportDisplay.selectVertex(el.vertexId);
-            break;
-        case FACES:
-            scene->getObject(el.objectId)->viewportDisplay.selectFace(el.faceId);
-            break;
-        case NONE:
-            break;
-        default:
-            break;
-        }
-    }*/
-}
-
-void MainWindow::onSceneMenuAssignTectureToObject(){
-    qDebug("onSceneMenuAssignTectureToObject");
-    if (!currentObject) return;
-    QString path = QFileDialog::getOpenFileName(
-        this,"Select texture","","Images (*.png *.jpg *.bmp)");
-    if (path.isEmpty()) return;
-
-    auto tex = std::make_shared<Texture>();
-    tex->path  = path;
-    tex->image = QImage(path).convertToFormat(QImage::Format_RGBA8888);
-    if (tex->image.isNull()) { qDebug()<<"Bad image"; return; }
-
-    if (auto rend = dynamic_cast<RenderableObject3D*>(currentObject.get()))
-        rend->texture = tex;
-
-    // krok 3 ➜ generujemy UV dla zaznaczonej / całej siatki
-    generatePlanarUV(*dynamic_cast<RenderableObject3D*>(currentObject.get()),
-                     Plane::XY);   // na razie XY
-
-    refreshScene();
 }
 
 void MainWindow::onObjectMenuCreateDistantLight(){

@@ -66,10 +66,8 @@ private:
     static constexpr double transUpLimit = 500;
     static constexpr double transDownLimit = -500;
 
-
     void setupUI();
     void setupMenuBar();
-
 
     void setupScene();
     void refreshScene();
@@ -125,13 +123,10 @@ private:
 
     QMenuBar* menuBar = nullptr;
 
-    QPushButton* addCubeButton = nullptr;
-    SelectMode curSelectMode = NONE;
     ObjImporter objImporter;
 
 private slots:
 
-    void onAddCubeClicked();
     void onObjectSelected();
 
     void onFileMenuSaveObject();
@@ -144,9 +139,7 @@ private slots:
     void onObjectMenuCreatePointLight();
 
     void onSceneMenuDeleteSelectedObject();
-    void onSceneMenuAssignTectureToObject();
 
-    void onSelectMenuChangeSelectMode(SelectMode newSelectMode);
     void onSceneDisplayClicked(int x, int y);
 };
 
