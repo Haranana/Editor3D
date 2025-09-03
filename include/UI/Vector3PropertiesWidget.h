@@ -6,11 +6,13 @@
 #include <QDoubleSpinBox>
 #include <QSlider>
 #include <functional>
+#include "UI/ColorPreview.h"
+#include "Math/Vectors.h"
 
 class Vector3PropertiesWidget : public QWidget{
     Q_OBJECT
 public:
-    Vector3PropertiesWidget(QWidget* parent = nullptr, double valueMin = 0.0, double valueMax = 1.0, double valueStep = 0.01 ,double valueToSliderFactor = 100.0, int decimals = 2);
+    Vector3PropertiesWidget(QWidget* parent = nullptr, double valueMin = 0.0, double valueMax = 1.0, double valueStep = 0.01 ,double valueToSliderFactor = 100.0, int decimals = 2, bool addColorPreview = false);
     void setVector(Vector3& vector);
     void setDisplayToValue(std::function<double(double)> displayToValue);
     void setValueToDisplay(std::function<double(double)> valueToDisplay);
@@ -20,6 +22,7 @@ public:
     const double valueStep;
     const double valueToSliderFactor;
     const int decimals ;
+    bool addColorPreview = false;
 
 private slots:
     void onValueChanged();
@@ -38,6 +41,8 @@ private:
     QSlider* xSlider;
     QSlider* ySlider;
     QSlider* zSlider;
+
+    ColorPreview* colorPreview;
 
 
 signals:

@@ -3,8 +3,8 @@
 #include <QHBoxLayout>
 #include <cmath>
 
-Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMin, double valueMax, double valueStep, double valueToSliderFactor, int decimals)
-    :QWidget(parent), valueMin(valueMin) , valueMax(valueMax), valueStep(valueStep) , valueToSliderFactor(valueToSliderFactor), decimals(decimals){
+Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMin, double valueMax, double valueStep, double valueToSliderFactor, int decimals, bool addColorPreview)
+    :QWidget(parent), valueMin(valueMin) , valueMax(valueMax), valueStep(valueStep) , valueToSliderFactor(valueToSliderFactor), decimals(decimals) , addColorPreview(addColorPreview){
     auto layout = new QFormLayout(this);
 
     auto xRow = new QWidget(this);
@@ -77,6 +77,9 @@ Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMi
                     zSpinBox->setValue(dv);
             });
 
+
+
+
     xLayout->addWidget(xSpinBox);
     xLayout->addWidget(xSlider);
     yLayout->addWidget(ySpinBox);
@@ -91,6 +94,13 @@ Vector3PropertiesWidget::Vector3PropertiesWidget(QWidget* parent, double valueMi
     layout->addRow("X",xRow);
     layout->addRow("Y",yRow);
     layout->addRow("Z",zRow);
+
+
+    if(addColorPreview){
+        colorPreview = new ColorPreview(this);
+        colorPreview->setMinimumSize(50, 50);
+        layout->addRow(colorPreview);
+    }
 
 }
 
@@ -116,6 +126,11 @@ void Vector3PropertiesWidget::setVector(Vector3& vector){
     xSlider->blockSignals(false);
     ySlider->blockSignals(false);
     zSlider->blockSignals(false);
+
+
+    if(addColorPreview){
+        colorPreview->setColor(Vectors::vector3ToQColor(*this->vector));
+    }
 }
 
 void Vector3PropertiesWidget::setDisplayToValue(std::function<double(double)> displayToValue){
@@ -134,6 +149,10 @@ void Vector3PropertiesWidget::onValueChanged(){
     vector->x = displayToValue(dx);
     vector->y = displayToValue(dy);
     vector->z = displayToValue(dz);
+    if(addColorPreview){
+        std::cout<<*this->vector<<std::endl;
+        colorPreview->setColor(Vectors::vector3ToQColor(*this->vector));
+    }
     emit valueChanged();
 }
 

@@ -39,4 +39,7 @@ Color vector3ToColor(const Vector3& vector){
     return Color(vector.x*255, vector.y*255, vector.z*255);
 }
 
+QColor vector3ToQColor(const Vector3& vector){
+    return QColor(vector.z*255, vector.y*255, vector.x*255);
+}
 }

@@ -31,7 +31,7 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
     colorWireframesCheckBox = new QCheckBox(this);
     connect(colorWireframesCheckBox, &QCheckBox::checkStateChanged, this,
             &DisplaySettingsPropertiesWidget::onColorWireframesChanged);
-    layout->addRow("Color wireframe", colorWireframesCheckBox);
+    layout->addRow("show wireframe", colorWireframesCheckBox);
 
     setLayout(layout);
 }

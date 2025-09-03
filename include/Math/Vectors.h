@@ -5,6 +5,7 @@
 #include "Vector3.h"
 #include "Vector4.h"
 #include "Rendering/Color.h"
+#include <QColor>
 
 namespace Vectors{
     Vector2 vector4to2(const Vector4& vector);
@@ -29,6 +30,8 @@ namespace Vectors{
     // z -> R
     // where B,G,R [0,255] and x,y,z [0.0,1.0]
     Color vector3ToColor(const Vector3& vector);
+
+    QColor vector3ToQColor(const Vector3& vector);
 }
 
 #endif // VECTORS_H

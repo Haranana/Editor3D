@@ -9,10 +9,10 @@ MaterialPropertiesWidget::MaterialPropertiesWidget(QWidget* parent)
 {
     auto layout = new QFormLayout(this);
 
-    ambientWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals);
-    diffuseWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals);
-    specularWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals);
-    emissiveWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals);
+    ambientWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals, true);
+    diffuseWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals, true);
+    specularWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals, true);
+    emissiveWidget = new Vector3PropertiesWidget(this, vecMin, vecMax, vecStep, vecSliderFactor, vecDecimals, true);
 
     connect(ambientWidget, &Vector3PropertiesWidget::valueChanged, this, &MaterialPropertiesWidget::onAmbientChanged);
     connect(diffuseWidget, &Vector3PropertiesWidget::valueChanged, this, &MaterialPropertiesWidget::onDiffuseChanged);
