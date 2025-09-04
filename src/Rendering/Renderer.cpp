@@ -7,8 +7,6 @@
 #include "UI/HudOverlay.h"
 
 
-
-
 Renderer::Renderer(
     std::shared_ptr<QImage> img,
     std::shared_ptr<Scene> scene,
@@ -242,7 +240,11 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     worldSpacePoint = flatShadingFaceData.flatWorldCentroid;
                                     faceNormal = flatShadingFaceData.flatFaceNormal;
 
-                                    shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    if(lightSource->castsShadow){
+                                        shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    }else{
+                                        shadowAmount = 0.0;
+                                    }
                                     visibility = getVisibility(shadowAmount);
 
                                     combinedLight = flatShadingFaceData.combinedLight[lightId];
@@ -259,7 +261,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                                                     + fanTriangleClipped.v3.worldSpaceVertexOverW*baricentricFactor.v3)/invDenom;
                                     faceNormal = gouraudShadingFaceData.faceNormal;
 
-                                    shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+
+                                    if(lightSource->castsShadow){
+                                        shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    }else{
+                                        shadowAmount = 0.0;
+                                    }
                                     visibility = getVisibility(shadowAmount);
 
                                     Triangle3 gouraudCombLightOverW = {gouraudShadingFaceData.face.v1.combinedLightOverW[lightId],
@@ -295,7 +302,12 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                                     Vector3 pointToLightDirection = pointToLight.normalize();
                                     double attenuation = lightSource->getAttenuation(pointToLight*(-1.0));
 
-                                    shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+
+                                    if(lightSource->castsShadow){
+                                        shadowAmount = getShadowAmount(*lightSource, worldSpacePoint, faceNormal, fanTriangleRawWorldSpace);
+                                    }else{
+                                        shadowAmount = 0.0;
+                                    }
                                     visibility = getVisibility(shadowAmount);
 
                                     bool brdf = obj.displaySettings->specularModel == DisplaySettings::SpecularModel::COOK_TORRANCE;
@@ -701,6 +713,7 @@ void Renderer::updateShadowMaps(){
 
     //filling shadow maps of light sources
     for(std::shared_ptr<Light>&lightSource : scene->lightSources){
+        if(!lightSource->castsShadow) continue;
         if(debugMode == DEBUG_SHADOWMAP){
             //   std::cout << "if start" <<std::endl;
         }

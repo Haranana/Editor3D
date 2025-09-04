@@ -43,8 +43,6 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
             &DisplaySettingsPropertiesWidget::onColorWireframesChanged);
     layout->addRow("show wireframe", colorWireframesCheckBox);
 
-
-
     setLayout(layout);
 }
 
