@@ -155,7 +155,8 @@ private:
     }
 
     double getDistanceAttenuation(double distance){
-        return 1/(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance);
+        double denom = MathUt::safeDenom(attenuationConstant + attenuationLinear*distance + attenuationQuadratic*distance*distance);
+        return 1/denom;
     }
 
     Matrix4 viewMatrix = Matrices4::identity();;

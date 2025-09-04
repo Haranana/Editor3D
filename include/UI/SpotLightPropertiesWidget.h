@@ -73,12 +73,12 @@ private:
     static constexpr double attenuationConstantStep = 0.001f;
     QDoubleSpinBox* attenuationConstantSpin;
 
-    static constexpr double minAttenuationLinear = 0.001f;
+    static constexpr double minAttenuationLinear = 0.000f;
     static constexpr double maxAttenuationLinear= 1.0f;
     static constexpr double attenuationLinearStep = 0.001f;
     QDoubleSpinBox* attenuationLinearSpin;
 
-    static constexpr double minAttenuationQuadratic = 0.001f;
+    static constexpr double minAttenuationQuadratic = 0.000f;
     static constexpr double maxAttenuationQuadratic= 1.0f;
     static constexpr double attenuationQuadraticStep = 0.001f;
     QDoubleSpinBox* attenuationQuadraticSpin;
