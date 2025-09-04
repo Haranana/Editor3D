@@ -29,28 +29,16 @@ public:
         COOK_TORRANCE
     };
 
-    /*
-    enum class LightingModel{
-        UNLIT,
-        LAMBERT,
-        PHONG,
-        BLINN_PHONG,
-        COOK_TORRANCE
-    };*/
-
-    bool hideUnseenWireframes = false; //not implemented!
     bool colorWireframes = false;
     bool backFaceCulling = true;
     RenderMode renderMode = RenderMode::RASTER_COLOR;
     Shading shadingMode = Shading::PHONG;
 
-    //LightingModel lightingMode = LightingModel::LAMBERT;
     DiffuseModel diffuseModel = DiffuseModel::LAMBERT;
     SpecularModel specularModel = SpecularModel::NONE;
 
     void print() const {
         std::cout << "DisplaySettings:" << std::endl;
-        std::cout << "  hideUnseenWireframes: " << (hideUnseenWireframes ? "true" : "false") << std::endl;
         std::cout << "  colorWireframes:      " << (colorWireframes ? "true" : "false") << std::endl;
         std::cout << "  renderMode:           " << renderModeToString(renderMode) << std::endl;
         std::cout << "  shadingMode:          " << shadingModeToString(shadingMode) << std::endl;

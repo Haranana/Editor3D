@@ -5,8 +5,8 @@
 
 /*
  * Data structure similiar in usage to list of lists but
- * faster thanks to actually being single list
- * useful when structure is cleared/filled very often, such as z-buffer and id-buffer
+ * faster thanks to being single std::vector
+ * useful when structure is cleared/filled very often, such as z-buffer ,id-buffer or shadow maps
 */
 template<typename T>
 class Buffer{

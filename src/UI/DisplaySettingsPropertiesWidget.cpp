@@ -33,10 +33,17 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
     layout->addRow("Specular model",objectSpecularModelComboBox);
     connect(objectSpecularModelComboBox, &QComboBox::currentIndexChanged, this, &DisplaySettingsPropertiesWidget::onSpecularModelChanged);
 
+    backFaceCullingCheckBox = new QCheckBox(this);
+    connect(backFaceCullingCheckBox, &QCheckBox::checkStateChanged, this,
+            &DisplaySettingsPropertiesWidget::onBackFaceCullingChanged);
+    layout->addRow("Back face culling", backFaceCullingCheckBox);
+
     colorWireframesCheckBox = new QCheckBox(this);
     connect(colorWireframesCheckBox, &QCheckBox::checkStateChanged, this,
             &DisplaySettingsPropertiesWidget::onColorWireframesChanged);
     layout->addRow("show wireframe", colorWireframesCheckBox);
+
+
 
     setLayout(layout);
 }
@@ -96,6 +103,8 @@ void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object
         objectSpecularModelComboBox->setCurrentIndex(3);
         break;
     }
+
+    backFaceCullingCheckBox->setChecked(obj->displaySettings->backFaceCulling);
 
     colorWireframesCheckBox->setChecked(obj->displaySettings->colorWireframes);
 }
@@ -181,5 +190,10 @@ void DisplaySettingsPropertiesWidget::onSpecularModelChanged(){
 
 void DisplaySettingsPropertiesWidget::onColorWireframesChanged(){
     obj->displaySettings->colorWireframes = colorWireframesCheckBox->isChecked();
+    emit objectChanged();
+}
+
+void DisplaySettingsPropertiesWidget::onBackFaceCullingChanged(){
+    obj->displaySettings->backFaceCulling = backFaceCullingCheckBox->isChecked();
     emit objectChanged();
 }

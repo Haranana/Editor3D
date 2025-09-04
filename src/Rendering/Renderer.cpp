@@ -99,14 +99,13 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     for (size_t face = 0; face < obj.faceVertexIndices.size(); face += 3)
     {
 
+        if(obj.displaySettings->backFaceCulling && shouldCullBackFace( Triangle3(modelToWorld(obj.vertices[obj.faceVertexIndices[face]],M),
+                                                                                 modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]],M),
+                                                                                 modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]],M) ))) continue;
         //original vertices in clip-space
         Triangle<ClippingManager::ClippedVertex> clipSpaceTriangle(clipVertices[obj.faceVertexIndices[face    ]],
                                                                clipVertices[obj.faceVertexIndices[face + 1]],
                                                                clipVertices[obj.faceVertexIndices[face + 2]]);
-
-        if(obj.displaySettings->backFaceCulling && shouldCullBackFace( Triangle3(modelToWorld(obj.vertices[obj.faceVertexIndices[face]],M),
-                                                                                modelToWorld(obj.vertices[obj.faceVertexIndices[face+1]],M),
-                                                                                modelToWorld(obj.vertices[obj.faceVertexIndices[face+2]],M) ))) continue;
 
         //clipping triangle
         std::vector<ClippingManager::ClippedVertex> clippedPoly = clippingManager->clipTriangle({clipSpaceTriangle.v1,

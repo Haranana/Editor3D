@@ -20,6 +20,7 @@ private slots:
     void onShadingChanged();
     void onDiffuseModelChanged();
     void onSpecularModelChanged();
+    void onBackFaceCullingChanged();
     void onColorWireframesChanged();
 
 private:
@@ -29,6 +30,7 @@ private:
     QComboBox* objectShadingComboBox;
     QComboBox* objectDiffuseModelComboBox;
     QComboBox* objectSpecularModelComboBox;
+    QCheckBox* backFaceCullingCheckBox;
     QCheckBox* colorWireframesCheckBox;
 };
 
