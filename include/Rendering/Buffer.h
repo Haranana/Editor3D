@@ -16,6 +16,7 @@ public:
     T* operator[](std::size_t it);
     const T* operator[](std::size_t it) const;
 
+    void setSize(size_t rows, size_t cols);
     std::size_t getRows() const;
     std::size_t getCols() const;
     std::size_t width() const;
@@ -50,6 +51,15 @@ T* Buffer<T>::operator[](std::size_t it) {
 template<typename T>
 const T* Buffer<T>::operator[](std::size_t it) const {
     return data.data() + it*cols;
+}
+
+
+template<typename T>
+void Buffer<T>::setSize(size_t rows, size_t cols){
+    this->rows = rows;
+    this->cols = cols;
+    this->data.resize(rows * cols);
+    clear();
 }
 
 template<typename T>

@@ -56,6 +56,27 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
             biasSpin->setValue(dv);
     });
 
+    auto shadowRow = new QWidget(this);
+    auto shadowLayout = new QHBoxLayout(shadowRow);
+    shadowMapSizeSpin = new QSpinBox(this);
+    shadowMapSizeSpin->setRange(shadowMapSizeMin, shadowMapSizeMax);
+    shadowMapSizeSpin->setSingleStep(shadowMapSizeStep);
+    shadowMapSizeSlider = new QSlider(Qt::Horizontal, this);
+    shadowMapSizeSlider->setRange(shadowMapSizeMin, shadowMapSizeMax);
+    shadowMapSizeSlider->setSingleStep(shadowMapSizeStep);
+    shadowLayout->addWidget(shadowMapSizeSpin);
+    shadowLayout->addWidget(shadowMapSizeSlider);
+    layout->addRow("Shadow map size", shadowRow);
+    connect(shadowMapSizeSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v){
+        if (shadowMapSizeSlider->value() != v)
+            shadowMapSizeSlider->setValue(v);
+        onShadowMapSizeChanged(v);
+    });
+    connect(shadowMapSizeSlider, &QSlider::valueChanged, [this](int v){
+        if (shadowMapSizeSpin->value() != v)
+            shadowMapSizeSpin->setValue(v);
+    });
+
     filteringPropertiesWidget = new LightFilteringPropertiesWidget(this);
     layout->addRow("Filter: " , filteringPropertiesWidget);
 
@@ -94,6 +115,14 @@ void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     biasSlider->setValue(int(light->bias*biasSliderFactor));
     biasSlider->blockSignals(false);
 
+    shadowMapSizeSpin->blockSignals(true);
+    shadowMapSizeSpin->setValue(light->getShadowMap().width());
+    shadowMapSizeSpin->blockSignals(false);
+
+    shadowMapSizeSlider->blockSignals(true);
+    shadowMapSizeSlider->setValue(light->getShadowMap().width());
+    shadowMapSizeSlider->blockSignals(false);
+
     colorPicker->blockSignals(true);
     colorPicker->setColor(light->color);
     colorPicker->blockSignals(false);
@@ -120,5 +149,10 @@ void LightPropertiesWidget::onColorChanged(const Color& color) {
 
 void LightPropertiesWidget::onCastShadowChanged(int state) {
     if (light) light->castsShadow = (state != 0);
+    emit objectChanged();
+}
+
+void LightPropertiesWidget::onShadowMapSizeChanged(int v) {
+    if (light) light->setShadowMapSize(static_cast<size_t>(v));
     emit objectChanged();
 }

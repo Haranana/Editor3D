@@ -16,6 +16,10 @@ public:
         range = deafultRange;
     }
 
+    void setShadowMapSize(size_t newSize) override {
+        shadowMap.setSize(newSize, newSize);
+    }
+
     double getWorldUnitsPerTexel(double depth){
         const double fovY = outerAngle*2;
         const double fovYTan = tan(fovY/2.0);

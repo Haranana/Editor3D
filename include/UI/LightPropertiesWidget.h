@@ -23,6 +23,7 @@ private slots:
     void onColorChanged(const Color& color);
     void onBiasChanged(double v);
     void onCastShadowChanged(int state);
+    void onShadowMapSizeChanged(int v);
 
 private:
     static constexpr double intensityMin = 0.0;
@@ -36,6 +37,10 @@ private:
     static constexpr int intensitySliderFactor = int(1.0/intensityStep);
     static constexpr int biasSliderFactor = int(1.0/biasStep);
 
+    static constexpr int shadowMapSizeMin = 128;
+    static constexpr int shadowMapSizeMax = 4096;
+    static constexpr int shadowMapSizeStep = 32;
+
     LightFilteringPropertiesWidget* filteringPropertiesWidget;
 
     std::shared_ptr<Light> light;
@@ -47,6 +52,9 @@ private:
 
     QSlider* intensitySlider;
     QSlider* biasSlider;
+
+    QSpinBox* shadowMapSizeSpin;
+    QSlider* shadowMapSizeSlider;
 };
 
 #endif // LIGHTPROPERTIESWIDGET_H

@@ -37,6 +37,12 @@ public:
 
     }
 
+    void setShadowMapSize(size_t newSize) override {
+        for (int i = 0; i < 6; ++i) {
+            shadowMaps[i]->setSize(newSize, newSize);
+        }
+    }
+
     double getWorldUnitsPerTexel(double depth){
         static constexpr double fovYTan = 1.0;
         const double fovX = 2*atan(fovYTan);

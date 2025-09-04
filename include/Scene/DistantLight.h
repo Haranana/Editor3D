@@ -21,6 +21,10 @@ public:
         range = std::numeric_limits<double>::infinity();
     }
 
+    void setShadowMapSize(size_t newSize) override {
+        shadowMap.setSize(newSize, newSize);
+    }
+
     double getAttenuation(const Vector3& pointToLight = {}) override{
         return 1.0;
     }
