@@ -43,7 +43,7 @@ public:
         }
     }
 
-    double getWorldUnitsPerTexel(double depth){
+    double getWorldUnitsPerTexel(double depth) const{
         static constexpr double fovYTan = 1.0;
         const double fovX = 2*atan(fovYTan);
         const double fovXTan = tan(fovX/2.0);
@@ -102,7 +102,7 @@ public:
     }
 
 
-    double normalizedDepthToWorld(double depth){
+    double normalizedDepthToWorld(double depth) const{
         return near + depth*(range - near);
     }
 

@@ -20,7 +20,7 @@ public:
         shadowMap.setSize(newSize, newSize);
     }
 
-    double getWorldUnitsPerTexel(double depth){
+    double getWorldUnitsPerTexel(double depth) const{
         const double fovY = outerAngle*2;
         const double fovYTan = tan(fovY/2.0);
         const double fovX = 2*atan(fovYTan);
@@ -82,7 +82,7 @@ public:
         return projectionMatrix;
     }
 
-    double normalizedDepthToWorld(double depth){
+    double normalizedDepthToWorld(double depth) const{
         return near + depth*(range - near);
     }
 

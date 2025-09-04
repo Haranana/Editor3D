@@ -19,6 +19,7 @@ std::vector<Vector2> NoiseManager::getPoissonOffset8(){
 
 std::vector<Vector2> NoiseManager::getPoissonOffset12(){
     if(poissonOffset12.empty()){
+        //std::cout<<"offset calc"<<std::endl;
         std::vector<Vector2> offsets = generatePoissonDisk( defaultSmallMinDistance, defaultMaxTries);
         if (offsets.size() > 12)
             offsets.resize(12);
