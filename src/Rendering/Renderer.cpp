@@ -38,8 +38,8 @@ void Renderer::renderSceneObjects(){
 
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
-        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
-
+        if(object->isRenderable){
+            RenderableObject3D* curObject = static_cast<RenderableObject3D*>(object.get());
             renderObject(*curObject , objIt);
         }
     }
@@ -860,7 +860,9 @@ void Renderer::shadowMapDepthPass(DistantLight& lightSource){
 
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
-        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+
+        if(object->isRenderable){
+            RenderableObject3D* curObject = static_cast<RenderableObject3D*>(object.get());
             if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
 
             Matrix4 MVP = lightSource.getProjectionMatrix() * lightSource.getViewMatrix() * curObject->transform.getTransMatrix();
@@ -1023,7 +1025,9 @@ void Renderer::shadowMapDepthPass(PointLight& lightSource){
     }
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
-        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+
+        if(object->isRenderable){
+            RenderableObject3D* curObject = static_cast<RenderableObject3D*>(object.get());
             if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
             //std::cout<<"1"<<std::endl;
             for(int shadowCubeFace = 0; shadowCubeFace < 6; shadowCubeFace++){
@@ -1187,7 +1191,8 @@ void Renderer::shadowMapDepthPass(SpotLight& lightSource){
 
     for(int objIt = scene->objectsAmount()-1 ; objIt >= 0 ; objIt-- ){
         std::shared_ptr<Object3D> object = scene->getObject(objIt);
-        if(RenderableObject3D* curObject = dynamic_cast<RenderableObject3D*>(object.get())){
+        if(object->isRenderable){
+            RenderableObject3D* curObject = static_cast<RenderableObject3D*>(object.get());
             if(curObject->displaySettings->renderMode == DisplaySettings::RenderMode::NONE) continue;
             //std::cout<<"1"<<std::endl;
 

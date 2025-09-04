@@ -82,5 +82,5 @@ Cylinder::Cylinder(int radious, int height, int verticesInCircle) : height(heigh
     }
 
 
-
+    isRenderable = true;
 }

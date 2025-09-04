@@ -63,6 +63,8 @@ Cube::Cube(int sideLength) :RenderableObject3D(), sideLength(sideLength){
         vertexNormals.push_back(nSum.normalize());
     }
 
+    isRenderable = true;
+
 
 
 }

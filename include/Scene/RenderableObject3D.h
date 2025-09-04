@@ -73,6 +73,7 @@ public:
     void removeDegenerateFaces();
     void fixFaceNormals();
     void fixVertexNormals();
+
 };
 
 #endif // RENDERABLEOBJECT3D_H

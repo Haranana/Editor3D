@@ -3,6 +3,7 @@
 RenderableObject3D::RenderableObject3D() {
     displaySettings = std::make_unique<DisplaySettings>();
     material = Material();
+    isRenderable = true;
 }
 
 
@@ -20,6 +21,7 @@ RenderableObject3D::RenderableObject3D(const RenderableObject3D& otherObject) :
     vertexNormals = otherObject.vertexNormals;
     vertexHasUV = otherObject.vertexHasUV;
     faceHasUV = otherObject.faceHasUV;
+    isRenderable = true;
 }
 
 void RenderableObject3D::sanitize(){

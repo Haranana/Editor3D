@@ -26,6 +26,11 @@ public:
     bool visibleInScene = true;
 
     std::string name = "object";
+
+
+    //decides whether object is of class RenderableObject3D
+    //allows to use static cast instead of dynamic during scene objects render
+    bool isRenderable = false;
 protected:
 
     /*refers to original position of some anchor Point of the object
@@ -40,6 +45,7 @@ protected:
      * Set as (0,0,0) as a placeholder, to be changed later in code production
      */
     const Vector3 startingPosition = Vector3(0,0,0);
+
 
 };
 
