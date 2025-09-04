@@ -1,6 +1,7 @@
 #ifndef DISPLAYSETTINGS_H
 #define DISPLAYSETTINGS_H
 #include <iostream>
+#include "Math/Vector3.h"
 
 class DisplaySettings{
 public:
@@ -33,6 +34,8 @@ public:
     bool backFaceCulling = true;
     RenderMode renderMode = RenderMode::RASTER_COLOR;
     Shading shadingMode = Shading::PHONG;
+    Vector3 baseColor{0.5,0.5,0.5};
+
 
     DiffuseModel diffuseModel = DiffuseModel::LAMBERT;
     SpecularModel specularModel = SpecularModel::NONE;

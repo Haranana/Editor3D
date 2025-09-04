@@ -4,6 +4,10 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
 
     auto layout = new QFormLayout(this);
 
+    baseColorWidget = new Vector3PropertiesWidget(this, 0.0, 1.0, 0.01, 100.0, 2, true);
+    layout->addRow("Base color",baseColorWidget);
+    connect(baseColorWidget, &Vector3PropertiesWidget::valueChanged, this, &DisplaySettingsPropertiesWidget::onBaseColorChanged);
+
     objectRenderModeComboBox = new QComboBox(this);
     objectRenderModeComboBox->addItem("None");
     objectRenderModeComboBox->addItem(QString("Wireframe"));
@@ -48,6 +52,8 @@ DisplaySettingsPropertiesWidget::DisplaySettingsPropertiesWidget(QWidget* parent
 
 void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object){
     obj = std::dynamic_pointer_cast<RenderableObject3D>(object);
+    baseColorProxy = obj->displaySettings->baseColor;
+    baseColorWidget->setVector(baseColorProxy);
 
     switch(obj->displaySettings->renderMode){
     case DisplaySettings::RenderMode::NONE:
@@ -105,6 +111,12 @@ void DisplaySettingsPropertiesWidget::setObject(std::shared_ptr<Object3D> object
     backFaceCullingCheckBox->setChecked(obj->displaySettings->backFaceCulling);
 
     colorWireframesCheckBox->setChecked(obj->displaySettings->colorWireframes);
+}
+
+void DisplaySettingsPropertiesWidget::onBaseColorChanged(){
+    if(!obj) return;
+    obj->displaySettings->baseColor = RendUt::sRGBToLinear(baseColorProxy);
+    emit objectChanged();
 }
 
 void DisplaySettingsPropertiesWidget::onRenderModeChanged(){

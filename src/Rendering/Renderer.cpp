@@ -58,8 +58,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
     const int width  = getRenderingSurface()->getImg()->width();
     const int height = getRenderingSurface()->getImg()->height();
     const Matrix4 M = obj.transform.getTransMatrix();
-    const Color baseColor = obj.viewportDisplay.color;
-    Color finalColor = baseColor;
+
+    Color finalColor = Vectors::vector3ToColor(obj.displaySettings->baseColor);
     bool objDrawn = false; //whether there was any pixel of this object drawn on scene, used in statistics
     const Material& mat = obj.material;
 
@@ -208,7 +208,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         if(triangleHasUV && obj.displaySettings->renderMode == DisplaySettings::RenderMode::RASTER_TEXTURE){
                             kdTex = Texture::sampleRGB(mat.albedoTexture,   pointUV);
                         }else{
-                            kdTex = Vectors::colorToVector3(obj.viewportDisplay.color);
+                            kdTex = obj.displaySettings->baseColor;
                         }
                         kd = Vector3{mat.Kd.x * kdTex.x, mat.Kd.y * kdTex.y, mat.Kd.z * kdTex.z};
                         Vector3 ksTex = triangleHasUV ? Texture::sampleRGB(mat.specularTexture, pointUV) : Vector3{1,1,1};
@@ -373,7 +373,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                 edgeVertex2.z = std::max(0.0, edgeVertex2.z - doubleBias);
 
                 if(paintTool.drawLine3D(edgeVertex1, edgeVertex2,
-                                         obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor : obj.viewportDisplay.color)){
+                                         obj.displaySettings->colorWireframes? obj.viewportDisplay.wireframeColor :Vectors::vector3ToColor(obj.displaySettings->baseColor))){
                     stats.edges++;
                 }
             }

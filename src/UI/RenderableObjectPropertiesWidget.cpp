@@ -12,9 +12,11 @@ RenderableObjectPropertiesWidget::RenderableObjectPropertiesWidget(QWidget* pare
     displaySettingsPropertiesWidget = new DisplaySettingsPropertiesWidget(this);
     layout->addRow(displaySettingsPropertiesWidget);
 
+    /*
     colorPicker = new ColorPicker(this);
     layout->addRow("Color", colorPicker);
     connect(colorPicker, &ColorPicker::colorChanged, this, &RenderableObjectPropertiesWidget::onColorChanged);
+    */
 }
 
 void RenderableObjectPropertiesWidget::setObject(std::shared_ptr<Object3D> object){
@@ -23,12 +25,12 @@ void RenderableObjectPropertiesWidget::setObject(std::shared_ptr<Object3D> objec
     transform3DPropertiesWidget->setObject(object);
     materialPropertiesWidget->setObject(object);
     displaySettingsPropertiesWidget->setObject(object);
-    colorPicker->setColor(obj->viewportDisplay.color);
+    //colorPicker->setColor(obj->viewportDisplay.color);
 }
 
-
+/*
 void RenderableObjectPropertiesWidget::onColorChanged(const Color& color){
     obj->viewportDisplay.color = color;
     emit objectChanged();
 }
-
+*/

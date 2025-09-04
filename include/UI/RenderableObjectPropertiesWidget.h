@@ -20,7 +20,7 @@ public:
     void setObject(std::shared_ptr<Object3D> object) override;
 private slots:
 
-    void onColorChanged(const Color& color);
+   // void onColorChanged(const Color& color);
 private:
 
     std::shared_ptr<RenderableObject3D> obj;
@@ -28,7 +28,7 @@ private:
     Transform3DPropertiesWidget* transform3DPropertiesWidget;
     DisplaySettingsPropertiesWidget* displaySettingsPropertiesWidget;
     MaterialPropertiesWidget* materialPropertiesWidget;
-    ColorPicker* colorPicker;
+    //ColorPicker* colorPicker;
 };
 
 #endif // RENDERABLEOBJECTPROPERTIESWIDGET_H

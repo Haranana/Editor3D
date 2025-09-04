@@ -8,7 +8,7 @@ ScenePropertiesWidget::ScenePropertiesWidget(QWidget* parent)
 {
     auto layout = new QFormLayout(this);
 
-    ambientColorWidget = new Vector3PropertiesWidget(this, colorMin, colorMax, colorStep, colorSliderFactor, colorDecimals);
+    ambientColorWidget = new Vector3PropertiesWidget(this, colorMin, colorMax, colorStep, colorSliderFactor, colorDecimals, true);
     connect(ambientColorWidget, &Vector3PropertiesWidget::valueChanged, this, &ScenePropertiesWidget::onAmbientColorChanged);
     layout->addRow("Ambient color", ambientColorWidget);
 
