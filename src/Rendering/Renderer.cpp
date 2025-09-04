@@ -1421,7 +1421,7 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
             return bias;
 
         } else if (light.lightType == Light::LightType::SPOT){
-            auto spotLight = static_cast<const SpotLight&>(light);
+            const auto& spotLight = static_cast<const SpotLight&>(light);
             auto toTexel = [&](const Vector3& w) {
                 Vector4 c = spotLight.getProjectionMatrix()*spotLight.getViewMatrix()*Vectors::vector3to4(w);
                 Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};

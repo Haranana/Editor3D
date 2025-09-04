@@ -143,7 +143,7 @@ public:
 
         if(lightType == Light::LightType::DISTANT){
 
-            auto distantLight = static_cast<const DistantLight&>(lightSource);
+            const auto& distantLight = static_cast<const DistantLight&>(lightSource);
                 distanceWorld = distantLight.normalizedDepthToWorld(distance);
                 searchRadiusInTexels =baseSearchRadius * std::tan(lightSource.emitterRadiusWorld)/distantLight.getWorldUnitsPerTexel();
 
@@ -166,7 +166,7 @@ public:
 
         }else if(lightType == Light::LightType::POINT){
 
-            auto pointLight = static_cast<const PointLight&>(lightSource);
+            const auto& pointLight = static_cast<const PointLight&>(lightSource);
                 distanceWorld = pointLight.normalizedDepthToWorld(distance);
                 searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/pointLight.getWorldUnitsPerTexel(distanceWorld);
 
@@ -187,7 +187,7 @@ public:
                 }
 
         }else if(lightType == Light::LightType::SPOT){
-            auto spotLight = static_cast<const SpotLight&>(lightSource);
+            const auto& spotLight = static_cast<const SpotLight&>(lightSource);
                 distanceWorld = spotLight.normalizedDepthToWorld(distance);
                 searchRadiusInTexels =baseSearchRadius * (lightSource.emitterRadiusWorld)/spotLight.getWorldUnitsPerTexel(distanceWorld);
 
@@ -221,17 +221,17 @@ public:
         double kernelSizeInTexels{};
 
         if(lightType == Light::LightType::DISTANT){
-                auto distantLight = static_cast<const DistantLight&>(lightSource);
+                const auto& distantLight = static_cast<const DistantLight&>(lightSource);
                 kernelSize = (distanceWorld - blockerDistanceMean) * std::tan(lightSource.emitterRadiusWorld);
                 kernelSizeInTexels = kernelSize/distantLight.getWorldUnitsPerTexel();
 
         }else if(lightType == Light::LightType::POINT){
-            auto pointLight = static_cast<const PointLight&>(lightSource);
+            const auto& pointLight = static_cast<const PointLight&>(lightSource);
                 kernelSize = (distanceWorld - blockerDistanceMean) * (lightSource.emitterRadiusWorld/MathUt::safeDenom(blockerDistanceMean));
                 kernelSizeInTexels = kernelSize/pointLight.getWorldUnitsPerTexel(distanceWorld);
 
         }else if(lightType == Light::LightType::SPOT){
-            auto spotLight = static_cast<const SpotLight&>(lightSource);
+            const auto &spotLight = static_cast<const SpotLight&>(lightSource);
                 kernelSize = (distanceWorld - blockerDistanceMean) * (lightSource.emitterRadiusWorld/MathUt::safeDenom(blockerDistanceMean));
                 kernelSizeInTexels = kernelSize/spotLight.getWorldUnitsPerTexel(distanceWorld);
 
