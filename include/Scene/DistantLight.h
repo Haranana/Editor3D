@@ -29,7 +29,7 @@ public:
         return 1.0;
     }
 
-    double getWorldUnitsPerTexel(){
+    double getWorldUnitsPerTexel() const{
         return std::max( (oRight-oLeft)/shadowMap.width() , (oTop-oBottom)/shadowMap.height());
     }
 
@@ -104,7 +104,7 @@ public:
         return shadowMap;
     }
 
-    double normalizedDepthToWorld(double depth){
+    double normalizedDepthToWorld(double depth) const{
         return oNear + depth*(oFar - oNear);
     }
 

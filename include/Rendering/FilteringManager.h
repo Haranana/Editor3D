@@ -140,6 +140,7 @@ public:
 
         double distanceWorld = distance;
 
+
         if(lightType == Light::LightType::DISTANT){
 
             auto distantLight = static_cast<const DistantLight&>(lightSource);
@@ -158,9 +159,10 @@ public:
                             shadowedTexels++;
                             double blockerDistanceWorld = distantLight.normalizedDepthToWorld(shadowMap[shadowMapCoordY][shadowMapCoordX]);
                             blockerDistances.push_back( blockerDistanceWorld);
-                        }
 
+                        }
                 }
+
 
         }else if(lightType == Light::LightType::POINT){
 

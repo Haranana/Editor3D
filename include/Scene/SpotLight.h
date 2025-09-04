@@ -26,8 +26,8 @@ public:
         const double fovX = 2*atan(fovYTan);
         const double fovXTan = tan(fovX/2.0);
 
-        double tY = 2 * depth * fovYTan/defaultShadowMapSize;
-        double tX = 2*depth*fovXTan/defaultShadowMapSize;
+        double tY = 2 * depth * fovYTan/shadowMap.width();
+        double tX = 2*depth*fovXTan/shadowMap.height();
         return std::max(tX,tY);
     }
 

@@ -48,8 +48,8 @@ public:
         const double fovX = 2*atan(fovYTan);
         const double fovXTan = tan(fovX/2.0);
 
-        double tY = 2*depth*fovYTan/shadowMaps[0]->size();
-        double tX = 2*depth*fovXTan/shadowMaps[0]->size(); //assuming aspect is 1, which it always is
+        double tY = 2*depth*fovYTan/shadowMaps[0]->width();
+        double tX = 2*depth*fovXTan/shadowMaps[0]->height(); //assuming aspect is 1, which it always is
         return std::max(tX,tY);
     }
 
