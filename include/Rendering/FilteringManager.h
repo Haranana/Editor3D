@@ -78,7 +78,7 @@ public:
     static double pcfPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias,
                              int samples = 8, double kernelRadiusInTexels = 1.5){
 
-
+        //std::cout<<"[dist|samples|kernelRadInTex] : ["<<distance<<"|"<<samples<<"|"<<kernelRadiusInTexels<<"]"<<std::endl;
         std::vector<Vector2> offset;
         if(samples<=8){
             offset = NoiseManager::getPoissonOffset8();
@@ -124,7 +124,8 @@ public:
 
     static double pcssPoisson(const Buffer<double>&shadowMap, const Vector2& shadowMapCoords, double distance, double bias, const Light& lightSource){
 
-        static const int pcfSample = 12;
+        static const int pcfSample = 16;
+        static const double baseSearchRadius = 2.5;//1.5;
         std::vector<Vector2> offset;
 
         static const double maxKernel = 24;
@@ -135,7 +136,7 @@ public:
         std::vector<double> blockerDistances;
         int texelsInRange = 0;
 
-        static const double baseSearchRadius = 1.5;
+
         double searchRadiusInTexels{};
 
         double distanceWorld = distance;
@@ -210,11 +211,12 @@ public:
                 }
         }
 
+        /*
         if(shadowedTexels == texelsInRange){
             return 1.0;
         }else if(shadowedTexels == 0){
             return 0.0;
-        }
+        }*/
 
         double blockerDistanceMean = MathUt::mean(blockerDistances);
         double kernelSize{};
@@ -239,6 +241,8 @@ public:
 
         kernelSizeInTexels = std::clamp(kernelSizeInTexels, 1.0 , maxKernel);
 
+        //kernelSizeInTexels = 4.0;
+        kernelSizeInTexels*=lightSource.pcssPenumbraScale;
         return pcfPoisson(shadowMap, shadowMapCoords, distance, bias, pcfSample, kernelSizeInTexels);
 }
 

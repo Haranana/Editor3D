@@ -45,7 +45,8 @@ public:
 
     int    pcfPoissonSamples      = 12;   // 8/12/16
     bool castsShadow = true;
-    double pcfPoissonRadiusTexels = 1.8;  // 1.5–2.5 should be good
+    double pcssPenumbraScale = 1.5;
+    double pcfPoissonRadiusTexels = 4;  // 1.5–2.5 should be good
     double bias = 0.002;
     double range;
     double intensity = 1.0;

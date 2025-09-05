@@ -10,6 +10,34 @@
 
 namespace TestScenes{
 
+    void loadFilteringTestScene(Scene& scene, QListWidget& objectsList){
+        auto cube3 = std::make_shared<Cube>();
+        scene.addObject(cube3);
+        QString itemTextCube3 = QString("Cub3");
+        objectsList.addItem(itemTextCube3);
+        cube3->transform.setScales(Vector3(1,1,0.1));
+        cube3->transform.setPositionZ(-300);
+        cube3->displaySettings->baseColor = Vectors::colorToVector3(Colors::White);
+
+        auto cube4 = std::make_shared<Cube>();
+        scene.addObject(cube4);
+        QString itemTextCube4 = QString("Cube4");
+        objectsList.addItem(itemTextCube4);
+        cube4->transform.setScales(Vector3(0.3,0.3,0.1));
+        cube4->transform.setAngleZ(45, false);
+        cube4->displaySettings->baseColor = Vectors::colorToVector3(Colors::Purple);
+
+
+        Vector3 lightDirection(0.0 , 0.0, -1.0);
+        std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
+        light->color = Colors::White;
+        light->intensity = 2.0;
+        light->castsShadow = true;
+        scene.addObject(light);
+        QString itemTextLight = QString("light");
+        objectsList.addItem(itemTextLight);
+    }
+
     void loadRotatedCubeAndLight(Scene& scene, QListWidget& objectsList, Light::LightType lightType){
 
         auto cube3 = std::make_shared<Cube>();

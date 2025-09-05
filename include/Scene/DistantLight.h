@@ -17,7 +17,8 @@ public:
         shadowMap(defaultShadowMapSize, defaultShadowMapSize, std::numeric_limits<double>::infinity()){
         this->direction = direction.normalize() ;
         lightType = LightType::DISTANT;
-        emitterRadiusWorld = MathUt::degreeToRadian(0.27);
+        //emitterRadiusWorld = MathUt::degreeToRadian(0.27);
+        emitterRadiusWorld = MathUt::degreeToRadian(0.5);
         range = std::numeric_limits<double>::infinity();
     }
 
