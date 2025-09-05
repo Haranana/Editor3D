@@ -116,7 +116,10 @@ public:
             int r = std::max(1, (int)std::ceil(light.pcfPoissonRadiusTexels));
             return 2*r + 1;  //
         }
-        case FT::PCSS:        return 5;             // placeholder
+        case FT::PCSS:{        return 5;             // placeholder}
+            int r = std::max(1, (int)std::ceil(light.pcssMaxKernelTexels));
+            return 2*r + 1;                     // np. 49 dla max=24
+        }
         case FT::NONE:
         default:              return 1;             // 1x1 single-tap
         }
@@ -128,7 +131,7 @@ public:
         static const double baseSearchRadius = 2.5;//1.5;
         std::vector<Vector2> offset;
 
-        static const double maxKernel = 24;
+        static const double maxKernel = lightSource.pcssMaxKernelTexels;
         offset = NoiseManager::getPoissonOffset12();
         const Light::LightType lightType = lightSource.lightType;
 

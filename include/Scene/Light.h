@@ -44,9 +44,13 @@ public:
     Vector3 direction; //should be ignored in case of point light
 
     int    pcfPoissonSamples      = 12;   // 8/12/16
-    bool castsShadow = true;
-    double pcssPenumbraScale = 1.5;
+    double pcssPenumbraScale = 1.8;
     double pcfPoissonRadiusTexels = 4;  // 1.5–2.5 should be good
+    int pcssMaxKernelTexels = 24;
+
+    bool castsShadow = true;
+
+
     double bias = 0.002;
     double range;
     double intensity = 1.0;
