@@ -1389,6 +1389,7 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
             }*/
 
             double bias = BiasManager::getSlopeScaled(distantLight.shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
+            bias = std::max(bias, light.bias);
             return bias;
 
         } else if (light.lightType == Light::LightType::POINT) {
@@ -1427,6 +1428,7 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
             }*/
 
             double bias = BiasManager::getSlopeScaled(*pointLight.shadowMaps[face], p0, p1, p2, pcfKernelSize, alphaConst);
+            bias = std::max(bias, light.bias);
             return bias;
 
         } else if (light.lightType == Light::LightType::SPOT){
@@ -1461,6 +1463,7 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
 
 
             double bias = BiasManager::getSlopeScaled(spotLight.shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
+            bias = std::max(bias, light.bias);
             return bias;
 
         }else{

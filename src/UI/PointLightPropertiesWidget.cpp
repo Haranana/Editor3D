@@ -112,6 +112,8 @@ void PointLightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
         dynamicBiasCheckBox->setCheckState(Qt::CheckState::Checked);
     }
 
+    transform3DPropertiesWidget->setObject(light);
+
 
     rangeSpin->blockSignals(true);
     rangeSpin->setValue(light->range);
