@@ -10,6 +10,25 @@
 
 namespace TestScenes{
 
+    void loadDynamicBiasTestScene(Scene& scene, QListWidget& objectsList){
+        auto cube3 = std::make_shared<Cube>();
+        scene.addObject(cube3);
+        QString itemTextCube3 = QString("Cub3");
+        objectsList.addItem(itemTextCube3);
+        cube3->transform.setScales(Vector3(0.1,0.1,0.1));
+        cube3->displaySettings->baseColor = Vectors::colorToVector3(Colors::Purple);
+
+
+        Vector3 lightDirection(0.0 , -1.0, 0.0);
+        std::shared_ptr<DistantLight> light = std::make_shared<DistantLight>( lightDirection.normalize());
+        light->color = Colors::White;
+        light->intensity = 1.0;
+        light->castsShadow = true;
+        scene.addObject(light);
+        QString itemTextLight = QString("light");
+        objectsList.addItem(itemTextLight);
+    }
+
     void loadFilteringTestScene(Scene& scene, QListWidget& objectsList){
         auto cube3 = std::make_shared<Cube>();
         scene.addObject(cube3);

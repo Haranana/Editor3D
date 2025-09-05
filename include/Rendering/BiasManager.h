@@ -16,7 +16,7 @@ public:
     //p0,p1,p2 are triangle vertices and should be in lightSpace
     static double getSlopeScaled(const Buffer<double>& shadowMap,
                          const Vector3& p0, const Vector3& p1, const Vector3& p2,
-                         int pcfKernelSize = 0, double alphaConst = 1.5){
+                         int pcfKernelSize = 0, double alphaConst = 1.5){ //for aplpha cont light const bias is also recommended
         double kSlope = getSsdbKSlope();
         double slope = getSsdbSlope(p0,p1,p2);
         double kConst = getSsdbKConst(alphaConst, pcfKernelSize, int(std::min(shadowMap.getRows() , shadowMap.getCols())));
@@ -97,7 +97,9 @@ private:
         Vector3 e2{p2-p0};
 
         double denom = e1.x*e2.y - e1.y*e2.x;
-        if(MathUt::equal(denom , 0.0 , 1e-12)) return 0.0; //no slope
+        if(MathUt::equal(denom , 0.0 , 1e-12)){ //denom = 0 => very big slope, return huge number and clamp it
+            return 1e6;
+        }
 
         double a = (e1.z*e2.y - e2.z*e1.y) / denom;
         double b = (-e1.z*e2.x + e2.z*e1.x) / denom;

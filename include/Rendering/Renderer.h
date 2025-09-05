@@ -161,6 +161,7 @@ private:
     double calculateBias(const Light& light, const Vector3& worldSpacePoint, const Vector3& normal, const Triangle3& fanWorldSpace, int pcfKernelSize = 0);
     double calculateShadowAmount(const Buffer<double>& shadowMap ,const Light& light, const Vector2& point,
                                  double receiverDepth, double bias);
+    double shadowMapDepthValueFor(const Light& light,const Vector3& pointWorldSpace, int face = 0);
 
     Vector4 modelToClip(const Vector3& v, const Matrix4& modelMatrix);
     Vector4 worldToClip(const Vector3& v);

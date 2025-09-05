@@ -1361,27 +1361,32 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
             auto toTexel = [&](const Vector3& w) {
                 Vector4 c = distantLight.getProjectionMatrix()*distantLight.getViewMatrix()*Vectors::vector3to4(w);
                 Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
-                return Vector3{
+                return Vector2{
                     (ndc.x*0.5 + 0.5) * (distantLight.shadowMap.getCols()-1),
                     (1.0 - (ndc.y*0.5 + 0.5)) * (distantLight.shadowMap.getRows()-1),
-                    (ndc.z*0.5 + 0.5)
                 };
             };
 
-            Vector3 p0 = toTexel(fanWorldSpace.v1);
-            Vector3 p1 = toTexel(fanWorldSpace.v2);
-            Vector3 p2 = toTexel(fanWorldSpace.v3);
 
-            double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
-            int minDim = std::min(distantLight.shadowMap.getRows(), distantLight.shadowMap.getCols());
-            double alphaConst;
+            Vector2 t0 = toTexel(fanWorldSpace.v1);
+            Vector2 t1 = toTexel(fanWorldSpace.v2);
+            Vector2 t2 = toTexel(fanWorldSpace.v3);
 
+            Vector3 p0 = {t0.x, t0.y, shadowMapDepthValueFor(distantLight, fanWorldSpace.v1)};
+            Vector3 p1 = {t1.x, t1.y, shadowMapDepthValueFor(distantLight, fanWorldSpace.v2)};
+            Vector3 p2 = {t2.x, t2.y, shadowMapDepthValueFor(distantLight, fanWorldSpace.v3)};
+
+            //double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+            //int minDim = std::min(distantLight.shadowMap.getRows(), distantLight.shadowMap.getCols());
+            double alphaConst = light.bias;
+
+            /*
             //if r would be smaller than 0 we don't divide, otherwise bias would be too great
             if(pcfKernelSize <= 1){
                 alphaConst = light.bias * std::max(1, minDim);
             }else{
                 alphaConst = light.bias * std::max(1, minDim) / MathUt::safeDenom(r);
-            }
+            }*/
 
             double bias = BiasManager::getSlopeScaled(distantLight.shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
             return bias;
@@ -1395,27 +1400,31 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
             auto toTexel = [&](const Vector3& w) {
                 Vector4 c = pointLight.getProjectionMatrix()*pointLight.getViewMatrix(face)*Vectors::vector3to4(w);
                 Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
-                return Vector3{
+                return Vector2{
                     (ndc.x*0.5 + 0.5) * (pointLight.shadowMaps[0]->getCols()-1),
-                    (1.0 - (ndc.y*0.5 + 0.5)) * (pointLight.shadowMaps[0]->getRows()-1),
-                    (ndc.z*0.5 + 0.5)
+                    (1.0 - (ndc.y*0.5 + 0.5)) * (pointLight.shadowMaps[0]->getRows()-1)
                 };
             };
 
-            Vector3 p0 = toTexel(fanWorldSpace.v1);
-            Vector3 p1 = toTexel(fanWorldSpace.v2);
-            Vector3 p2 = toTexel(fanWorldSpace.v3);
+            Vector2 t0 = toTexel(fanWorldSpace.v1);
+            Vector2 t1 = toTexel(fanWorldSpace.v2);
+            Vector2 t2 = toTexel(fanWorldSpace.v3);
 
-            double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
-            int minDim = std::min(pointLight.shadowMaps[face]->getRows(), pointLight.shadowMaps[face]->getCols());
-            double alphaConst;
+            Vector3 p0 = {t0.x, t0.y, shadowMapDepthValueFor(pointLight, fanWorldSpace.v1 , face)};
+            Vector3 p1 = {t1.x, t1.y, shadowMapDepthValueFor(pointLight, fanWorldSpace.v2, face)};
+            Vector3 p2 = {t2.x, t2.y, shadowMapDepthValueFor(pointLight, fanWorldSpace.v3, face)};
 
+            //double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+            //int minDim = std::min(pointLight.shadowMaps[face]->getRows(), pointLight.shadowMaps[face]->getCols());
+            double alphaConst = light.bias;
+
+            /*
             //if r would be smaller than 0 we don't divide, otherwise bias would be too great
             if(pcfKernelSize <= 1){
                 alphaConst = light.bias * std::max(1, minDim);
             }else{
                 alphaConst = light.bias * std::max(1, minDim) / MathUt::safeDenom(r);
-            }
+            }*/
 
             double bias = BiasManager::getSlopeScaled(*pointLight.shadowMaps[face], p0, p1, p2, pcfKernelSize, alphaConst);
             return bias;
@@ -1425,27 +1434,30 @@ double Renderer::calculateBias(const Light& light, const Vector3& worldSpacePoin
             auto toTexel = [&](const Vector3& w) {
                 Vector4 c = spotLight.getProjectionMatrix()*spotLight.getViewMatrix()*Vectors::vector3to4(w);
                 Vector3 ndc = {c.x/c.w, c.y/c.w, c.z/c.w};
-                return Vector3{
+                return Vector2{
                     (ndc.x*0.5 + 0.5) * (spotLight.shadowMap.getCols()-1),
-                    (1.0 - (ndc.y*0.5 + 0.5)) * (spotLight.shadowMap.getRows()-1),
-                    (ndc.z*0.5 + 0.5)
+                    (1.0 - (ndc.y*0.5 + 0.5)) * (spotLight.shadowMap.getRows()-1)
                 };
             };
 
-            Vector3 p0 = toTexel(fanWorldSpace.v1);
-            Vector3 p1 = toTexel(fanWorldSpace.v2);
-            Vector3 p2 = toTexel(fanWorldSpace.v3);
+            Vector2 t0 = toTexel(fanWorldSpace.v1);
+            Vector2 t1 = toTexel(fanWorldSpace.v2);
+            Vector2 t2 = toTexel(fanWorldSpace.v3);
 
-            double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
-            int minDim = std::min(spotLight.shadowMap.getRows(), spotLight.shadowMap.getCols());
-            double alphaConst;
+            Vector3 p0 = {t0.x, t0.y, shadowMapDepthValueFor(spotLight, fanWorldSpace.v1)};
+            Vector3 p1 = {t1.x, t1.y, shadowMapDepthValueFor(spotLight, fanWorldSpace.v2)};
+            Vector3 p2 = {t2.x, t2.y, shadowMapDepthValueFor(spotLight, fanWorldSpace.v3)};
 
+            //double r = RendUt::kernelRadiusFromSide(pcfKernelSize);
+            //int minDim = std::min(spotLight.shadowMap.getRows(), spotLight.shadowMap.getCols());
+            double alphaConst = light.bias;
+            /*
             //if r would be smaller than 0 we don't divide, otherwise bias would be too great
             if(pcfKernelSize <= 1){
                 alphaConst = light.bias * std::max(1, minDim);
             }else{
                 alphaConst = light.bias * std::max(1, minDim) / MathUt::safeDenom(r);
-            }
+            }*/
 
 
             double bias = BiasManager::getSlopeScaled(spotLight.shadowMap, p0, p1, p2, pcfKernelSize, alphaConst);
@@ -1489,6 +1501,17 @@ double Renderer::calculateShadowAmount(const Buffer<double>& shadowMap,const Lig
         return FilteringManager::pcssPoisson(shadowMap, point, receiverDepth, bias, light);
     default:
         return FilteringManager::pcf5x5(shadowMap, point, receiverDepth, bias);
+    }
+}
+
+double Renderer::shadowMapDepthValueFor(const Light& light,const Vector3& pointWorldSpace, int face){
+    if (light.lightType == Light::LightType::DISTANT) {
+        Vector4 pointLightProjection = light.getProjectionMatrix()*light.getViewMatrix(face)*Vectors::vector3to4(pointWorldSpace);
+        return std::clamp(pointLightProjection.z/pointLightProjection.w * 0.5 + 0.5, 0.0, 1.0);
+    } else {
+        const Vector3 lightToPoint = pointWorldSpace - light.transform.getPosition();
+        const double dist = lightToPoint.length();
+        return std::clamp((dist - light.near) / (light.range - light.near), 0.0, 1.0);
     }
 }
 

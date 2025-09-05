@@ -191,7 +191,8 @@ void MainWindow::loadTestScene(){
     //TestScenes::loadSpotLightOnEmptyWall(*scene, *objectsList);
     //TestScenes::loadOnlyDistantLight(*scene , *objectsList);
     //TestScenes::loadRotatedCubeAndLight(*scene, *objectsList, Light::LightType::POINT);
-    TestScenes::loadFilteringTestScene(*scene , *objectsList);
+    //TestScenes::loadFilteringTestScene(*scene , *objectsList);
+    TestScenes::loadDynamicBiasTestScene(*scene , *objectsList);
     refreshScene();
 }
 
