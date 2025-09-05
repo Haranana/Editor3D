@@ -137,15 +137,18 @@ Vector3 LightingManager::getSpecularCookTorrance(const Vector3& pointToLightDir,
 }
 
 Vector3 LightingManager::getConstantAmbient(const Vector3& baseColor, const Vector3& Ka, const Vector3& ambientColor, double ambientIntensity ,
-                                            bool ambientPBR , double metallic){
+                                            bool ambientPBR , double metallic){ //base color or albedo/ depending on convention
 
     Vector3 La = ambientColor * ambientIntensity;
-    Vector3 ambient = baseColor.hadamard(Ka).hadamard(La);
+
+    const bool hasKa = (Ka.x > 1e-6 || Ka.y > 1e-6 || Ka.z > 1e-6);
+    Vector3 base = hasKa ? Ka : baseColor;            // << kluczowa zmiana
+    Vector3 ambient = base.hadamard(La);
 
     if (ambientPBR) {
-        ambient = ambient * (1.0 - metallic);
+        ambient = ambient * (1.0 - metallic);          // prosta heurystyka PBR-ish
     }
-
+                                // jeśli kiedyś dodasz mapę AO
     return ambient;
 }
 

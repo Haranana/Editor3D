@@ -1,6 +1,7 @@
 #include "UI/ScenePropertiesWidget.h"
 #include "UI/Vector3PropertiesWidget.h"
 #include <QFormLayout>
+#include "Math/Utility.h"
 #include <cmath>
 
 ScenePropertiesWidget::ScenePropertiesWidget(QWidget* parent)
@@ -63,7 +64,7 @@ void ScenePropertiesWidget::setObject(std::shared_ptr<Object3D> object){
 void ScenePropertiesWidget::onAmbientColorChanged()
 {
     if (!scene) return;
-    scene->ambientColor = ambientColorProxy;
+    scene->ambientColor = RendUt::sRGBToLinear(ambientColorProxy);
     emit objectChanged();
 }
 
