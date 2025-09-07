@@ -5,6 +5,11 @@
 #include "Math/Vectors.h"
 #include "Math/Utility.h"
 
+static inline int snapPcfSamples(int v) {
+    if (v < (8+12)/2) return 8;
+    if (v < (12+16)/2) return 12;
+    return 16;
+}
 
 LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
     : ObjectPropertiesWidget(parent)
@@ -78,7 +83,79 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
     });
 
     filteringPropertiesWidget = new LightFilteringPropertiesWidget(this);
-    layout->addRow("Filter: " , filteringPropertiesWidget);
+    layout->addRow("Filter", filteringPropertiesWidget);
+    connect(filteringPropertiesWidget, &ObjectPropertiesWidget::objectChanged, this, &LightPropertiesWidget::objectChanged);
+
+    auto pcfSamplesRow = new QWidget(this);
+    auto pcfSamplesLayout = new QHBoxLayout(pcfSamplesRow);
+    pcfPoissonSamplesSpin = new QSpinBox(this);
+    pcfPoissonSamplesSpin->setRange(pcfSamplesMin, pcfSamplesMax);
+    pcfPoissonSamplesSpin->setSingleStep(pcfSamplesStep);
+    pcfPoissonSamplesSlider = new QSlider(Qt::Horizontal, this);
+    pcfPoissonSamplesSlider->setRange(pcfSamplesMin, pcfSamplesMax);
+    pcfPoissonSamplesSlider->setSingleStep(pcfSamplesStep);
+    pcfSamplesLayout->addWidget(pcfPoissonSamplesSpin);
+    pcfSamplesLayout->addWidget(pcfPoissonSamplesSlider);
+    layout->addRow("PCF Poisson samples", pcfSamplesRow);
+    connect(pcfPoissonSamplesSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int v){
+        int snapped = snapPcfSamples(v);
+        if (pcfPoissonSamplesSpin->value() != snapped)
+            pcfPoissonSamplesSpin->setValue(snapped);
+        if (pcfPoissonSamplesSlider->value() != snapped)
+            pcfPoissonSamplesSlider->setValue(snapped);
+        onPcfPoissonSamplesChanged(snapped);
+    });
+    connect(pcfPoissonSamplesSlider, &QSlider::valueChanged, [this](int v){
+        int snapped = snapPcfSamples(v);
+        if (pcfPoissonSamplesSlider->value() != snapped)
+            pcfPoissonSamplesSlider->setValue(snapped);
+        if (pcfPoissonSamplesSpin->value() != snapped)
+            pcfPoissonSamplesSpin->setValue(snapped);
+    });
+
+    auto pcssPenumbraRow = new QWidget(this);
+    auto pcssPenumbraLayout = new QHBoxLayout(pcssPenumbraRow);
+    pcssPenumbraSpin = new QDoubleSpinBox(this);
+    pcssPenumbraSpin->setRange(pcssPenumbraMin, pcssPenumbraMax);
+    pcssPenumbraSpin->setSingleStep(pcssPenumbraStep);
+    pcssPenumbraSlider = new QSlider(Qt::Horizontal, this);
+    pcssPenumbraSlider->setRange(int(pcssPenumbraMin*pcssPenumbraFactor), int(pcssPenumbraMax*pcssPenumbraFactor));
+    pcssPenumbraLayout->addWidget(pcssPenumbraSpin);
+    pcssPenumbraLayout->addWidget(pcssPenumbraSlider);
+    layout->addRow("PCSS penumbra scale", pcssPenumbraRow);
+    connect(pcssPenumbraSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double v){
+        int iv = int(v*pcssPenumbraFactor);
+        if (pcssPenumbraSlider->value() != iv)
+            pcssPenumbraSlider->setValue(iv);
+        onPcssPenumbraChanged(v);
+    });
+    connect(pcssPenumbraSlider, &QSlider::valueChanged, [this](int v){
+        double dv = double(v)/double(pcssPenumbraFactor);
+        if (std::abs(pcssPenumbraSpin->value() - dv) > 1.0/double(pcssPenumbraFactor)/10.0)
+            pcssPenumbraSpin->setValue(dv);
+    });
+
+    auto pcfRadiusRow = new QWidget(this);
+    auto pcfRadiusLayout = new QHBoxLayout(pcfRadiusRow);
+    pcfPoissonRadiusSpin = new QDoubleSpinBox(this);
+    pcfPoissonRadiusSpin->setRange(pcfRadiusMin, pcfRadiusMax);
+    pcfPoissonRadiusSpin->setSingleStep(pcfRadiusStep);
+    pcfPoissonRadiusSlider = new QSlider(Qt::Horizontal, this);
+    pcfPoissonRadiusSlider->setRange(int(pcfRadiusMin*pcfRadiusFactor), int(pcfRadiusMax*pcfRadiusFactor));
+    pcfRadiusLayout->addWidget(pcfPoissonRadiusSpin);
+    pcfRadiusLayout->addWidget(pcfPoissonRadiusSlider);
+    layout->addRow("PCF Poisson radius (texels)", pcfRadiusRow);
+    connect(pcfPoissonRadiusSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [this](double v){
+        int iv = int(v*pcfRadiusFactor);
+        if (pcfPoissonRadiusSlider->value() != iv)
+            pcfPoissonRadiusSlider->setValue(iv);
+        onPcfPoissonRadiusChanged(v);
+    });
+    connect(pcfPoissonRadiusSlider, &QSlider::valueChanged, [this](int v){
+        double dv = double(v)/double(pcfRadiusFactor);
+        if (std::abs(pcfPoissonRadiusSpin->value() - dv) > 1.0/double(pcfRadiusFactor)/10.0)
+            pcfPoissonRadiusSpin->setValue(dv);
+    });
 
     colorPicker = new ColorPicker(this);
     layout->addRow("Color", colorPicker);
@@ -93,7 +170,6 @@ LightPropertiesWidget::LightPropertiesWidget(QWidget* parent)
 
 void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
 {
-
     light = std::dynamic_pointer_cast<Light>(object);
     if (!light) return;
 
@@ -122,6 +198,30 @@ void LightPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     shadowMapSizeSlider->blockSignals(true);
     shadowMapSizeSlider->setValue(light->getShadowMap().width());
     shadowMapSizeSlider->blockSignals(false);
+
+    pcfPoissonSamplesSpin->blockSignals(true);
+    pcfPoissonSamplesSpin->setValue(light->pcfPoissonSamples);
+    pcfPoissonSamplesSpin->blockSignals(false);
+
+    pcfPoissonSamplesSlider->blockSignals(true);
+    pcfPoissonSamplesSlider->setValue(light->pcfPoissonSamples);
+    pcfPoissonSamplesSlider->blockSignals(false);
+
+    pcssPenumbraSpin->blockSignals(true);
+    pcssPenumbraSpin->setValue(light->pcssPenumbraScale);
+    pcssPenumbraSpin->blockSignals(false);
+
+    pcssPenumbraSlider->blockSignals(true);
+    pcssPenumbraSlider->setValue(int(light->pcssPenumbraScale*pcssPenumbraFactor));
+    pcssPenumbraSlider->blockSignals(false);
+
+    pcfPoissonRadiusSpin->blockSignals(true);
+    pcfPoissonRadiusSpin->setValue(light->pcfPoissonRadiusTexels);
+    pcfPoissonRadiusSpin->blockSignals(false);
+
+    pcfPoissonRadiusSlider->blockSignals(true);
+    pcfPoissonRadiusSlider->setValue(int(light->pcfPoissonRadiusTexels*pcfRadiusFactor));
+    pcfPoissonRadiusSlider->blockSignals(false);
 
     colorPicker->blockSignals(true);
     colorPicker->setColor(light->color);
@@ -154,5 +254,23 @@ void LightPropertiesWidget::onCastShadowChanged(int state) {
 
 void LightPropertiesWidget::onShadowMapSizeChanged(int v) {
     if (light) light->setShadowMapSize(static_cast<size_t>(v));
+    emit objectChanged();
+}
+
+void LightPropertiesWidget::onPcfPoissonSamplesChanged(int v) {
+    if (!light) return;
+    light->pcfPoissonSamples = snapPcfSamples(v);
+    emit objectChanged();
+}
+
+void LightPropertiesWidget::onPcssPenumbraChanged(double v) {
+    if (!light) return;
+    light->pcssPenumbraScale = v;
+    emit objectChanged();
+}
+
+void LightPropertiesWidget::onPcfPoissonRadiusChanged(double v) {
+    if (!light) return;
+    light->pcfPoissonRadiusTexels = v;
     emit objectChanged();
 }

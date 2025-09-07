@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QSlider>
+#include <QSpinBox>
 
 class LightPropertiesWidget : public ObjectPropertiesWidget {
     Q_OBJECT
@@ -24,6 +25,9 @@ private slots:
     void onBiasChanged(double v);
     void onCastShadowChanged(int state);
     void onShadowMapSizeChanged(int v);
+    void onPcfPoissonSamplesChanged(int v);
+    void onPcssPenumbraChanged(double v);
+    void onPcfPoissonRadiusChanged(double v);
 
 private:
     static constexpr double intensityMin = 0.0;
@@ -41,6 +45,20 @@ private:
     static constexpr int shadowMapSizeMax = 4096;
     static constexpr int shadowMapSizeStep = 32;
 
+    static constexpr int pcfSamplesMin = 8;
+    static constexpr int pcfSamplesMax = 16;
+    static constexpr int pcfSamplesStep = 4;
+
+    static constexpr double pcssPenumbraMin = 1.0;
+    static constexpr double pcssPenumbraMax = 3.0;
+    static constexpr double pcssPenumbraStep = 0.01;
+    static constexpr int pcssPenumbraFactor = int(1.0/pcssPenumbraStep);
+
+    static constexpr double pcfRadiusMin = 2.0;
+    static constexpr double pcfRadiusMax = 5.0;
+    static constexpr double pcfRadiusStep = 0.1;
+    static constexpr int pcfRadiusFactor = int(1.0/pcfRadiusStep);
+
     LightFilteringPropertiesWidget* filteringPropertiesWidget;
 
     std::shared_ptr<Light> light;
@@ -55,6 +73,15 @@ private:
 
     QSpinBox* shadowMapSizeSpin;
     QSlider* shadowMapSizeSlider;
+
+    QSpinBox* pcfPoissonSamplesSpin;
+    QSlider* pcfPoissonSamplesSlider;
+
+    QDoubleSpinBox* pcssPenumbraSpin;
+    QSlider* pcssPenumbraSlider;
+
+    QDoubleSpinBox* pcfPoissonRadiusSpin;
+    QSlider* pcfPoissonRadiusSlider;
 };
 
 #endif // LIGHTPROPERTIESWIDGET_H

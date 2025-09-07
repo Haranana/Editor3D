@@ -28,7 +28,7 @@ public:
     enum class BiasType{
         CONSTANT,
         SLOPE_SCALED,
-        NORMAL_ANGLE
+        NORMAL_ANGLE //usage blocked do to implementation issues
     };
 
     virtual double getAttenuation(const Vector3& lightToPoint = {}) = 0;
@@ -44,14 +44,14 @@ public:
     Vector3 direction; //should be ignored in case of point light
 
     int    pcfPoissonSamples      = 12;   // 8/12/16
-    double pcssPenumbraScale = 1.8;
-    double pcfPoissonRadiusTexels = 4;  // 1.5–2.5 should be good
+    double pcssPenumbraScale = 1.8; // 1 - 3 range
+    double pcfPoissonRadiusTexels = 4;  // 2 - 5 range
     int pcssMaxKernelTexels = 24;
 
     bool castsShadow = true;
 
 
-    double bias = 0.002;
+    double bias = 0.1;
     double range;
     double intensity = 1.0;
     double near = 0.1;
