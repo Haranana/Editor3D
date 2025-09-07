@@ -224,6 +224,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                         const double SHADOW_INTENSITY = 0.2;
                         Vector3 outColor = Ke; //we start with emission because it's not dependant on the shadow
 
+                        //calculating ambient
                         Vector3 ambient = lightingManager->getConstantAmbient(kd,Ka,scene->ambientColor,scene->ambientIntensity,scene->ambientPBR,obj.material.metallic);
                         outColor = outColor + ambient;
 
@@ -234,6 +235,8 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             Vector3 worldSpacePoint, faceNormal;
                             double shadowAmount{}, visibility{};
 
+                            //calculating lightMod, diffuseMod, specMod, shadowTint,
+                            //different methods depending on chosen shading
                             switch (obj.displaySettings->shadingMode){
                                 case DisplaySettings::Shading::FLAT:{
 
@@ -330,6 +333,7 @@ void Renderer::renderObject(RenderableObject3D& obj, int objId){
                             if(obj.displaySettings->diffuseModel == DisplaySettings::DiffuseModel::NONE){
                             diffuseModifier = {};
                             }
+
                             outColor = outColor + diffuseModifier + specularModifier + shadowTintModifier;
                             lightId++;
                         }
@@ -1340,8 +1344,22 @@ void Renderer::shadowMapDepthPass(SpotLight& lightSource){
 }
 
 bool Renderer::shouldCullBackFace(const Triangle3& face){
+    /*
     Vector3 cameraPointVector = camera->transform.getPosition() - face.v1;
     return getFaceNormal(face.v1, face.v2, face.v3).dotProduct(cameraPointVector) <= 0;
+    */
+
+    //convert vertices to camera space and then get normal
+    //this method works for both perspective and ortho projection
+    const Matrix4 V = camera->getViewMatrix();
+
+    Vector3 v0 = Vectors::vector4to3(V * Vectors::vector3to4(face.v1));
+    Vector3 v1 = Vectors::vector4to3(V * Vectors::vector3to4(face.v2));
+    Vector3 v2 = Vectors::vector4to3(V * Vectors::vector3to4(face.v3));
+
+    Vector3 normal = (v1 - v0).crossProduct(v2 - v0);
+
+    return normal.z <= 0.0;
 }
 
 
