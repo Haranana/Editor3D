@@ -12,7 +12,6 @@ public:
         ORTHOGRAPHIC
     };
 
-
     Camera(int screenWidth , int screenHeight) : screenWidth(screenWidth) , screenHeight(screenHeight) {
         aspect = double(screenWidth)/double(screenHeight);
         oLeft = -screenWidth * 0.5;

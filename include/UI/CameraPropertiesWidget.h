@@ -7,6 +7,7 @@
 #include <QDoubleSpinBox>
 #include <QSlider>
 #include <QHBoxLayout>
+#include <QComboBox>
 
 class Camera;
 class Transform3DPropertiesWidget;
@@ -21,7 +22,7 @@ private slots:
     void onFovYChanged(double v);
     void onNearChanged(double v);
     void onFarChanged(double v);
-
+    void onProjectionChanged();
 private:
     static constexpr double fovMin = 1.0;
     static constexpr double fovMax = 179.0;
@@ -47,6 +48,8 @@ private:
 
     QDoubleSpinBox* farSpin;
     QSlider* farSlider;
+
+    QComboBox* projectionComboBox;
 };
 
 #endif // CAMERAPROPERTIESWIDGET_H

@@ -80,6 +80,12 @@ CameraPropertiesWidget::CameraPropertiesWidget(QWidget* parent)
             farSpin->setValue(dv);
     });
 
+    projectionComboBox = new QComboBox(this);
+    projectionComboBox->addItem("Perspective");
+    projectionComboBox->addItem("Orthographic");
+    layout->addRow("Projection",projectionComboBox);
+    connect(projectionComboBox, &QComboBox::currentIndexChanged, this, &CameraPropertiesWidget::onProjectionChanged);
+
     setLayout(layout);
 }
 
@@ -111,6 +117,12 @@ void CameraPropertiesWidget::setObject(std::shared_ptr<Object3D> object)
     farSlider->setValue(int(cam->farPlane));
     farSlider->blockSignals(false);
 
+    if(cam->cameraType == Camera::CameraType::PERSPECTIVE){
+        projectionComboBox->setCurrentIndex(0);
+    }else{
+        projectionComboBox->setCurrentIndex(1);
+    }
+
     connect(transformWidget, &ObjectPropertiesWidget::objectChanged, this, &CameraPropertiesWidget::objectChanged);
 }
 
@@ -133,4 +145,19 @@ void CameraPropertiesWidget::onFarChanged(double v)
     if (!cam) return;
     cam->farPlane = v;
     emit objectChanged();
+}
+
+void CameraPropertiesWidget::onProjectionChanged(){
+    switch(projectionComboBox->currentIndex()){
+    case 0:
+        cam->cameraType = Camera::CameraType::PERSPECTIVE;
+        break;
+    case 1:
+        cam->cameraType = Camera::CameraType::ORTHOGRAPHIC;
+        break;
+    default:
+        cam->cameraType = Camera::CameraType::PERSPECTIVE;
+        break;
+    }
+
 }
