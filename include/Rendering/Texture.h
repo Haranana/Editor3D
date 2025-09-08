@@ -74,6 +74,8 @@ public:
         return defaultResult;
     }
 
+
+    //not currently used
     static inline double sampleA(const std::shared_ptr<Texture>& tex, const Vector2& uv)
     {
         if (!tex) return 1.0;
@@ -87,8 +89,8 @@ public:
 
         const QRgb px = img.pixel(x, y);
         const int A = qAlpha(px);
-        if (A < 255) return A / 255.0;               // prawdziwy kanał alfa -> używamy
-        // fallback: obraz bez alfy -> traktuj jasność jako maskę
+        if (A < 255) return A / 255.0;
+
         return qGray(px) / 255.0;
     }
 

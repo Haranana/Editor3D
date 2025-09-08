@@ -5,7 +5,7 @@
 
 /*
  * Data structure similiar in usage to list of lists but
- * faster thanks to being single std::vector
+ * faster clearing thanks to being single std::vector
  * useful when structure is cleared/filled very often, such as z-buffer ,id-buffer or shadow maps
 */
 template<typename T>

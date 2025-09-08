@@ -9,7 +9,8 @@
 #include "Math/Vectors.h"
 #include <cmath>
 
-
+//ssdb - slipe scale depth bias
+//na - normal angle (bias)
 class BiasManager{
 public:
 
